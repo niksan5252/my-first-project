@@ -1,0 +1,38 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 94c0c3a29fbf85f4a89ff12e7504245b, type: 3}
+  m_Name: Theme_SciFi
+  m_EditorClassIdentifier: Assembly-CSharp::TunnelTheme
+  primaryColor: {r: 1, g: 0, b: 0.8, a: 1}
+  secondaryColor: {r: 0, g: 0.898, b: 1, a: 1}
+  accentEmissionIntensity: 1.5
+  ringArchPrefab: {fileID: 0}
+  floorMaterialOverride: {fileID: 0}
+  floorColor: {r: 0.025, g: 0.02, b: 0.04, a: 1}
+  floorMetallic: 0.6
+  floorSmoothness: 0.85
+  floorGridLineColor: {r: 0, g: 0.898, b: 1, a: 1}
+  floorGridGlintIntensity: 0.5
+  laneLineColor: {r: 1, g: 0, b: 0.8, a: 1}
+  laneLineEmissionIntensity: 0.55
+  fogColor: {r: 0.05, g: 0, b: 0.1, a: 1}
+  fogStartRatio: 0.35
+  fogEndRatio: 0.95
+  lightIntensity: 0
+  lightColor: {r: 1, g: 1, b: 1, a: 1}
+  skyboxMaterial: {fileID: 2100000, guid: 068ea9f7a4897404a8876b8a15c22ff8, type: 2}
+  cameraBackgroundColor: {r: 0.06, g: 0, b: 0.12, a: 1}
+  environmentPrefab: {fileID: 3013733628317876952, guid: 144300973f1861b4cb02a98625dd4d28, type: 3}
+  airParticles: {fileID: 11400000, guid: 6f53086d1526cf248a4c465b0c3c982d, type: 2}
+  postProcessingProfile: {fileID: 11400000, guid: 4775d1d2893681e44b33f06fbad10bc3, type: 2}
+  hudComboTextColor: {r: 1, g: 0, b: 0.8, a: 1}
+  hudBannerBorderColor: {r: 0, g: 0.898, b: 1, a: 1}

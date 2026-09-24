@@ -1,0 +1,15 @@
+# Beatmap generator dependencies.
+#
+# librosa pulls in numpy, scipy, numba and soundfile itself; they are pinned to floors
+# rather than exact versions so a fresh venv gets current wheels, while staying above the
+# releases this script was written against.
+#
+# librosa >= 0.10 is what matters: the script prefers librosa.feature.rhythm.tempo (the
+# post-0.10 location) and only falls back to the deprecated librosa.beat.tempo, and
+# onset_strength_multi's `channels` argument behaves as documented from 0.10 on.
+librosa>=0.10.1
+numpy>=1.24
+soundfile>=0.12.1
+
+# Used directly by the timing refinement pass (zero-phase band filters), not just via librosa.
+scipy>=1.11

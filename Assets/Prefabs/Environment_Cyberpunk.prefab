@@ -1,0 +1,297 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &2070142543167483732
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1149134078814991804}
+  - component: {fileID: 9160193058922715893}
+  m_Layer: 0
+  m_Name: Environment_Cyberpunk
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1149134078814991804
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2070142543167483732}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 7555241262485150307}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &9160193058922715893
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2070142543167483732}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f1eed8750c020ac40871bf36052e3777, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CityEnvironmentDecorator
+  buildingPrefabs:
+  - {fileID: 919132149155446097, guid: e778db9db4076034bb0337f7e074a26f, type: 3}
+  - {fileID: 919132149155446097, guid: a27fecb9feb25974591d399d02b50ed2, type: 3}
+  - {fileID: 919132149155446097, guid: a49e3a2577d332d4092733f815274bee, type: 3}
+  - {fileID: 919132149155446097, guid: f153151f11cc0d54594b0d9e9a00355b, type: 3}
+  - {fileID: 919132149155446097, guid: 91275c366b35db549b53f02c17650733, type: 3}
+  - {fileID: 919132149155446097, guid: 86d50c66bce4aaf4ab85283b6cab16ef, type: 3}
+  - {fileID: 919132149155446097, guid: 60faea8581de50547b7e6f261c0c28b3, type: 3}
+  - {fileID: 919132149155446097, guid: b2b332f50d1b6ae449fda603e8073c4e, type: 3}
+  - {fileID: 919132149155446097, guid: 6daf746f5b06a6d4d88c6000bd76b559, type: 3}
+  - {fileID: 919132149155446097, guid: fbfdc4dd59d1f484f963c572c3f19b38, type: 3}
+  - {fileID: 919132149155446097, guid: 3df6437519f5f12489e265994c556f1c, type: 3}
+  - {fileID: 919132149155446097, guid: 617e846b8768e9a4d96ccbf85235ec07, type: 3}
+  - {fileID: 919132149155446097, guid: 084d790765bc0194193a46a525f7db9a, type: 3}
+  - {fileID: 919132149155446097, guid: ef7d791bbb7782041a67ad7384078cf0, type: 3}
+  - {fileID: 919132149155446097, guid: a22256440d167aa48a87e64827056ac4, type: 3}
+  - {fileID: 919132149155446097, guid: cf737aab5527c50468655f8a5c0e69d1, type: 3}
+  - {fileID: 919132149155446097, guid: 197ab527d4e159f48abd4de26a0a5aa7, type: 3}
+  - {fileID: 919132149155446097, guid: 277018f3cf66c8147af473e86074654b, type: 3}
+  - {fileID: 919132149155446097, guid: 67f1b7597074cb949a35ab537be7c2fb, type: 3}
+  - {fileID: 919132149155446097, guid: ea4d73c38636a5446b0944f68a184917, type: 3}
+  detailPrefabs:
+  - {fileID: 919132149155446097, guid: 3a7b2b87d5d7d7443988f7f551234257, type: 3}
+  - {fileID: 919132149155446097, guid: a0a8833bbc94e734e83ebeea32cb50a2, type: 3}
+  - {fileID: 919132149155446097, guid: acda9ee4e0d33e74295061b481d0f268, type: 3}
+  - {fileID: 919132149155446097, guid: c73c080539d4f774797f04235fe1f390, type: 3}
+  - {fileID: 919132149155446097, guid: b99124a30fe8762409613052b7a46ab3, type: 3}
+  - {fileID: 919132149155446097, guid: 80e130fb4cb0a4c40a3bd7eccc513539, type: 3}
+  - {fileID: 919132149155446097, guid: 1d63f4838a351c145ad223d3c8d65f63, type: 3}
+  - {fileID: 919132149155446097, guid: 7bc2abd0de03f1a43909e5f0e94448a6, type: 3}
+  - {fileID: 919132149155446097, guid: 39ce5bf54e8d5ac4aa34684bfc3269c6, type: 3}
+  - {fileID: 919132149155446097, guid: c4ac5c78f973d524b8f15ff177951dc4, type: 3}
+  - {fileID: 919132149155446097, guid: c9b3ec3eb5870ec4e9afcb2f545b4749, type: 3}
+  - {fileID: 919132149155446097, guid: eab46452c39fb3142b76b3933e9fb9aa, type: 3}
+  polePrefabs:
+  - {fileID: 919132149155446097, guid: 3f74d150490e05c4cb4782b3d2dd61ca, type: 3}
+  - {fileID: 919132149155446097, guid: 2abf5023dc1b3514f9bcb762bf196d53, type: 3}
+  - {fileID: 919132149155446097, guid: bc142d56fd5b87f42983c940cc28e5eb, type: 3}
+  - {fileID: 919132149155446097, guid: a618d859618cbbb4b9acab609d4f4c0c, type: 3}
+  - {fileID: 919132149155446097, guid: cbb2c43ce19bddc4fbf93618621b989b, type: 3}
+  - {fileID: 919132149155446097, guid: dc923916cea5cb148ae001f5c7c5ca5c, type: 3}
+  - {fileID: 919132149155446097, guid: e519de82908f53f4eb7bbe3ec58071b8, type: 3}
+  - {fileID: 919132149155446097, guid: a12ba638a83922f4983f59402cd12a10, type: 3}
+  - {fileID: 919132149155446097, guid: 752f39264d8ea5b4da3e6aa4124c5ab0, type: 3}
+  - {fileID: 919132149155446097, guid: db1c9a57b64f5cf4ab371be4227b2f64, type: 3}
+  primaryColor: {r: 1, g: 0, b: 0.8, a: 1}
+  secondaryColor: {r: 0, g: 0.898, b: 1, a: 1}
+  accentEmissionIntensity: 1.5
+  rows:
+  - name: kerb-details
+    offsetX: 4.6
+    offsetXJitter: 0.6
+    spacing: 7
+    spacingJitter: 2
+    scaleMin: 1.2
+    scaleMax: 2.2
+    pool: 1
+    signChance: 0.2
+    faceRoadChance: 0.5
+    castShadows: 0
+  - name: street-poles
+    offsetX: 4.4
+    offsetXJitter: 0.15
+    spacing: 11
+    spacingJitter: 1.5
+    scaleMin: 1.6
+    scaleMax: 2.1
+    pool: 2
+    signChance: 0
+    faceRoadChance: 1
+    castShadows: 0
+  - name: near-blocks
+    offsetX: 8.5
+    offsetXJitter: 1.6
+    spacing: 8
+    spacingJitter: 2.5
+    scaleMin: 3.5
+    scaleMax: 5.5
+    pool: 0
+    signChance: 0.85
+    faceRoadChance: 0.85
+    castShadows: 0
+  - name: mid-blocks
+    offsetX: 16
+    offsetXJitter: 3
+    spacing: 11
+    spacingJitter: 4
+    scaleMin: 6
+    scaleMax: 11
+    pool: 0
+    signChance: 0.55
+    faceRoadChance: 0.6
+    castShadows: 0
+  - name: skyline
+    offsetX: 32
+    offsetXJitter: 8
+    spacing: 17
+    spacingJitter: 6
+    scaleMin: 11
+    scaleMax: 20
+    pool: 0
+    signChance: 0.3
+    faceRoadChance: 0.5
+    castShadows: 0
+  recycleZ: -25
+  extraLengthBeyondTunnel: 60
+  modelTint: {r: 0.26, g: 0.29, b: 0.42, a: 1}
+  signHeightRatio: 0.55
+  bannerWidthRatio: 0.16
+  bannerHeightRatio: 0.5
+  stripHeightRatio: 0.09
+  signDepth: 0.06
+  tubeThicknessRatio: 0.018
+  signKinds:
+  - kind: 0
+    weight: 1
+  - kind: 1
+    weight: 0.9
+  - kind: 2
+    weight: 0.9
+  - kind: 3
+    weight: 0.9
+  - kind: 4
+    weight: 0.5
+  - kind: 5
+    weight: 1
+  - kind: 6
+    weight: 0.6
+  - kind: 7
+    weight: 0.4
+  roundSignMasks:
+  - {fileID: 2800000, guid: f170d4305c3f0de47aca72f5b2a2993f, type: 3}
+  - {fileID: 2800000, guid: 72df6c9e16e84254d90f15431800158e, type: 3}
+  - {fileID: 2800000, guid: a527ba5920a780e4bad4ba2c0c70b732, type: 3}
+  - {fileID: 2800000, guid: f5bb572c970799743bc40c827b10f03b, type: 3}
+  signHaloMask: {fileID: 2800000, guid: 096c6b0355e16824dae81dc608bde798, type: 3}
+  signBeamMask: {fileID: 2800000, guid: 926a9cce9055d6b4cb9e3eaba03dc823, type: 3}
+  haloChance: 0.45
+  haloStrength: 0.4
+  haloSizeRatio: 1.7
+  beamStrength: 1.1
+  beamWidthRatio: 0.5
+  beamHeightRatio: 0.9
+  buildLamps: 1
+  lampWarmColor: {r: 1, g: 0.74, b: 0.42, a: 1}
+  lampCoolColor: {r: 0.55, g: 0.85, b: 1, a: 1}
+  lampWarmChance: 0.55
+  lampIntensity: 16
+  lampRange: 18
+  lampHeadSize: 0.22
+  lampLitDistance: 70
+  lampGlowMask: {fileID: 2800000, guid: 82a96a1aa751c6b4b8238cf3117cee55, type: 3}
+  lampConeMask: {fileID: 2800000, guid: 0204502f1e99f634c9ff7b88ece6db2a, type: 3}
+  coneWidth: 1.9
+  coneHeight: 2
+  coneStrength: 2.4
+  buildWindows: 1
+  windowVariants: 8
+  windowGrid: {x: 9, y: 14}
+  windowLitChance: 0.07
+  windowWarmColor: {r: 1, g: 0.78, b: 0.45, a: 1}
+  windowCoolColor: {r: 0.6, g: 0.9, b: 1, a: 1}
+  windowEmission: 0.85
+  windowCoverage: 0.62
+  windowCellPixels: 8
+  windowGlowBleed: 0.45
+  buildHaze: 1
+  hazeMask: {fileID: 2800000, guid: 82a96a1aa751c6b4b8238cf3117cee55, type: 3}
+  hazeCards: 16
+  hazeColor: {r: 0.3, g: 0.5, b: 0.85, a: 1}
+  hazeStrength: 0.22
+  hazeSizeMin: 8
+  hazeSizeMax: 16
+  hazeHeight: 1.6
+  hazeNearZ: 18
+  buildGroundPlanes: 1
+  groundColor: {r: 0.075, g: 0.08, b: 0.1, a: 1}
+  groundWidth: 90
+  groundSmoothness: 0.1
+  nightSky: {fileID: 2176174925336769963}
+  seed: 20260920
+--- !u!1 &6339485093467655851
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7555241262485150307}
+  - component: {fileID: 2176174925336769963}
+  m_Layer: 0
+  m_Name: NightSky
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7555241262485150307
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6339485093467655851}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1149134078814991804}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2176174925336769963
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6339485093467655851}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: be1771ee979068244b34d748fbbde4b0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CityNightSkyDecorator
+  starCount: 900
+  domeNearRadius: 260
+  domeFarRadius: 460
+  horizonCutoff: 0.12
+  starIntensity: 1.35
+  starAngularSize: 0.0045
+  starBrightnessFalloff: 3.4
+  starTintStrength: 0.45
+  starTwinkleAmount: 0.35
+  starTwinkleSpeed: 1.3
+  buildMoon: 1
+  moonRadius: 30
+  moonPosition: {x: -135, y: 145, z: 300}
+  moonIntensity: 0.45
+  moonNoiseScale: 0.12
+  moonLandThreshold: 0.52
+  moonEdgeSmoothness: 0.12
+  moonBlendSharpness: 3
+  moonNoiseOctaves: 4
+  moonDesaturation: 0.5
+  buildHalo: 1
+  haloMask: {fileID: 2800000, guid: ea96b91f4aeb3984ba30239904a4f64f, type: 3}
+  haloSizeRatio: 1.8
+  haloStrength: 0.5
+  seed: 71620

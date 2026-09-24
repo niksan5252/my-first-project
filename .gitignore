@@ -1,0 +1,54 @@
+# Unity - generated, rebuilt from Assets/ and Packages/ on open
+/[Ll]ibrary/
+/[Tt]emp/
+/[Oo]bj/
+/[Bb]uild/
+/[Bb]uilds/
+/[Ll]ogs/
+/[Uu]ser[Ss]ettings/
+/[Mm]emoryCaptures/
+/[Rr]ecordings/
+
+# Screenshots from visual checks. Anchored on purpose: Docs/screenshots is documentation and
+# the Cyberpunk UI pack ships its own screenshots folder, and both must stay tracked.
+/[Ss]creenshots/
+/Assets/[Ss]creenshots/
+/Assets/[Ss]creenshots.meta
+
+# IDE-generated project files - Unity regenerates them
+*.csproj
+*.sln
+*.unityproj
+*.suo
+*.user
+*.userprefs
+*.pidb
+*.booproj
+*.svd
+*.pdb
+*.mdb
+*.opendb
+*.VC.db
+.vs/
+.vscode/
+.idea/
+.consulo/
+
+# Unity crash and build by-products
+sysinfo.txt
+crashlytics-build.properties
+*.apk
+*.aab
+*.unitypackage
+*.app
+/[Aa]ssets/[Aa]ddressable[Aa]ssets[Dd]ata/*/*.bin*
+/[Aa]ssets/[Ss]treamingAssets/aa.meta
+/[Aa]ssets/[Ss]treamingAssets/aa/*
+
+# Per-user Claude Code permissions
+.claude/settings.local.json
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini

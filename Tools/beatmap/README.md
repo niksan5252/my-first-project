@@ -1,0 +1,391 @@
+# Beatmap generator
+
+Turns an audio file into the beatmap JSON that `CueSpawner` loads from
+`Assets/StreamingAssets/Beatmaps/`.
+
+It lives in `Tools/` rather than under `Assets/` on purpose: Unity imports everything below
+`Assets/`, and a `.py` file there becomes a tracked asset with a `.meta` file for no benefit.
+`StreamingAssets` is the one folder Unity copies verbatim without importing, so a regenerated
+map is picked up on the next Play without a reimport — you do not even need to refocus the
+Editor.
+
+## Setup (once)
+
+Needs Python 3.9+. From this folder:
+
+```powershell
+python -m venv .venv
+.venv\Scripts\python -m pip install -r requirements.txt
+```
+
+The `.venv` folder is throwaway; delete it and repeat to start clean.
+
+## Running
+
+```powershell
+# Simplest form: writes Assets/StreamingAssets/Beatmaps/<name>.json
+.venv\Scripts\python generate_beatmap.py path\to\track.wav
+
+# Explicit output, plus a preview of the first 20 events in the terminal
+.venv\Scripts\python generate_beatmap.py track.wav -o ..\..\Assets\StreamingAssets\Beatmaps\level1.json --preview 20
+
+# Sparser chart for a busy track: no more than ~4 notes a second, only confident onsets
+.venv\Scripts\python generate_beatmap.py track.wav --min-interval 0.25 --onset-delta 0.12
+
+# Analyse and report without touching the file
+.venv\Scripts\python generate_beatmap.py track.wav --dry-run --preview 30
+```
+
+`--help` lists every flag with its default. The output path defaults to
+`Assets/StreamingAssets/Beatmaps/<input stem>.json`, resolved relative to *this script*, so it
+works from any working directory.
+
+Set `beatmapFileName` on the `CueSpawner` component to the file name you produced (just the
+name, not the path — `BeatmapReader.ResolvePath` prepends `StreamingAssets/Beatmaps`).
+
+## What it does
+
+1. **Onsets and tempo.** One mel spectrogram feeds the whole pipeline, so the onset envelope,
+   the per-band classification and the sustain measurement are all indexed by the same frames.
+   Onsets come from `librosa.onset.onset_detect`; tempo from `librosa.feature.tempo` (the
+   post-0.10 home of `librosa.beat.tempo`, which librosa 1.0 removed).
+
+   Detection does **not** run on `librosa.onset.onset_strength`, and that is deliberate: it
+   averages spectral flux over all 128 mel bands, and a kick drum only lights the two or three
+   below 150 Hz, so in the average it contributes a few percent while a hi-hat lights most of
+   the spectrum. On a plain four-on-the-floor loop that costs you every single Kick — the hats
+   get detected, the kicks never clear the threshold, and the chart comes out as an unbroken
+   row of Punches. Instead the three per-band envelopes are each normalised against their own
+   band and the detection envelope is their **maximum**: an event that is strong anywhere is an
+   event. Intensity is read off that same envelope for the same reason.
+
+2. **Type by frequency band.** Three bands — low (below `--kick-hz`, default 150 Hz), mid
+   (up to `--punch-hz`, default 2 kHz) and high. The classifier reads onset *strength*
+   (spectral flux) per band, not raw energy: on a track with a continuous bass drone every
+   frame has huge low-band energy, so an energy rule would call every hi-hat a Kick. Flux only
+   rises when something in that band actually starts.
+
+   * all three bands firing hard at once, on a strong onset → **Jump**
+   * low band lit in its own terms (`--kick-level`) **or** dominant over the others
+     (`--kick-dominance` × the strongest other band) → **Kick**
+   * otherwise → **Punch**
+
+   The absolute rule is not redundant with the relative one, and dense productions need it: in
+   techno the kick lands on a hi-hat or a clap nearly every time, so mid and high are loud at
+   exactly the moments the kick is. On the 143.55 BPM techno track in this project the relative
+   rule alone found 44 kicks where the low band's own onsets say there are roughly 430 — a
+   four-on-the-floor record charted as an almost unbroken row of Punches. Lower `--kick-level`
+   to ~0.30 for that kind of material; the default 0.45 is the conservative setting.
+
+   Jump is tested first because a full-spectrum accent is also bass-heavy and the Kick rule
+   would otherwise swallow it. `--no-jumps` turns them off entirely.
+
+3. **Timing refinement.** Detection says *which* moments matter; a second pass says *when* they
+   are. Using one tool for both is what put a 32 ms systematic gap between Kick and Punch in the
+   first charts: the mel spectrogram's window has to be long (93 ms at the old settings) to
+   resolve a 60 Hz kick in frequency, and a window that long smears the attack across itself —
+   differently for a low-frequency body than for a broadband transient. Measured against the
+   waveform, kicks came out early and everything else late. No single offset fixes a difference
+   that depends on the note's type, which is why it was heard as *wandering* rather than as lag:
+   on a four-on-the-floor track the types alternate constantly, so the error swung back and
+   forth by ~32 ms from note to note.
+
+   So the refinement pass stops asking the spectrogram for timing. Timing needs amplitude
+   resolution, not frequency resolution: band-limit the signal with a zero-phase filter, take an
+   RMS envelope, and read the attack off that as the point where the rise from the preceding
+   valley passes a fraction of its height, interpolated between envelope samples. Each band gets
+   its own window, since the requirements differ. Zero-phase filtering (`sosfiltfilt`) is not a
+   detail — an ordinary IIR filter delays the signal by its group delay, and a delay is exactly
+   what is being measured.
+
+   Calibrated against the synthetic fixture, where the true hit times are known rather than
+   estimated: the combined error went from **+25.7 ± 9.6 ms to −1.5 ± 6.5 ms**, and the worst
+   single note from 56 ms to 13 ms. Turn the pass off with `--no-refine` to see the raw grid.
+
+4. **Holds.** See the criterion below.
+
+5. **Intensity.** Normalised onset strength in the band the event actually owns, `0..1`. The
+   reference is the 99th percentile of the detected onsets rather than the maximum over the
+   whole file (`--norm-percentile`) so one clipped sample or one cymbal crash cannot push an
+   entire track towards zero.
+
+6. **Lanes.** `--lane-mode`, default `alternate`. See below.
+
+7. **Thinning.** `--min-interval` (default 0.12 s) sets the floor on the gap between events,
+   and `--min-intensity` drops the weakest onsets before that.
+
+## Workout mode — what decides a note's type
+
+**Onsets decide *when* a note happens. The workout structure decides *what* it is.** This is the
+default; `--no-sets` restores typing each note by its own frequency content.
+
+Typing every note acoustically is correct as music analysis and wrong as exercise design. A bar
+of techno puts a kick, a hat and a clap inside 400 ms, so the chart asks for a leg, then an arm,
+then a jump, and nobody can follow that. So the track is cut into **sets** on the bar grid, each
+set is one exercise, and every note inside it is that exercise.
+
+* `--set-bars` (3) — length of a set, in bars, measured bar line to bar line. At 140 BPM that is
+  5.1 s, which is the cadence a person can actually follow: long enough to get into a movement,
+  short enough that no exercise outstays its welcome. Drop to 2 for a faster circuit (3.4 s).
+* `--rest-beats` (1.0) — beats of silence at the **end** of each set, not between sets. This is
+  what lets the rest be shorter than a bar without losing bar alignment: a rest inserted
+  *between* sets would push every later set further off the grid, and within four sets the
+  routine would be changing movement mid-bar. Here the block always runs bar line to bar line
+  and simply stops accepting notes early. Notes landing in the rest are dropped.
+
+  The silence a person experiences is longer than this number, because the next set's first
+  onset does not land on its own first frame either — at one beat the measured gaps run
+  0.45–1.1 s. `--show-sets` prints the real gap per set, which is what to judge it by.
+* `--beats-per-bar` (4).
+* `--pattern` — the set order. Presets: `circuit` (default), `workout`, `classic`, `intervals`,
+  `arms`, `legs`. Or an inline list: `--pattern "Punch:6,Kick:5,Jump:4,PunchHold:2"`, where each
+  entry is an exercise and how many sets of it run back to back, cycled until the track ends.
+  This table (`SET_PATTERNS` in the script) is the only place the shape of the routine lives.
+
+  `circuit` makes every block a single set, so the movement changes on a fixed cadence and the
+  person learns how long a block lasts instead of having to watch for the change. `workout` is
+  the opposite extreme — six sets of one exercise in a row — and is what the first version did.
+* `--spacing` — minimum gap between notes per exercise, **in beats**, so a routine keeps its
+  shape at any tempo. Defaults: Punch 0.5, Kick 0.5, Jump 1, holds 2. The holds and Jump are the
+  ones that matter: left to the onset density of a techno track, a hold set would ask for a new
+  sustained note five times a second.
+* `--lane-pairs` — the two lanes each exercise alternates between, `Punch:0-3` style. Default is
+  `1-2` for everything: adjacent and symmetric about the centre, so the alternation reads as
+  left limb / right limb rather than as a position on the road. Widen Punch to `0-3` if the
+  centre-only look is too narrow.
+* `--show-sets` — print the routine, one line per set.
+
+Two details worth knowing. Bar boundaries are placed on **bars, not on round numbers of
+seconds** — a change of movement landing mid-bar reads as a mistake even to someone who cannot
+name what is wrong. And a hold's length in workout mode is not measured from the audio: the set
+already decided this is a sustained movement, so the note simply runs to the next note of its
+set, less `--hold-gap`, capped by `--hold-max`.
+
+The acoustic classification does not disappear — it still chooses which frequency band the
+timing refinement looks in. Refining a hi-hat in the low band because the set happens to be a
+Kick set would put the note tens of milliseconds off.
+
+## Obstacles — the three exercises the camera performs
+
+`Dodge`, `Curb` and `Duck` are exercises like any other in a pattern, but they are not notes.
+A note is something to strike at the hit zone and it is over there; an obstacle is a piece of the
+road that keeps coming and has to be gone **around**, **over** or **under**, and in the game the
+camera itself makes the movement — it leans out of the way of a wall, floats over a kerb, drops
+under a barrier. So the person following the video is not being asked to hit something; they are
+being shown a movement to copy.
+
+| exercise | what is on the road | what the player does |
+|---|---|---|
+| `Dodge` | a wall taller than a person down one half of the road, 8 m long | step to the free half and stay there while it passes |
+| `Curb` | a low kerb, half a metre, right across the road | jump |
+| `Duck`  | a beam across the road at head height, with the passage under it left clear | crouch |
+
+**`Dodge` reads its lane as a side.** Lanes in the left half of the road put the wall on the left
+and send the player right; the right half is the mirror. That is why its default lane pair is
+`0-3`: the walls then alternate left and right within a set instead of leaning one way for the
+whole block. `Curb` and `Duck` span the full road and ignore their lane entirely.
+
+The lane carries the direction rather than a `direction` field of its own, because a new field
+would be a second thing to keep in step across this generator, the C# DTO, the reader and the
+spawner, and it would say nothing the lane cannot. The cost is that `resolve_hold_overlaps` must
+leave obstacles alone — nudging a `Dodge` into a free lane would silently point it the other way
+— which it does.
+
+### Spacing — the number that is not a taste judgement
+
+The camera has to be back at centre before the next obstacle asks it to move again, so obstacles
+are spaced far wider than any note. The longest reaction is the dodge: its lead-in, the hold
+while the wall goes past, and the return together run **1.59 s**. The defaults put 8 beats
+between obstacles — 3.43 s at 140 BPM — which leaves 1.84 s of rest at centre between two of
+them. 4 beats (1.71 s) is the floor if you want a denser routine: it still clears, but with
+almost no rest.
+
+Two knobs, and you want both:
+
+* `--spacing Dodge:8,Curb:8,Duck:8` (the default) is the floor **inside** one set;
+* `--obstacle-gap` (default 8 beats) is the same floor **across set boundaries**, which
+  per-exercise spacing cannot see. A set of walls ending on its last bar line followed by a set
+  of barriers starting on the next one puts two obstacles within a beat of each other, and
+  nothing inside `apply_workout` would notice.
+
+An obstacle that falls foul of `--obstacle-gap` is **dropped, not moved**. Moving it would take
+it off the onset it was placed on, and an obstacle arriving off the beat is worse than no
+obstacle at all — the whole camera reaction is timed against the music.
+
+### Patterns that include them
+
+* `obstacles` — obstacle sets alternating with striking sets. Not back to back: an obstacle is a
+  whole-body movement, and a routine that is nothing but obstacles is one where the camera never
+  sits still, which is unpleasant to watch and much worse to record.
+* `circuit_obstacles` — the default circuit with the obstacles folded in, one obstacle set about
+  every third block. This is what `techno_obstacle_circuit.json` was made with:
+
+```powershell
+.venv\Scripts\python generate_beatmap.py ..\..\Assets\Audio\Tracks\techno_circuit_flow.wav `
+    -o ..\..\Assets\StreamingAssets\Beatmaps\techno_obstacle_circuit.json `
+    --pattern circuit_obstacles --kick-level 0.30 --show-sets
+```
+
+A three-bar set at 140 BPM holds two obstacles at this spacing, which is what the shipped chart
+has: 6 `Dodge`, 6 `Curb`, 4 `Duck` over 207 s, with a measured minimum gap of 3.44 s.
+
+## Getting the tempo right — harder than it looks
+
+Three methods were tried on this project's techno track, and only the last is trustworthy:
+
+| method | answer | verdict |
+|---|---|---|
+| `librosa.feature.tempo` (tempogram) | 143.55 BPM in all 19 windows | wrong by 2.5% |
+| straight fit through `beat_track`'s beats | 139.56 BPM | 0.3% out — 0.64 s of drift per track |
+| comb fitted to the whole track | 139.99 BPM | correct; the track is a machine 140 |
+
+The tempogram is quantised to its own bins and was *consistently* wrong, which is the dangerous
+kind of wrong — repeating the measurement in 19 windows reproduced the same error and looked
+like confirmation. The beat tracker follows the audio well but its output contains the odd
+inserted or missed beat, which a straight fit inherits.
+
+A comb spanning the whole track has the track's full length as its baseline: a period wrong by a
+tenth of a percent displaces the last tooth by 200 ms and the score collapses. It scored 0.9932
+at the true period against 0.1516 at the tempogram's answer. The beat tracker is still used — to
+seed the search, which keeps it narrow and cheap.
+
+The independent check that settles it: the synthetic fixture is written at exactly 120 BPM by
+the script that generates it. The comb recovers 119.898; the tempogram said 117.45.
+
+## The hold criterion — this is the part worth arguing about
+
+You asked for a proposal here, so: **a note is a hold when it lifts its own frequency band
+clearly above what was already playing there, and that band then stays above `--hold-decay`
+(default 0.45) of the note's attack peak for at least `--hold-min` (default 0.35 s), with no
+later note of the same instrument family inside that span.**
+
+Four details, each of which was the difference between the feature working and the feature
+being useless when I tested it:
+
+* **Band-local, not broadband.** Kicks are measured in the low band, Punches in mid+high.
+  Measured broadband, a sustained bass note appears to stop the moment the hi-hats do, and a
+  held pad appears to sustain straight through the kick pattern underneath it.
+* **Energy, not flux.** The classifier uses flux; hold length cannot. A held note produces no
+  flux after its attack, so a flux reading calls everything a one-shot.
+* **The peak comes from a short attack window** (`--hold-attack`, 60 ms), not from the onset
+  frame: the onset frame is where flux rises, a frame or two before amplitude actually peaks.
+* **The note has to lift the band** (`--hold-lift`, default 1.5×) above its level just before
+  the onset. Without this a dense mix reports holds everywhere — the mid band of a busy
+  arrangement never drops below 45% of anything, so every snare landing over sustained strings
+  "sustains" for as long as the strings do. On the 65 s orchestral track in this project that
+  one condition took holds from 21% of all events down to 5%.
+
+A hold is bounded by the next event **of the same family** (next Kick-ish event for a kick,
+next Punch-ish for a punch; a Jump bounds both). Bounding by the next event of any kind is the
+obvious rule and it makes holds unreachable in practice: with a hi-hat pattern there is another
+onset every 100–150 ms, so every sustain is cut long before `--hold-min` and you get zero holds
+on a track full of them. A held bass note is not ended by the hats playing over it.
+
+On the gameplay side, a hold keeps its lane to itself for its whole length: later notes that
+would collide are **moved to a free lane**, not used to trim the hold. Only when every lane is
+held does the blocking hold get shortened, and a hold trimmed to nothing degrades back to
+`Kick`/`Punch` — a hold whose duration rounds to zero is exactly what `BeatmapReader` refuses
+to load.
+
+**Where I expect this to need tuning.** `--hold-decay` is the main dial: lower (0.3) is more
+permissive and yields longer holds, higher (0.6) demands a genuinely flat sustain.
+`--hold-lift` controls how much of a dense mix gets through at all — raise it to 2.0+ if you
+still see holds that belong to some other instrument. `--hold-min` sets the shortest hold worth
+having. Worth a listening pass before we settle the defaults.
+
+An alternative I did not implement, in case you prefer it: derive holds from pitch stability
+(`librosa.pyin`) instead of energy, so a hold means "one continuous note" rather than "sustained
+loudness". Markedly better on melodic material, useless on drums, and slow.
+
+## Lane assignment
+
+Deliberately isolated: every strategy is a function `(events, lane_count, rng) -> None` that
+writes `ev.lane` in place, registered in the `LANE_STRATEGIES` dict. Nothing else in the
+pipeline reads or assumes anything about lane numbers, so replacing the logic is one function
+plus one dict entry.
+
+| `--lane-mode` | behaviour |
+|---|---|
+| `alternate` *(default)* | round-robin `0,1,2,3,0,…`; predictable and evenly spread |
+| `frequency` | left to right by brightness — bass on the left, cymbals on the right |
+| `random` | seeded random (`--seed`), never twice in a row |
+
+Whatever a strategy proposes, `resolve_hold_overlaps` runs afterwards and moves any note that
+would land in a lane a hold is still occupying. That is the one gameplay invariant a strategy
+cannot be trusted to uphold, so it lives outside them rather than in each of them — which does
+mean a nudged note can occasionally end up beside its neighbour.
+
+`--lanes` must match `NeonTunnelGenerator.laneCount` (currently 4). `BeatmapReader` rejects the
+whole file if any lane falls outside `0..laneCount-1`.
+
+## Known limits
+
+* **A hit in the first frame of the file is not detected.** Onset detection needs a rise, and
+  there is nothing before sample 0 to rise from. If a track starts on a downbeat, either add a
+  few hundred ms of silence at the head of the audio or hand-add the first event.
+* **A loud sustain masks percussion in its own band.** While a bass note is held, kicks under
+  it stop producing low-band flux and drop out of the chart. Audible on the test fixture as a
+  missing kick in the middle of the sustained bass. Raising `--n-mels` narrows the affected
+  band a little; properly fixing it needs source separation, which is out of scope here.
+* **Tempo is a single global estimate.** A track that changes tempo gets one BPM for all of it.
+  Nothing in the event timing depends on BPM, so this only affects anything that pulses with it.
+  The estimate runs on its own envelope at a fixed time resolution rather than on the detection
+  envelope, because sharing the detection hop makes the reported tempo a function of
+  `--hop-length`: on the techno track here, moving the hop from 512 to 256 moved the estimate
+  from 143.55 to 139.67 BPM on audio whose real tempo does not vary at all.
+* **Low-frequency attacks have no single right answer.** A 60 Hz transient is physically smeared
+  over ~15 ms, so where exactly the hit "is" depends on the convention used to read it. Two
+  reasonable envelope estimators disagreed by 22 ms on the same kicks. The refinement pass is
+  calibrated so both bands land on the *same* convention — which is what the offset knob needs —
+  but the absolute zero point is a choice, not a measurement.
+
+## Format contract
+
+The reader in `Assets/Scripts/Beatmap/BeatmapReader.cs` validates every event and refuses the
+whole file on the first problem, naming the event index. The generator upholds all of it:
+
+* `version` is `1` (`BeatmapReader.SupportedVersion`);
+* `type` matches the C# `CueType` enum **case-sensitively**: `Kick`, `Punch`, `Jump`,
+  `KickHold`, `PunchHold`, `Dodge`, `Curb`, `Duck`;
+* holds carry `duration > 0`, one-shots carry exactly `0.0` — never a missing field, and the
+  three obstacles are one-shots;
+* `lane` is within `0..lanes-1`, `time` is non-negative, `intensity` is `0..1`.
+
+If you change `CueType` on the C# side, `HOLD_TYPE_OF`, `OBSTACLE_TYPES` and the
+`KICK`/`PUNCH`/`JUMP`/`DODGE`/`CURB`/`DUCK` constants at the top of `generate_beatmap.py` are the
+matching edit.
+
+Output is written to a temp file and `os.replace`d over the target, so a player reading
+`StreamingAssets` mid-regeneration sees either the old map or the new one, never half of one.
+
+## Workout sets in the chart (`sets`)
+
+In workout mode the generator lays the routine out on the bar grid: a set is a run of bars doing
+one exercise, followed by a rest. Since v1 of this field it writes that plan into the chart as an
+optional top-level `sets` array, one entry per block:
+
+```json
+{ "index": 0, "exercise": "Punch", "start": 1.341, "end": 5.81, "restEnd": 6.668, "notes": 14 }
+```
+
+Nothing in the spawn path reads it — notes still come entirely from `events` — so a chart without
+the field plays identically. It exists for presentation: the HUD shows its end-of-set banner at
+`end`.
+
+### Charts made before the field existed
+
+`add_sets.py` adds the block to an existing chart **without re-running the analysis**:
+
+```sh
+python add_sets.py ../../Assets/StreamingAssets/Beatmaps/techno_circuit_flow.json --dry-run
+python add_sets.py ../../Assets/StreamingAssets/Beatmaps/techno_circuit_flow.json
+```
+
+It needs no audio, because in workout mode every note inside a set is the same exercise — so a
+run of consecutive events sharing a `type` *is* a set. Runs shorter than `--min-notes` (3) are
+merged into the block before them; those are grid artefacts, not sets, and left alone they would
+fire an end-of-set banner a second after the previous one. `events` is never touched.
+
+Re-generating instead is the wrong move for a finished chart: the set plan depends on the exact
+`--pattern` and `--set-bars` the map was made with, and any difference silently rewrites every
+note in it.

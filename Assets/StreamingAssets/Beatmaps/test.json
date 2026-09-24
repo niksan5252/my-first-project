@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "track": "tracks/none-timing-test.wav",
+  "bpm": 120.0,
+  "audioOffset": 0.0,
+  "generator": "hand-written timing test fixture",
+  "events": [
+    { "time": 0.000, "type": "Kick",      "lane": 0, "duration": 0.0,  "intensity": 1.0 },
+    { "time": 0.500, "type": "Punch",     "lane": 2, "duration": 0.0,  "intensity": 0.8 },
+    { "time": 1.000, "type": "Kick",      "lane": 1, "duration": 0.0,  "intensity": 0.4 },
+    { "time": 1.000, "type": "Punch",     "lane": 3, "duration": 0.0,  "intensity": 0.4 },
+    { "time": 2.000, "type": "Jump",      "lane": 2, "duration": 0.0,  "intensity": 1.0 },
+    { "time": 2.750, "type": "KickHold",  "lane": 0, "duration": 0.75, "intensity": 0.9 },
+    { "time": 4.000, "type": "PunchHold", "lane": 1, "duration": 1.25, "intensity": 0.7 },
+    { "time": 6.000, "type": "Kick",      "lane": 3, "duration": 0.0,  "intensity": 0.2 },
+    { "time": 6.250, "type": "Kick",      "lane": 2, "duration": 0.0,  "intensity": 0.6 },
+    { "time": 7.500, "type": "PunchHold", "lane": 2, "duration": 2.00, "intensity": 1.0 }
+  ]
+}
