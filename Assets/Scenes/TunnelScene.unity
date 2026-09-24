@@ -872,7 +872,7 @@ MonoBehaviour:
   spawnMode: 1
   beatmapFileName: irokz_goodbye_my_love.json
   musicSource: {fileID: 357218818}
-  beatmapUserOffset: 0
+  beatmapUserOffset: 0.03
   introBars: 4
   introSkipsPartialSet: 1
   intensityFeedbackFloor: 0.55
@@ -1254,50 +1254,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!1 &451555835
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 451555837}
-  - component: {fileID: 451555836}
-  m_Layer: 0
-  m_Name: Legacy Tunnel Generator
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &451555836
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 451555835}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b9f818ce47e572d4ba295b33cfe8d705, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::LegacyTunnelGeneratorForParityTest
---- !u!4 &451555837
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 451555835}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &479552240
 GameObject:
   m_ObjectHideFlags: 0
@@ -2310,7 +2266,6 @@ SceneRoots:
   - {fileID: 191494437}
   - {fileID: 385088832}
   - {fileID: 350241777}
-  - {fileID: 451555837}
   - {fileID: 268705388}
   - {fileID: 126459767}
   - {fileID: 357218819}

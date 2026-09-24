@@ -45,7 +45,10 @@ public class CueSpawner : MonoBehaviour
     [SerializeField] private string beatmapFileName = "test.json"; // under StreamingAssets/Beatmaps
     [SerializeField] private AudioSource musicSource;
     // Positive pushes the whole chart later against the audio. This is the knob for the latency
-    // of the player's own output path, which no generated file can know about.
+    // of the player's own output path, which no generated file can know about. Unity's own DSP
+    // buffering is already taken off by SongClock; this is only what lies beyond it - the OS and
+    // the device. Measured on the development machine (WASAPI loopback, MAG 275QF over HDMI) at
+    // 30 ms; the monitor's own delay after the loopback point is not in that number.
     [SerializeField] private float beatmapUserOffset = 0f;
     // The intro: the music plays from the first frame, and for this many bars no note spawns - the
     // tunnel just runs to the track. In bars of the chart's own tempo, so the intro ends on a bar
@@ -525,6 +528,8 @@ public class CueSpawner : MonoBehaviour
     private Quaternion cameraBaseRot = Quaternion.identity;
     private float shakeStrength;
     private bool built;
+    // Set by StartBeatmap, consumed by the first ordinary frame. See StartSongClock.
+    private int clockStartFrames = -1;
 
     private void OnValidate()
     {
@@ -572,6 +577,13 @@ public class CueSpawner : MonoBehaviour
         // the right answer is to go quiet rather than to rebuild half a tunnel underneath a
         // running track.
         if (!built || slots == null) return;
+
+        if (clockStartFrames > 0) clockStartFrames--;
+        else if (clockStartFrames == 0 && MusicLoaded())
+        {
+            clockStartFrames = -1;
+            StartSongClock();
+        }
 
         float now = Now;
 
@@ -795,8 +807,9 @@ public class CueSpawner : MonoBehaviour
         obstacleCamera.Register(move, dueTime, reachSeconds, passSeconds);
     }
 
-    /// Loads the chart and starts the music at once - no lead-in. The intro is made by dropping
-    /// every note that could not be born after it ends, see TrimIntro.
+    /// Loads the chart; the music and the clock start a couple of frames later, see StartSongClock.
+    /// There is no lead-in beyond that: the intro is made by dropping every note that could not be
+    /// born after it ends, see TrimIntro.
     ///
     /// The trim happens here, not in the generator, because the rule depends on FlightTime, and
     /// FlightTime is a property of this scene (scroll speed, spawn distance), not of the audio: a
@@ -822,11 +835,44 @@ public class CueSpawner : MonoBehaviour
         sequencer = new BeatmapSequencer(cues);
         RetireAllCues();
         obstacleCamera.SetTempo(beatmapMeta.bpm);
-        songClock.Begin(musicSource, 0f, beatmapMeta.audioOffset + beatmapUserOffset);
+        songClock.Stop();
+        if (musicSource != null && musicSource.clip != null) musicSource.clip.LoadAudioData();
+        clockStartFrames = ClockStartDelayFrames;
         Debug.Log("[CueSpawner] beatmap '" + beatmapFileName + "' loaded: " + cues.Count + " of " + total + " notes, bpm " + beatmapMeta.bpm
                 + ", intro " + introBars.ToString("0.##") + " bars, first note at " + (cues.Count > 0 ? cues[0].time : 0f).ToString("F2")
                 + "s (cutoff " + cutoff.ToString("F2") + "s, flight " + FlightTime.ToString("F2") + "s), offset "
                 + (beatmapMeta.audioOffset + beatmapUserOffset).ToString("F3") + "s", this);
+    }
+
+    /// Frames to wait after the chart loads before the clock starts, and how far ahead of the
+    /// mixer the music is scheduled, in DSP buffers.
+    private const int ClockStartDelayFrames = 2;
+    private const int ClockStartLeadBuffers = 3;
+
+    /// Starts the music and the song clock together, once the clip is decoded, on an ordinary frame.
+    ///
+    /// Scheduling the clip before its audio data is loaded is what made the chart run early: the
+    /// tracks import with Preload Audio Data off, so PlayScheduled first had to decompress the
+    /// whole Vorbis file, and the music began that long after the moment the clock counted from -
+    /// measured at 115 to 470 ms, different on every run, which no constant offset can fix.
+    /// StartBeatmap asks for the data up front and this waits for it, so the import setting no
+    /// longer matters. The lead of a few DSP buffers covers the rest: PlayScheduled only reaches
+    /// the audio thread at the end of the frame that issued it, and a start time of "now" would
+    /// already be in the past by then.
+    private bool MusicLoaded()
+    {
+        var clip = musicSource != null ? musicSource.clip : null;
+        return clip == null || clip.loadState == AudioDataLoadState.Loaded || clip.loadState == AudioDataLoadState.Failed;
+    }
+
+    private void StartSongClock()
+    {
+        AudioSettings.GetDSPBufferSize(out int bufferLength, out _);
+        float lead = ClockStartLeadBuffers * bufferLength / (float)Mathf.Max(1, AudioSettings.outputSampleRate);
+        songClock.Begin(musicSource, lead, beatmapMeta.audioOffset + beatmapUserOffset);
+        Debug.Log("[CueSpawner] song clock started on frame " + Time.frameCount + ", "
+                + Time.timeSinceLevelLoad.ToString("F2") + "s after load, lead " + (lead * 1000f).ToString("F1") + " ms, DSP buffer latency "
+                + (songClock.BufferLatency * 1000f).ToString("F1") + " ms, offset " + ((beatmapMeta.audioOffset + beatmapUserOffset) * 1000f).ToString("F1") + " ms", this);
     }
 
     /// The chart doesn't carry a time signature. The generator defaults to 4/4 and every track in
@@ -894,6 +940,7 @@ public class CueSpawner : MonoBehaviour
         sequencer = new BeatmapSequencer(cues);
         RetireAllCues();
         obstacleCamera.SetTempo(beatmapMeta.bpm);
+        clockStartFrames = -1;
         songClock.BeginOffline(startTime, beatmapMeta.audioOffset + beatmapUserOffset);
     }
 

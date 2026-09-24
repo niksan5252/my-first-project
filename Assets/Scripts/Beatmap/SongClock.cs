@@ -10,13 +10,21 @@ using UnityEngine;
 /// is the difference between "tight" and "nearly right".
 ///
 /// Begin() can delay playback by a lead-in and reports NEGATIVE SongTime until the audio starts.
-/// CueSpawner passes 0 - the music starts at once and the notes are what wait, see
-/// CueSpawner.IntroCutoff - but the lead-in stays available for anything that needs silence first.
+/// CueSpawner uses only a few DSP buffers of it, see CueSpawner.StartSongClock.
+///
+/// dspTime counts samples the mixer has PRODUCED, and those reach the speakers later: they wait in
+/// Unity's own DSP buffers and then in the OS audio stack. Read raw, SongTime runs ahead of what is
+/// heard by that whole delay. The DSP-buffer part is known exactly - bufferLength x numBuffers /
+/// outputSampleRate - and is subtracted here, so it follows the Audio project setting on its own.
+/// Measured against a WASAPI loopback of the output, going from 1024x4 to 512x4 moved the delay
+/// by 42.8 ms against the 42.7 ms this formula predicts. What remains belongs to the device and
+/// OS, is not visible to Unity, and is CueSpawner.beatmapUserOffset's job.
 public sealed class SongClock
 {
     private AudioSource source;
-    private double startDsp;   // dspTime at which SongTime reads exactly 0
+    private double startDsp;   // dspTime at which the audio starts, i.e. SongTime 0 at the mixer
     private float offset;      // positive shifts the whole chart later, calibrating audio latency
+    private float bufferLatency;
     private bool running;
 
     // Offline mode: SongTime comes from a value pushed in by hand instead of the audio clock.
@@ -28,15 +36,26 @@ public sealed class SongClock
     public bool IsRunning => running;
     public bool IsOffline => offline;
 
-    /// Seconds into the track. Negative during the lead-in, 0 exactly as the audio begins.
+    /// Seconds of Unity's DSP buffering subtracted from SongTime. 0 offline, where nothing plays.
+    public float BufferLatency => offline ? 0f : bufferLatency;
+
+    /// Seconds into the track as it is being heard. Negative during the lead-in and the buffer
+    /// latency; 0 as the first sample leaves Unity's buffers.
     public float SongTime
     {
         get
         {
             if (offline) return offlineTime - offset;
             if (!running) return -offset;
-            return (float)(AudioSettings.dspTime - startDsp) - offset;
+            return (float)(AudioSettings.dspTime - startDsp) - bufferLatency - offset;
         }
+    }
+
+    /// Unity's own output buffering, in seconds, from the live audio configuration.
+    public static float DspBufferLatency()
+    {
+        AudioSettings.GetDSPBufferSize(out int bufferLength, out int numBuffers);
+        return bufferLength * numBuffers / (float)Mathf.Max(1, AudioSettings.outputSampleRate);
     }
 
     /// Starts the clock, scheduling audio to begin leadIn seconds from now. A null source, or one
@@ -48,6 +67,7 @@ public sealed class SongClock
         offset = audioOffset;
         offline = false;
         running = true;
+        bufferLatency = DspBufferLatency();
 
         double now = AudioSettings.dspTime;
         startDsp = now + Mathf.Max(0f, leadIn);
