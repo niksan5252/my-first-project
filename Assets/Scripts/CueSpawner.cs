@@ -407,6 +407,10 @@ public class CueSpawner : MonoBehaviour
     [Header("Camera Shake (optional polish)")]
     [SerializeField] private float shakeMagnitude = 0.06f;
     [SerializeField] private float shakeDecay = 8f;
+    // Shake is smooth noise at this many wobbles per second, read off the game clock - not a
+    // fresh random offset every frame, which rattled at whatever the frame rate happened to be
+    // (220 Hz in the Editor, 60 in a recording) and read as a jerk in the middle of a dodge.
+    [SerializeField, Min(1f)] private float shakeFrequency = 20f;
 
     [Header("Camera Sway (flight feel, continuous)")]
     [SerializeField] private float swayAmplitudeX = 0.1f;
@@ -750,8 +754,11 @@ public class CueSpawner : MonoBehaviour
             commitMarginBeats = dodgeCommitMarginBeats,
             holdExtraBeats = dodgeHoldExtraBeats,
             recoverBeats = dodgeRecoverBeats,
-            outEase = ObstacleEase.Decelerate,   // push off hard, arrive
-            inEase = ObstacleEase.Decelerate,    // leave immediately, settle into centre
+            // Glide both ways: out of rest and back into it with no jump in speed or
+            // acceleration. Decelerate here left rest - and left the far side - at full speed,
+            // which read as a jerk at the start of every lean and every return.
+            outEase = ObstacleEase.Glide,
+            inEase = ObstacleEase.Glide,
         });
         obstacleCamera.SetPolicy(ObstacleMove.DodgeRight, new ObstacleCameraDirector.Move
         {
@@ -761,8 +768,8 @@ public class CueSpawner : MonoBehaviour
             commitMarginBeats = dodgeCommitMarginBeats,
             holdExtraBeats = dodgeHoldExtraBeats,
             recoverBeats = dodgeRecoverBeats,
-            outEase = ObstacleEase.Decelerate,
-            inEase = ObstacleEase.Decelerate,
+            outEase = ObstacleEase.Glide,
+            inEase = ObstacleEase.Glide,
         });
         obstacleCamera.SetPolicy(ObstacleMove.Hop, new ObstacleCameraDirector.Move
         {
@@ -1725,9 +1732,11 @@ public class CueSpawner : MonoBehaviour
         Vector3 shakeOffset = Vector3.zero;
         if (shakeStrength > 0.0005f)
         {
-            shakeOffset = Random.insideUnitSphere * shakeStrength;
-            shakeOffset.z = 0f;
-            shakeStrength = Mathf.Lerp(shakeStrength, 0f, shakeDecay * Time.deltaTime);
+            float n = Time.time * shakeFrequency;
+            shakeOffset = new Vector3(Mathf.PerlinNoise(n, 0.37f) * 2f - 1f,
+                                      Mathf.PerlinNoise(0.71f, n) * 2f - 1f, 0f) * shakeStrength;
+            // Exponential, so how fast it dies does not depend on the frame rate either.
+            shakeStrength *= Mathf.Exp(-shakeDecay * Time.deltaTime);
         }
 
         Vector3 placed = cameraBasePos + obstacleOffset + sway + shakeOffset;

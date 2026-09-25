@@ -20,7 +20,11 @@ public enum ObstacleMove { DodgeLeft, DodgeRight, Hop, Duck }
 ///
 /// Put together, Decelerate out of rest and Accelerate back into it IS a ballistic arc, and the
 /// hang at the top comes out of the curve itself rather than having to be held there.
-public enum ObstacleEase { Smooth, Decelerate, Accelerate }
+///
+/// `Glide` is Smooth with the acceleration also zero at both ends (smootherstep). It is what a
+/// camera move that is watched rather than felt wants: Decelerate starts at full speed and
+/// Smooth at full acceleration, and on a lean the eye reads either jump as a jerk.
+public enum ObstacleEase { Smooth, Decelerate, Accelerate, Glide }
 
 /// Works out where the camera should be, relative to its resting position, because of the
 /// obstacles on the road — and nothing else. Sway, hit shake and the camera's own base position
@@ -269,6 +273,8 @@ public sealed class ObstacleCameraDirector
             case ObstacleEase.Decelerate: return 1f - (1f - u) * (1f - u);
             // The mirror: zero at the start, peak 2x the average as it arrives.
             case ObstacleEase.Accelerate: return u * u;
+            // Peak speed 1.875x the average, in the middle; speed AND acceleration zero at both ends.
+            case ObstacleEase.Glide: return u * u * u * (u * (u * 6f - 15f) + 10f);
             // Peak speed 1.5x the average, in the middle, zero at both ends.
             default: return u * u * (3f - 2f * u);
         }

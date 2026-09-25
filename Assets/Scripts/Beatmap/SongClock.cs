@@ -52,6 +52,9 @@ public sealed class SongClock
 
     /// Seconds into the track as it is being heard. Negative during the lead-in and the buffer
     /// latency; 0 as the first sample leaves Unity's buffers.
+    ///
+    /// Read once per frame and then held, so everything in a frame sees the same moment, and
+    /// SMOOTHED - see Smooth - because dspTime itself is a staircase.
     public float SongTime
     {
         get
@@ -59,8 +62,54 @@ public sealed class SongClock
             if (offline) return offlineTime - offset - deviceOffset;
             float device = Capturing ? 0f : deviceOffset;
             if (!running) return -offset - device;
-            return (float)(AudioSettings.dspTime - startDsp) - BufferLatency - device - offset;
+            if (smoothFrame != Time.frameCount)
+            {
+                smoothFrame = Time.frameCount;
+                smoothTime = Smooth((AudioSettings.dspTime - startDsp) - BufferLatency - device - offset);
+            }
+            return smoothTime;
         }
+    }
+
+    // --- Smoothing ---
+    //
+    // dspTime only moves when the mixer finishes a block: in 10.7 ms steps (512 samples at 48 kHz),
+    // sometimes two at once. Measured in the Editor at ~220 fps, song time stood still on 55% of
+    // frames and then jumped, so the camera and every cue moved in a stutter - still, still, jump.
+    // In a recording each 16.7 ms frame got 10.7 or 21.3 ms of song time, i.e. everything ran at
+    // 0.64x and 1.28x speed on alternate frames.
+    //
+    // The fix is the usual one: advance song time with the frame clock, which is smooth, and use
+    // the audio clock only to keep it honest. `smoothBias` is song time minus frame-clock time.
+    //   * Live, it follows the dsp reading through a one-second low-pass: the steps average out,
+    //     real drift between the two clocks (parts per million) is still followed, and the average
+    //     song time equals the raw one - so beatmapUserOffset, calibrated against it, still holds.
+    //   * While the Recorder captures, the frame clock advances by exactly one frame of audio per
+    //     frame, and dspTime is that position rounded DOWN to a block. So the true bias is the
+    //     largest one seen: taking the running maximum lands on it within a few frames.
+    // A reading more than SnapSeconds away (a hitch, a pause, a seek) is taken as it is.
+    private const double SnapSeconds = 0.1;
+    private const double TrackSeconds = 1.0;
+    private double smoothBias;
+    private bool smoothValid;
+    private bool smoothCapturing;
+    private int smoothFrame = -1;
+    private float smoothTime;
+
+    private float Smooth(double raw)
+    {
+        bool capturing = Capturing;
+        double local = capturing ? Time.timeAsDouble : Time.unscaledTimeAsDouble;
+        double error = raw - local;
+        if (!smoothValid || capturing != smoothCapturing || System.Math.Abs(error - smoothBias) > SnapSeconds)
+        {
+            smoothBias = error;
+            smoothValid = true;
+            smoothCapturing = capturing;
+        }
+        else if (capturing) smoothBias = System.Math.Max(smoothBias, error);
+        else smoothBias += (error - smoothBias) * (1.0 - System.Math.Exp(-Time.unscaledDeltaTime / TrackSeconds));
+        return (float)(local + smoothBias);
     }
 
     /// Unity's own output buffering, in seconds, from the live audio configuration.
@@ -80,6 +129,8 @@ public sealed class SongClock
         deviceOffset = deviceLatency;
         offline = false;
         running = true;
+        smoothValid = false;
+        smoothFrame = -1;
         bufferLatency = DspBufferLatency();
 
         double now = AudioSettings.dspTime;
