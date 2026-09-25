@@ -744,6 +744,7 @@ GameObject:
   - component: {fileID: 306773551}
   - component: {fileID: 306773550}
   - component: {fileID: 306773549}
+  - component: {fileID: 306773553}
   m_Layer: 0
   m_Name: HUD
   m_TagString: Untagged
@@ -765,6 +766,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::HudController
   cueSpawner: {fileID: 350241776}
   style: {fileID: 11400000, guid: 99b9998ecee102343b4f7da6e2084d33, type: 2}
+  skin: {fileID: 306773553}
   comboGroup: {fileID: 2023785246}
   comboNumber: {fileID: 35419279}
   comboLabel: {fileID: 1975593718}
@@ -837,6 +839,30 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0}
+--- !u!114 &306773553
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 306773548}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 70a6e29f8bf417b4889bcac152a52c38, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HudSkin
+  looks:
+  - {fileID: 11400000, guid: e576b0ceeb94ee543abd644fcd702fa4, type: 2}
+  - {fileID: 11400000, guid: 527705476baf0704d8f09729e98939a6, type: 2}
+  - {fileID: 11400000, guid: 3e15d3f02786ebf4f86e438d90343627, type: 2}
+  activeLook: 0
+  controller: {fileID: 306773549}
+  comboGroup: {fileID: 2023785246}
+  comboNumber: {fileID: 35419279}
+  comboLabel: {fileID: 1975593718}
+  banner: {fileID: 539826500}
+  bannerPlate: {fileID: 395164002}
+  bannerWord: {fileID: 239018666}
 --- !u!1 &350241775
 GameObject:
   m_ObjectHideFlags: 0
@@ -875,6 +901,7 @@ MonoBehaviour:
   beatmapUserOffset: 0.03
   introBars: 4
   introSkipsPartialSet: 1
+  introWallBars: 1
   intensityFeedbackFloor: 0.55
   timingReportNotes: 0
   spawnInterval: 0.9
@@ -974,6 +1001,7 @@ MonoBehaviour:
   randomObstacleMinGap: 2.5
   shakeMagnitude: 0.06
   shakeDecay: 8
+  shakeFrequency: 20
   swayAmplitudeX: 0.1
   swayAmplitudeY: 0.05
   swayFrequencyX: 0.35

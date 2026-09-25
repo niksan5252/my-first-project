@@ -1,4 +1,4 @@
-﻿using TMPro;
+using TMPro;
 using UnityEngine;
 
 /// The whole HUD: a combo counter that ticks on every scored note, and the praise banner under
@@ -18,6 +18,8 @@ public class HudController : MonoBehaviour
     [Header("Wiring")]
     [SerializeField] private CueSpawner cueSpawner;
     [SerializeField] private HudPresentation style;
+    // How it all looks. Optional: without one the HUD keeps the scene's own styling.
+    [SerializeField] private HudSkin skin;
 
     [Header("Combo")]
     [SerializeField] private RectTransform comboGroup;  // pulsed as one, so number and label agree
@@ -40,10 +42,14 @@ public class HudController : MonoBehaviour
 
     private int combo;
     private int scoredNotes;
-    private float pulseTimer;
+    // Both run on the song clock (HudBeatClock.Now), not on frame time, so the pulse is the same
+    // length in Play and in a recording and cannot drift off the beat it started on.
+    private float pulseStart = float.NegativeInfinity;
     private float pulseSeconds;
-    private float glowTimer;
+    private bool pulsing;
+    private float glowStart = float.NegativeInfinity;
     private float glowSeconds;
+    private bool glowing;
     private float comboBaseGlow;
 
     private int nextMilestone;
@@ -59,7 +65,7 @@ public class HudController : MonoBehaviour
     private void Awake()
     {
         if (cueSpawner != null) beats.Bind(cueSpawner.Clock);
-        if (banner != null) banner.Configure(style, beats);
+        if (banner != null) banner.Configure(style, beats, skin);
         ResetCounter();
     }
 
@@ -96,6 +102,23 @@ public class HudController : MonoBehaviour
         primaryColor = theme.primaryColor;
         secondaryColor = theme.secondaryColor;
 
+        Restyle();
+    }
+
+    public HudBeatClock Beats => beats;
+
+    /// Re-dresses the counter in the current colours - after a theme change, or when HudSkin
+    /// switches looks.
+    public void Restyle()
+    {
+        if (skin != null)
+        {
+            comboBaseGlow = skin.StyleCombo(comboColor, primaryColor, secondaryColor);
+            if (comboNumber != null) comboNumber.text = skin.FormatCombo(combo);
+            skin.SetNextMilestone(NextMilestoneCombo());
+            return;
+        }
+
         if (comboNumber != null)
         {
             // The glyph core stays near white and the theme colour goes into the glow. Filling
@@ -123,7 +146,25 @@ public class HudController : MonoBehaviour
         finalShown = false;
         lastBannerSongTime = float.NegativeInfinity;
         beats.Reset();
-        if (comboNumber != null) comboNumber.text = "0";
+        if (comboNumber != null) comboNumber.text = skin != null ? skin.FormatCombo(0) : "0";
+        if (skin != null) skin.SetNextMilestone(NextMilestoneCombo());
+    }
+
+    /// The combo value of the next milestone banner, or 0 when none is left.
+    private int NextMilestoneCombo()
+    {
+        var table = style != null ? style.Milestones : null;
+        return table != null && nextMilestone < table.Length ? table[nextMilestone].combo : 0;
+    }
+
+    /// How far the count is from the previous milestone to the next, 0..1.
+    private float MilestoneProgress()
+    {
+        var table = style != null ? style.Milestones : null;
+        if (table == null || nextMilestone >= table.Length) return 1f;
+        int from = nextMilestone > 0 ? table[nextMilestone - 1].combo : 0;
+        int to = table[nextMilestone].combo;
+        return to > from ? Mathf.Clamp01((combo - from) / (float)(to - from)) : 1f;
     }
 
     // --- the one entry point ---
@@ -139,12 +180,13 @@ public class HudController : MonoBehaviour
 
         combo++;
         scoredNotes++;
-        if (comboNumber != null) comboNumber.text = combo.ToString();
+        if (comboNumber != null) comboNumber.text = skin != null ? skin.FormatCombo(combo) : combo.ToString();
 
         pulseSeconds = Mathf.Max(0.01f, beats.Seconds(style != null ? style.ComboPulseBeats : 0.35f));
         glowSeconds = Mathf.Max(0.01f, beats.Seconds(style != null ? style.ComboGlowDecayBeats : 0.6f));
-        pulseTimer = pulseSeconds;
-        glowTimer = glowSeconds;
+        pulseStart = glowStart = beats.Now;
+        pulsing = glowing = true;
+        if (skin != null) skin.OnCombo(combo, MilestoneProgress());
 
         if (style == null || banner == null) return;
 
@@ -164,6 +206,7 @@ public class HudController : MonoBehaviour
 
         string word = table[nextMilestone].word;
         nextMilestone++;
+        if (skin != null) skin.SetNextMilestone(NextMilestoneCombo());
         ShowBanner(word, NextBannerColor(), style.BannerHoldBeats, songTime);
         return true;
     }
@@ -237,23 +280,25 @@ public class HudController : MonoBehaviour
     {
         if (style == null) return;
 
-        if (pulseTimer > 0f && comboGroup != null)
+        float now = beats.Now;
+
+        if (pulsing && comboGroup != null)
         {
-            pulseTimer -= Time.deltaTime;
-            float t = Mathf.Clamp01(pulseTimer / pulseSeconds);
+            float left = pulseSeconds - Mathf.Max(0f, now - pulseStart);
+            float t = Mathf.Clamp01(left / pulseSeconds);
             // One rise and fall over the pulse, peaking immediately and easing back, so a stream
             // of notes reads as a series of taps rather than as a vibration.
             float s = 1f + (style.ComboPulseScale - 1f) * Mathf.Sin(t * Mathf.PI);
             comboGroup.localScale = Vector3.one * s;
-            if (pulseTimer <= 0f) comboGroup.localScale = Vector3.one;
+            if (left <= 0f) { comboGroup.localScale = Vector3.one; pulsing = false; }
         }
 
-        if (glowTimer > 0f && comboNumber != null)
+        if (glowing && comboNumber != null)
         {
-            glowTimer -= Time.deltaTime;
-            float t = Mathf.Clamp01(glowTimer / glowSeconds);
+            float left = glowSeconds - Mathf.Max(0f, now - glowStart);
+            float t = Mathf.Clamp01(left / glowSeconds);
             HudGlow.SetPower(comboNumber, comboBaseGlow + style.ComboGlowPunch * t);
-            if (glowTimer <= 0f) HudGlow.SetPower(comboNumber, comboBaseGlow);
+            if (left <= 0f) { HudGlow.SetPower(comboNumber, comboBaseGlow); glowing = false; }
         }
     }
 }

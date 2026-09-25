@@ -14,7 +14,9 @@ using UnityEngine.UI;
 ///
 /// Drives its own animation from Update against plain timers rather than a coroutine or a tween
 /// library: the whole thing is three phases and one curve, and a timer survives being retargeted
-/// mid-flight, which a coroutine would have to be stopped and restarted to do.
+/// mid-flight, which a coroutine would have to be stopped and restarted to do. The timers read the
+/// song clock (HudBeatClock.Now) rather than adding up frame times, so a banner lasts exactly its
+/// beats in Play and in a recording alike.
 [RequireComponent(typeof(CanvasGroup))]
 public class HudBanner : MonoBehaviour
 {
@@ -27,8 +29,9 @@ public class HudBanner : MonoBehaviour
     private CanvasGroup group;
     private HudPresentation style;
     private HudBeatClock beats;
+    private HudSkin skin;
     private Phase phase = Phase.Idle;
-    private float timer;
+    private float phaseStart;   // song time the current phase began
     // Resolved to seconds when the phase starts, not read per frame: a banner keeps the tempo it
     // began on, so a tempo change mid-animation cannot stretch a fade that is already running.
     private float enterSeconds;
@@ -49,11 +52,14 @@ public class HudBanner : MonoBehaviour
         if (plate == null) plate = transform as RectTransform;
     }
 
-    public void Configure(HudPresentation presentation, HudBeatClock beatClock)
+    public void Configure(HudPresentation presentation, HudBeatClock beatClock, HudSkin look = null)
     {
         style = presentation;
         beats = beatClock;
+        skin = look;
     }
+
+    private float Elapsed => Mathf.Max(0f, beats.Now - phaseStart);
 
     /// Shows a word for a number of beats. If one is already up, it is dismissed first (fast) and
     /// this one follows.
@@ -72,7 +78,7 @@ public class HudBanner : MonoBehaviour
             {
                 phase = Phase.Leaving;
                 fadeSeconds = Mathf.Max(0.01f, beats.Seconds(style.BannerReplaceFadeBeats));
-                timer = fadeSeconds;
+                phaseStart = beats.Now;
             }
             return;
         }
@@ -83,17 +89,23 @@ public class HudBanner : MonoBehaviour
     private void Begin(string word, Color color, float holdBeats)
     {
         wordText.text = word;
-        wordText.color = color;
-        plateImage.color = color;
-
-        // The glow colour follows the word, and its resting power is remembered so the flicker
-        // has something to swing around.
-        baseGlow = HudGlow.Apply(wordText, color, 0.5f);
+        if (skin != null)
+        {
+            baseGlow = skin.StyleBanner(word, color);
+        }
+        else
+        {
+            wordText.color = color;
+            plateImage.color = color;
+            // The glow colour follows the word, and its resting power is remembered so the
+            // flicker has something to swing around.
+            baseGlow = HudGlow.Apply(wordText, color, 0.5f);
+        }
 
         enterSeconds = Mathf.Max(0.01f, beats.Seconds(style.BannerPunchInBeats));
         holdSeconds = Mathf.Max(0.01f, beats.Seconds(holdBeats));
         phase = Phase.Entering;
-        timer = 0f;
+        phaseStart = beats.Now;
         group.alpha = 1f;
         gameObject.SetActive(true);
     }
@@ -106,8 +118,7 @@ public class HudBanner : MonoBehaviour
         {
             case Phase.Entering:
             {
-                timer += Time.deltaTime;
-                float t = Mathf.Clamp01(timer / enterSeconds);
+                float t = Mathf.Clamp01(Elapsed / enterSeconds);
                 // Overshoot then settle: scale runs past 1 and comes back, the tilt eases in from
                 // a steeper angle. A plain lerp reads as a slide, not as a punch.
                 float s = t < 0.6f
@@ -118,31 +129,30 @@ public class HudBanner : MonoBehaviour
                     Mathf.Lerp(style.BannerEnterAngle, style.BannerRestAngle, t));
                 group.alpha = Mathf.Clamp01(t * 2f);
 
-                if (t >= 1f) { phase = Phase.Holding; timer = 0f; }
+                if (t >= 1f) { phase = Phase.Holding; phaseStart = beats.Now; }
                 break;
             }
 
             case Phase.Holding:
             {
-                timer += Time.deltaTime;
                 Flicker();
-                if (timer >= holdSeconds)
+                if (Elapsed >= holdSeconds)
                 {
                     phase = Phase.Leaving;
                     fadeSeconds = Mathf.Max(0.01f, beats.Seconds(style.BannerFadeOutBeats));
-                    timer = fadeSeconds;
+                    phaseStart = beats.Now;
                 }
                 break;
             }
 
             case Phase.Leaving:
             {
-                timer -= Time.deltaTime;
-                float t = Mathf.Clamp01(timer / fadeSeconds);
+                float left = fadeSeconds - Elapsed;
+                float t = Mathf.Clamp01(left / fadeSeconds);
                 group.alpha = t;
                 plate.localScale = Vector3.one * Mathf.Lerp(0.94f, 1f, t);
 
-                if (timer > 0f) break;
+                if (left > 0f) break;
 
                 phase = Phase.Idle;
                 group.alpha = 0f;

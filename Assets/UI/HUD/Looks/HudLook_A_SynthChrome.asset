@@ -1,0 +1,39 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4c79438272376d74c82ce9377166409a, type: 3}
+  m_Name: HudLook_A_SynthChrome
+  m_EditorClassIdentifier: Assembly-CSharp::HudLook
+  kind: 0
+  displayName: A - Synthwave Chrome
+  comboFont: {fileID: 11400000, guid: 02a2452676728ee4d9d7d1024e8c47e4, type: 2}
+  comboSize: 190
+  comboSpacing: 2
+  comboItalic: 1
+  comboFormat: '{0}'
+  comboPosition: {x: -64, y: -30}
+  comboBox: {x: 560, y: 230}
+  comboGlow: 0.35
+  labelFont: {fileID: 11400000, guid: 02a2452676728ee4d9d7d1024e8c47e4, type: 2}
+  labelText: COMBO
+  labelSize: 24
+  labelSpacing: 45
+  bannerFont: {fileID: 11400000, guid: 02a2452676728ee4d9d7d1024e8c47e4, type: 2}
+  bannerSize: 66
+  bannerItalic: 1
+  bannerPosition: {x: -64, y: -330}
+  bannerBox: {x: 540, y: 96}
+  bannerGlow: 0.45
+  glitchBeats: 0.25
+  typeBeatsPerLetter: 0.125
+  starBeats: 1
+  starCount: 12
+  progressEaseBeats: 0.25

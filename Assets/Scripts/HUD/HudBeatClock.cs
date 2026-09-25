@@ -53,12 +53,16 @@ public sealed class HudBeatClock
     /// Beats to seconds. Everything the HUD animates goes through here.
     public float Seconds(float beats) => Mathf.Max(0f, beats) * SecondsPerBeat;
 
+    /// The time every HUD animation runs on: the song clock's smoothed time while a track plays,
+    /// so the HUD moves with the music in Play and in a recording alike, and the ordinary game
+    /// clock when nothing is playing (the spawner's Random mode).
+    public float Now => (song != null && song.IsRunning) ? song.SongTime : Time.time;
+
     /// Where we are inside the current flicker cycle, 0..1, with 0 exactly on a beat.
     /// `cyclesPerBeat` of 1 pulses once per beat, 2 pulses on every eighth.
     public float Phase(float cyclesPerBeat)
     {
-        float now = (song != null && song.IsRunning) ? song.SongTime : Time.time;
-        float beats = (now - (anchored ? anchor : 0f)) / SecondsPerBeat;
+        float beats = (Now - (anchored ? anchor : 0f)) / SecondsPerBeat;
         float cycles = beats * Mathf.Max(0.01f, cyclesPerBeat);
         return cycles - Mathf.Floor(cycles);
     }

@@ -1,0 +1,39 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4c79438272376d74c82ce9377166409a, type: 3}
+  m_Name: HudLook_C_ArcadeRetro
+  m_EditorClassIdentifier: Assembly-CSharp::HudLook
+  kind: 2
+  displayName: C - Arcade Retro
+  comboFont: {fileID: 11400000, guid: 9411ebddbae3e514496e2ce465712521, type: 2}
+  comboSize: 120
+  comboSpacing: 0
+  comboItalic: 0
+  comboFormat: '{0:000}'
+  comboPosition: {x: -50, y: -40}
+  comboBox: {x: 470, y: 250}
+  comboGlow: 0.15
+  labelFont: {fileID: 11400000, guid: 9411ebddbae3e514496e2ce465712521, type: 2}
+  labelText: COMBO
+  labelSize: 28
+  labelSpacing: 8
+  bannerFont: {fileID: 11400000, guid: 9411ebddbae3e514496e2ce465712521, type: 2}
+  bannerSize: 40
+  bannerItalic: 0
+  bannerPosition: {x: -50, y: -380}
+  bannerBox: {x: 470, y: 96}
+  bannerGlow: 0.2
+  glitchBeats: 0.25
+  typeBeatsPerLetter: 0.125
+  starBeats: 1
+  starCount: 12
+  progressEaseBeats: 0.25
