@@ -87,8 +87,13 @@ This is what `irokz_goodbye_my_love.json` in the scene is made with — 69 of 10
 every interval is a whole number of beats, and the rests line up with the breakdowns:
 
 ```powershell
-.venv\Scripts\python generate_beatmap.py ..\..\Assets\Audio\Tracks\irokz_goodbye_my_love.wav --detector grid --fill-gaps-dodge
+.venv\Scripts\python generate_beatmap.py ..\..\Assets\Audio\Tracks\irokz_goodbye_my_love.wav --detector grid --fill-gaps-dodge --set-bars-for Punch:5,Kick:5
 ```
+
+`--set-bars-for` gives chosen exercises a set length of their own, in whole bars; everything else
+keeps `--set-bars` (3). Punch and Kick at 5 bars double their active time on this track (4.0 s to
+8.0 s, 9.3 to 16.3 notes a set) and shrink the average silence between sets from 1.73 s to 1.36 s;
+the other sets are unchanged, there are just fewer of them in a longer cycle.
 
 ## Filling empty stretches with Dodge walls — `--fill-gaps-dodge`
 

@@ -419,7 +419,9 @@ public class CueSpawner : MonoBehaviour
     [SerializeField] private float swayFrequencyY = 0.55f;
 
     [Header("Pooling")]
+    // The starting size; a loaded chart grows it to its own peak (EnsurePoolFor).
     [SerializeField] private int poolSizePerType = 6;
+    private bool warnedPoolExhausted;
 
     private struct CueSlot
     {
@@ -693,31 +695,8 @@ public class CueSpawner : MonoBehaviour
         slots = new CueSlot[total];
         int idx = 0;
         for (int t = 0; t < CueTypes.Length; t++)
-        {
             for (int i = 0; i < poolSizePerType; i++)
-            {
-                var visual = CreateCueVisual(CueTypes[t]);
-                visual.root.gameObject.SetActive(false);
-
-                slots[idx] = new CueSlot
-                {
-                    transform = visual.root,
-                    type = CueTypes[t],
-                    colorRenderers = visual.bright,
-                    frameRenderers = visual.frame,
-                    holdStrip = visual.strip,
-                    holdStripRenderer = visual.stripRenderer,
-                    holdStripZStart = visual.stripZStart,
-                    holdHeadRenderers = visual.head,
-                    holdIcon = visual.icon,
-                    fillRenderers = visual.fill,
-                    chevronRenderers = visual.chevron,
-                    chevronRoots = visual.chevronRoots,
-                    inUse = false,
-                };
-                idx++;
-            }
-        }
+                slots[idx++] = NewSlot(CueTypes[t]);
 
         BuildHitPads();
         BuildHitEffects();
@@ -844,6 +823,7 @@ public class CueSpawner : MonoBehaviour
         float cutoff = IntroCutoff(introBars, beatmapMeta.bpm, FlightTime, beatmapMeta.sets, introSkipsPartialSet);
         float wallFloor = IntroWallFloor(introWallBars, beatmapMeta.bpm, FlightTime);
         cues = TrimIntro(cues, beatmapMeta, cutoff, wallFloor);
+        EnsurePoolFor(cues);
 
         sequencer = new BeatmapSequencer(cues);
         RetireAllCues();
@@ -1082,7 +1062,15 @@ public class CueSpawner : MonoBehaviour
     private void SpawnCue(CueType type, int lane, float duration, float intensity, float dueTime)
     {
         int slotIndex = FindFreeSlot(type);
-        if (slotIndex < 0) return; // pool exhausted for this type; skip rather than allocate a new one
+        if (slotIndex < 0)
+        {
+            // Should not happen once EnsurePoolFor has sized the pool; said out loud if it does,
+            // because a note that silently never appears looks like a chart bug.
+            if (!warnedPoolExhausted)
+                Debug.LogWarning("[CueSpawner] no free " + type + " cue at " + dueTime.ToString("F2") + "s - the note is skipped", this);
+            warnedPoolExhausted = true;
+            return;
+        }
 
         lane = Mathf.Clamp(lane, 0, tunnel.LaneCount - 1);
         bool obstacle = IsObstacle(type);
@@ -1198,6 +1186,68 @@ public class CueSpawner : MonoBehaviour
         strip.localScale = new Vector3(scale.x, scale.y, length);
         var lp = strip.localPosition;
         strip.localPosition = new Vector3(lp.x, lp.y, slots[slotIndex].holdStripZStart + length * 0.5f);
+    }
+
+    private CueSlot NewSlot(CueType type)
+    {
+        var visual = CreateCueVisual(type);
+        visual.root.gameObject.SetActive(false);
+        return new CueSlot
+        {
+            transform = visual.root,
+            type = type,
+            colorRenderers = visual.bright,
+            frameRenderers = visual.frame,
+            holdStrip = visual.strip,
+            holdStripRenderer = visual.stripRenderer,
+            holdStripZStart = visual.stripZStart,
+            holdHeadRenderers = visual.head,
+            holdIcon = visual.icon,
+            fillRenderers = visual.fill,
+            chevronRenderers = visual.chevron,
+            chevronRoots = visual.chevronRoots,
+            inUse = false,
+        };
+    }
+
+    /// Grows the pool to what the loaded chart actually needs. A cue is alive from its spawn, one
+    /// flight before it is due, until its far end is behind the camera, so the number of one type
+    /// on the road at once is a property of the chart - one Punch a beat at 128 BPM keeps ~16 in
+    /// flight - and a fixed pool silently drops every note past its size. That is what made long
+    /// Punch/Kick sets look half empty, and the odd note in a run "not count": it never spawned.
+    private void EnsurePoolFor(List<BeatmapCue> cues)
+    {
+        float speed = Mathf.Max(0.01f, tunnel.ScrollSpeed);
+        float flight = FlightTime;
+        var added = new System.Text.StringBuilder();
+        var grown = new List<CueSlot>(slots);
+        foreach (var type in CueTypes)
+        {
+            // Alive from spawn to well behind the camera: flight, the hold, the trip from the hit
+            // zone past the camera, the object's own length, and a second of slack for the tail.
+            float extent = IsObstacle(type) ? ObstacleZExtent(type) : 1f;
+            float after = (hitZoneZ + extent) / speed + 1f;
+            var edges = new List<(float t, int d)>();
+            foreach (var c in cues)
+            {
+                if (c.type != type) continue;
+                edges.Add((c.time - flight, 1));
+                edges.Add((c.time + c.duration + after, -1));
+            }
+            edges.Sort((a, b) => a.t != b.t ? a.t.CompareTo(b.t) : a.d.CompareTo(b.d));
+            int alive = 0, peak = 0;
+            foreach (var e in edges) { alive += e.d; peak = Mathf.Max(peak, alive); }
+
+            int have = 0;
+            foreach (var slot in grown) if (slot.type == type) have++;
+            int need = peak + 2;
+            if (need <= have) continue;
+            for (int i = have; i < need; i++) grown.Add(NewSlot(type));
+            added.Append(type).Append(' ').Append(have).Append("->").Append(need).Append("  ");
+        }
+        if (added.Length == 0) return;
+        slots = grown.ToArray();
+        Debug.Log("[CueSpawner] pool grown for this chart: " + added, this);
     }
 
     private int FindFreeSlot(CueType type)

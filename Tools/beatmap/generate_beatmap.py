@@ -782,6 +782,16 @@ def _positive_float(raw: str, name: str, chunk: str) -> float:
     return value
 
 
+def _positive_int(raw: str, name: str, chunk: str) -> int:
+    try:
+        value = int(raw)
+    except ValueError:
+        raise SystemExit(f"{name}: '{chunk}' - the part after ':' must be a whole number of bars")
+    if value <= 0:
+        raise SystemExit(f"{name}: '{chunk}' - a set must be at least one bar long")
+    return value
+
+
 def _lane_pair(raw: str, name: str, chunk: str) -> Tuple[int, int]:
     parts = raw.split("-")
     if len(parts) != 2:
@@ -811,7 +821,8 @@ def parse_mapping(spec: Optional[str], defaults: dict, name: str, convert) -> di
 
 
 def plan_sets(bar_lines: np.ndarray, pattern: List[Tuple[str, int]], set_bars: int,
-              rest_beats: float, beat: float, track_end: float) -> List[WorkoutSet]:
+              rest_beats: float, beat: float, track_end: float,
+              set_bars_for: Optional[Dict[str, int]] = None) -> List[WorkoutSet]:
     """Lay sets out along the bar grid until the track runs out.
 
     Sets step by a WHOLE number of bars, and the rest is carved out of the end of each set
@@ -824,6 +835,9 @@ def plan_sets(bar_lines: np.ndarray, pattern: List[Tuple[str, int]], set_bars: i
     A set that cannot fit its full length before the end of the track is not emitted at all,
     rather than emitted short: half a block of an exercise at the end of a routine reads as the
     file being truncated.
+
+    `set_bars_for` gives some exercises a length of their own (--set-bars-for); everything else
+    is `set_bars` long. Every length is still a whole number of bars, so the grid holds.
     """
     order: List[str] = []
     for exercise, repeats in pattern:
@@ -831,16 +845,20 @@ def plan_sets(bar_lines: np.ndarray, pattern: List[Tuple[str, int]], set_bars: i
 
     sets: List[WorkoutSet] = []
     bar = 0
-    while bar + set_bars < len(bar_lines):
+    while True:
+        exercise = order[len(sets) % len(order)]
+        bars = max(1, int((set_bars_for or {}).get(exercise, set_bars)))
+        if bar + bars >= len(bar_lines):
+            break
         start = float(bar_lines[bar])
-        boundary = float(bar_lines[bar + set_bars])
+        boundary = float(bar_lines[bar + bars])
         if start >= track_end:
             break
         end = max(start, boundary - rest_beats * beat)
-        sets.append(WorkoutSet(index=len(sets), exercise=order[len(sets) % len(order)],
+        sets.append(WorkoutSet(index=len(sets), exercise=exercise,
                                start=start, end=min(end, track_end),
                                rest_end=min(boundary, track_end), bar=bar))
-        bar += set_bars
+        bar += bars
 
     return sets
 
@@ -1249,7 +1267,9 @@ def analyse(path: Path, cfg) -> Tuple[List[Event], float, float, int, List[Worko
         pairs = parse_mapping(cfg.lane_pairs, DEFAULT_LANE_PAIRS, "--lane-pairs",
                               lambda raw, name, chunk: _lane_pair(raw, name, chunk))
 
-        sets = plan_sets(bar_lines, pattern, cfg.set_bars, cfg.rest_beats, beat, track_end)
+        set_bars_for = parse_mapping(cfg.set_bars_for, {}, "--set-bars-for",
+                                     lambda raw, name, chunk: _positive_int(raw, name, chunk))
+        sets = plan_sets(bar_lines, pattern, cfg.set_bars, cfg.rest_beats, beat, track_end, set_bars_for)
         if not sets:
             raise SystemExit(
                 f"the track is too short for even one {cfg.set_bars}-bar set - lower --set-bars"
@@ -1522,6 +1542,9 @@ def build_parser() -> argparse.ArgumentParser:
                         "falls in (the behaviour before workout mode)")
     g.add_argument("--set-bars", type=int, default=3,
                    help="length of one set, in bars, measured bar line to bar line")
+    g.add_argument("--set-bars-for", default=None,
+                   help="per-exercise set length in bars, e.g. 'Punch:5,Kick:5'; exercises not "
+                        "named use --set-bars")
     g.add_argument("--rest-beats", type=float, default=1.0,
                    help="beats of silence at the END of each set, for changing stance; taken "
                         "out of the set rather than added between sets, so every set still "
@@ -1645,17 +1668,19 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
           f"({', '.join(f'{k} {v}' for k, v in sorted(counts.items()))})")
     if sets:
         beat_s = 60.0 / bpm
-        cycle = cfg.set_bars * cfg.beats_per_bar * beat_s
         rest = cfg.rest_beats * beat_s
-        print(f"  routine: {len(sets)} sets, one every {cycle:.2f}s "
-              f"({cfg.set_bars} bars: {cycle - rest:.2f}s of work + {rest:.2f}s rest), "
-              f"pattern '{cfg.pattern}'")
-        longest, run, previous = 1, 1, None
+        cycle = float(np.mean([s.rest_end - s.start for s in sets]))
+        lengths = ", ".join(f"{name} {np.mean([s.rest_end - s.start for s in sets if s.exercise == name]):.2f}s"
+                            for name in dict.fromkeys(s.exercise for s in sets))
+        print(f"  routine: {len(sets)} sets, one every {cycle:.2f}s on average ({lengths}; "
+              f"each ends in {rest:.2f}s of rest), pattern '{cfg.pattern}'")
+        longest, run, previous, span = 0.0, 0.0, None, 0.0
         for block in sets:
-            run = run + 1 if block.exercise == previous else 1
+            length = block.rest_end - block.start
+            run = run + length if block.exercise == previous else length
             longest = max(longest, run)
             previous = block.exercise
-        print(f"  longest run of one exercise: {longest} set(s) = {longest * cycle:.1f}s")
+        print(f"  longest run of one exercise: {longest:.1f}s")
         print(f"  density: {len(document['events']) / max(seconds, 1e-6):.2f} events/s overall, "
               f"{len(document['events']) / max(sum(s.end - s.start for s in sets), 1e-6):.2f} "
               f"inside sets")
