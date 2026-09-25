@@ -46,6 +46,12 @@ public static class TunnelRecording
         { label = "1440p", width = 2560, height = 1440, megabits = 80f, renderScale = 1.5f, msaa = 4, smaa = true };
     private static readonly Profile P1080 = new Profile
         { label = "1080p", width = 1920, height = 1080, megabits = 50f, renderScale = 2f, msaa = 4, smaa = true };
+    // 4K renders at 5760x3240 - the same 1.5x supersampling as 1440p. P4KNative is the fallback
+    // for a GPU that cannot hold that, and the baseline to compare the supersampled one against.
+    private static readonly Profile P4K = new Profile
+        { label = "4K", width = 3840, height = 2160, megabits = 140f, renderScale = 1.5f, msaa = 4, smaa = true };
+    private static readonly Profile P4KNative = new Profile
+        { label = "4Knative", width = 3840, height = 2160, megabits = 140f, renderScale = 1f, msaa = 4, smaa = true };
     // What recordings were made with before: kept for comparisons.
     private static readonly Profile PLegacy = new Profile
         { label = "legacy1080p", width = 1920, height = 1080, megabits = 0f, renderScale = 1f, msaa = 1, smaa = false };
@@ -65,6 +71,7 @@ public static class TunnelRecording
     private static StringBuilder sync;
     private static int lastLoggedFrame;
     private static bool restoreMute;
+    private static readonly System.Diagnostics.Stopwatch wallClock = new System.Diagnostics.Stopwatch();
 
     public static string OutputFolder => Path.GetFullPath(Path.Combine(Application.dataPath, "..", "Recordings"));
 
@@ -82,8 +89,14 @@ public static class TunnelRecording
     [MenuItem("Tunnel/Record Full Track (1080p)", priority = 1)]
     private static void RecordFull1080() => Launch(0f, "1080p", false);
 
-    [MenuItem("Tunnel/Record Test (33 s, 1440p)", priority = 2)]
+    [MenuItem("Tunnel/Record Full Track (4K)", priority = 2)]
+    private static void RecordFull4K() => Launch(0f, "4K", false);
+
+    [MenuItem("Tunnel/Record Test (33 s, 1440p)", priority = 3)]
     private static void RecordTest() => Launch(TestSeconds, "1440p", false);
+
+    [MenuItem("Tunnel/Record Test (33 s, 4K)", priority = 4)]
+    private static void RecordTest4K() => Launch(TestSeconds, "4K", false);
 
     [MenuItem("Tunnel/Open Recordings Folder", priority = 20)]
     private static void OpenFolder()
@@ -94,10 +107,12 @@ public static class TunnelRecording
 
     [MenuItem("Tunnel/Record Full Track (1440p)", true)]
     [MenuItem("Tunnel/Record Full Track (1080p)", true)]
+    [MenuItem("Tunnel/Record Full Track (4K)", true)]
     [MenuItem("Tunnel/Record Test (33 s, 1440p)", true)]
+    [MenuItem("Tunnel/Record Test (33 s, 4K)", true)]
     private static bool CanLaunch() => !EditorApplication.isPlayingOrWillChangePlaymode;
 
-    /// For quality comparisons: any profile ("1440p", "1080p", "legacy1080p"), optionally with a
+    /// For quality comparisons: any profile ("1440p", "1080p", "4K", "4Knative", "legacy1080p"), optionally with a
     /// lossless PNG of every frame next to the video to measure what the encoder loses.
     public static void LaunchDiagnostic(float seconds, string profile, bool png) => Launch(seconds, profile, png);
 
@@ -108,7 +123,8 @@ public static class TunnelRecording
     }
 
     private static Profile Find(string label) =>
-        label == P1080.label ? P1080 : label == PLegacy.label ? PLegacy : P1440;
+        label == P1080.label ? P1080 : label == P4K.label ? P4K : label == P4KNative.label ? P4KNative
+      : label == PLegacy.label ? PLegacy : P1440;
 
     private static void OnPlayModeChanged(PlayModeStateChange change)
     {
@@ -171,6 +187,7 @@ public static class TunnelRecording
         sync = new StringBuilder("frame,videoTime,songTime,dspTime\n");
         RenderPipelineManager.endContextRendering += LogFrame;
         EditorApplication.update += Watch;
+        wallClock.Restart();
         Debug.Log("[TunnelRecording] recording " + (seconds > 0f ? seconds + " s" : "the full track")
                 + " at " + profile.width + "x" + profile.height + " to " + outputBase + ".mp4");
     }
@@ -255,7 +272,9 @@ public static class TunnelRecording
         EditorUtility.audioMasterMute = restoreMute;
         if (sync != null) File.WriteAllText(outputBase + "_sync.csv", sync.ToString());
         sync = null;
-        Debug.Log("[TunnelRecording] saved " + outputBase + ".mp4");
+        Debug.Log("[TunnelRecording] saved " + outputBase + ".mp4 - "
+                + ((Time.frameCount - firstFrame) / Fps).ToString("F1") + " s of video in "
+                + wallClock.Elapsed.TotalSeconds.ToString("F1") + " s");
     }
 
     /// Render settings raised for a recording and put back afterwards. The render pipeline asset
