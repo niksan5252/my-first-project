@@ -61,20 +61,27 @@ public class HudBanner : MonoBehaviour
 
     private float Elapsed => Mathf.Max(0f, beats.Now - phaseStart);
 
+    /// True while a word is on screen or on its way in or out.
+    public bool Busy => phase != Phase.Idle || hasPending;
+
+    /// When this returns true, a new word is held back until it returns false. CenterWords uses it
+    /// so the corner banner never talks over a word in the middle of the screen.
+    public System.Func<bool> Blocked;
+
     /// Shows a word for a number of beats. If one is already up, it is dismissed first (fast) and
     /// this one follows.
     public void Show(string word, Color color, float holdBeats)
     {
         if (style == null || beats == null) return;
 
-        if (phase != Phase.Idle)
+        if (phase != Phase.Idle || (Blocked != null && Blocked()))
         {
             hasPending = true;
             pendingWord = word;
             pendingColor = color;
             pendingHoldBeats = holdBeats;
             // Only shorten the exit - a banner already leaving keeps whatever is left of its fade.
-            if (phase != Phase.Leaving)
+            if (phase != Phase.Leaving && phase != Phase.Idle)
             {
                 phase = Phase.Leaving;
                 fadeSeconds = Mathf.Max(0.01f, beats.Seconds(style.BannerReplaceFadeBeats));
@@ -112,7 +119,17 @@ public class HudBanner : MonoBehaviour
 
     private void Update()
     {
-        if (style == null || beats == null || phase == Phase.Idle) return;
+        if (style == null || beats == null) return;
+        if (phase == Phase.Idle)
+        {
+            // A word held back by Blocked goes up as soon as the way is clear.
+            if (hasPending && (Blocked == null || !Blocked()))
+            {
+                hasPending = false;
+                Begin(pendingWord, pendingColor, pendingHoldBeats);
+            }
+            return;
+        }
 
         switch (phase)
         {
@@ -156,7 +173,7 @@ public class HudBanner : MonoBehaviour
 
                 phase = Phase.Idle;
                 group.alpha = 0f;
-                if (hasPending)
+                if (hasPending && (Blocked == null || !Blocked()))
                 {
                     hasPending = false;
                     Begin(pendingWord, pendingColor, pendingHoldBeats);

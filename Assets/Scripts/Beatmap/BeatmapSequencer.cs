@@ -18,6 +18,8 @@ public sealed class BeatmapSequencer
     }
 
     public int Count => cues.Count;
+    /// Read-only access to the loaded chart, for presentation that plans ahead (CenterWords).
+    public BeatmapCue this[int index] => cues[index];
     public int Remaining => cues.Count - cursor;
     public bool Finished => cursor >= cues.Count;
 

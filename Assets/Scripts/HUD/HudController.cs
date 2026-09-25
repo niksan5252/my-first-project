@@ -106,6 +106,8 @@ public class HudController : MonoBehaviour
     }
 
     public HudBeatClock Beats => beats;
+    public Color PrimaryColor => primaryColor;
+    public Color SecondaryColor => secondaryColor;
 
     /// Re-dresses the counter in the current colours - after a theme change, or when HudSkin
     /// switches looks.

@@ -1,0 +1,49 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 486a92a6903e8f043879a23af4d461a7, type: 3}
+  m_Name: CenterWordSet
+  m_EditorClassIdentifier: Assembly-CSharp::CenterWordSet
+  words:
+  - GREAT
+  - AWESOME
+  - UNSTOPPABLE
+  - INCREDIBLE
+  - ON FIRE
+  - AMAZING
+  - BEAST MODE
+  - NO LIMITS
+  - KEEP GOING
+  - LEGENDARY
+  wordsPerTrack: 5
+  newDrawEveryRun: 0
+  minBarsBetween: 8
+  returnGapBars: 2
+  streakGapBars: 1
+  streakLength: 16
+  font: {fileID: 11400000, guid: 02a2452676728ee4d9d7d1024e8c47e4, type: 2}
+  size: 130
+  maxWidth: 1000
+  centerY: -330
+  glow: 0.45
+  flashGlow: 1
+  punchInBeats: 0.375
+  holdBeats: 2
+  fadeOutBeats: 0.5
+  flashDecayBeats: 1
+  startScale: 0.6
+  overshootScale: 1.1
+  exitScale: 1.15
+  flickerCyclesPerBeat: 1
+  flickerAmount: 0.2
+  echoStartScale: 2.2
+  echoEndScale: 3
+  echoAlpha: 0.3
