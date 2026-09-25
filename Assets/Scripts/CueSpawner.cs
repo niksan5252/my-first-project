@@ -522,6 +522,7 @@ public class CueSpawner : MonoBehaviour
 
     public Beatmap BeatmapMeta => beatmapMeta;
     public SongClock Clock => songClock;
+    public AudioClip Music => musicSource != null ? musicSource.clip : null;
     public BeatmapSequencer Sequencer => sequencer;
     private float spawnZ;
     private float spawnTimer;
@@ -874,7 +875,7 @@ public class CueSpawner : MonoBehaviour
     {
         AudioSettings.GetDSPBufferSize(out int bufferLength, out _);
         float lead = ClockStartLeadBuffers * bufferLength / (float)Mathf.Max(1, AudioSettings.outputSampleRate);
-        songClock.Begin(musicSource, lead, beatmapMeta.audioOffset + beatmapUserOffset);
+        songClock.Begin(musicSource, lead, beatmapMeta.audioOffset, beatmapUserOffset);
         Debug.Log("[CueSpawner] song clock started on frame " + Time.frameCount + ", "
                 + Time.timeSinceLevelLoad.ToString("F2") + "s after load, lead " + (lead * 1000f).ToString("F1") + " ms, DSP buffer latency "
                 + (songClock.BufferLatency * 1000f).ToString("F1") + " ms, offset " + ((beatmapMeta.audioOffset + beatmapUserOffset) * 1000f).ToString("F1") + " ms", this);
@@ -966,7 +967,7 @@ public class CueSpawner : MonoBehaviour
         RetireAllCues();
         obstacleCamera.SetTempo(beatmapMeta.bpm);
         clockStartFrames = -1;
-        songClock.BeginOffline(startTime, beatmapMeta.audioOffset + beatmapUserOffset);
+        songClock.BeginOffline(startTime, beatmapMeta.audioOffset, beatmapUserOffset);
     }
 
     /// Empties the tunnel: every cue still in flight is put back in the pool and the camera's
