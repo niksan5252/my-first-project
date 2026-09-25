@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using System.IO;
 using System.Text;
 using UnityEditor;
@@ -7,13 +8,18 @@ using UnityEditor.Recorder.Encoder;
 using UnityEditor.Recorder.Input;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
 
 /// Records the tunnel to an MP4 with the track's audio: Game View (so the Screen Space Overlay HUD
-/// is in it), 1920x1080, a constant 60 fps. Tunnel > Record Full Track presses Play, starts the
-/// recorder on the first frame and stops it - and Play - once the track has finished.
+/// is in it), a constant 60 fps, 1440p or 1080p. Tunnel > Record Full Track presses Play, starts
+/// the recorder on the first frame and stops it - and Play - once the track has finished.
 ///
 /// The settings are built here in code rather than kept in the Recorder window, whose state lives
 /// in Library/ and is neither versioned nor shared.
+///
+/// The recording runs on a fixed time step, so how long a frame takes to render does not matter,
+/// and the image is rendered well above what live play can afford - see RecordingQuality, which
+/// raises it for the recording only and puts everything back afterwards.
 ///
 /// Next to every video goes a <name>_sync.csv: for each recorded frame, the video time and the
 /// SongTime the game used on it. In the file, video time t is also audio time t (the recorder
@@ -22,14 +28,35 @@ using UnityEngine.Rendering;
 [InitializeOnLoad]
 public static class TunnelRecording
 {
-    private const int Width = 1920;
-    private const int Height = 1080;
+    /// One way to record. The whole quality policy is this table: output size, bitrate, and how
+    /// far the renderer is pushed above that size.
+    private struct Profile
+    {
+        public string label;
+        public int width, height;
+        public float megabits;     // H.264 High profile target; <= 0 keeps the Recorder's "High" preset
+        public float renderScale;  // URP render scale while recording; the image is downsampled to width x height
+        public int msaa;           // MSAA samples while recording (1 = off)
+        public bool smaa;          // camera SMAA (High) while recording
+    }
+
+    // 1440p is the default: YouTube serves 1440p and up with VP9, which looks visibly better than
+    // its 1080p stream even on a 1080p screen. Both profiles render internally at 3840x2160.
+    private static readonly Profile P1440 = new Profile
+        { label = "1440p", width = 2560, height = 1440, megabits = 80f, renderScale = 1.5f, msaa = 4, smaa = true };
+    private static readonly Profile P1080 = new Profile
+        { label = "1080p", width = 1920, height = 1080, megabits = 50f, renderScale = 2f, msaa = 4, smaa = true };
+    // What recordings were made with before: kept for comparisons.
+    private static readonly Profile PLegacy = new Profile
+        { label = "legacy1080p", width = 1920, height = 1080, megabits = 0f, renderScale = 1f, msaa = 1, smaa = false };
+
     private const float Fps = 60f;
     // Recorded past the last sample, so the video does not cut on the final note's tail.
     private const float TailSeconds = 1f;
-    private const float TestSeconds = 15f;
+    // Long enough to include the first punch notes (from ~19 s) after the intro walls.
+    private const float TestSeconds = 33f;
 
-    private const string PendingKey = "TunnelRecording.PendingSeconds";   // <0 none, 0 full track
+    private const string PendingKey = "TunnelRecording.Pending";   // "seconds|profile|png"
 
     private static RecorderController controller;
     private static float stopAfter;          // 0: when the track ends; else seconds of video
@@ -44,13 +71,19 @@ public static class TunnelRecording
     static TunnelRecording()
     {
         EditorApplication.playModeStateChanged += OnPlayModeChanged;
+        // A recording cut short by a crash or a domain reload never reached Finish; the render
+        // pipeline asset would otherwise keep its recording settings.
+        RecordingQuality.RestoreLeftovers();
     }
 
-    [MenuItem("Tunnel/Record Full Track", priority = 0)]
-    private static void RecordFullTrack() => Launch(0f);
+    [MenuItem("Tunnel/Record Full Track (1440p)", priority = 0)]
+    private static void RecordFull1440() => Launch(0f, "1440p", false);
 
-    [MenuItem("Tunnel/Record Test (15 s)", priority = 1)]
-    private static void RecordTest() => Launch(TestSeconds);
+    [MenuItem("Tunnel/Record Full Track (1080p)", priority = 1)]
+    private static void RecordFull1080() => Launch(0f, "1080p", false);
+
+    [MenuItem("Tunnel/Record Test (33 s, 1440p)", priority = 2)]
+    private static void RecordTest() => Launch(TestSeconds, "1440p", false);
 
     [MenuItem("Tunnel/Open Recordings Folder", priority = 20)]
     private static void OpenFolder()
@@ -59,23 +92,33 @@ public static class TunnelRecording
         EditorUtility.RevealInFinder(OutputFolder);
     }
 
-    [MenuItem("Tunnel/Record Full Track", true)]
-    [MenuItem("Tunnel/Record Test (15 s)", true)]
+    [MenuItem("Tunnel/Record Full Track (1440p)", true)]
+    [MenuItem("Tunnel/Record Full Track (1080p)", true)]
+    [MenuItem("Tunnel/Record Test (33 s, 1440p)", true)]
     private static bool CanLaunch() => !EditorApplication.isPlayingOrWillChangePlaymode;
 
-    private static void Launch(float seconds)
+    /// For quality comparisons: any profile ("1440p", "1080p", "legacy1080p"), optionally with a
+    /// lossless PNG of every frame next to the video to measure what the encoder loses.
+    public static void LaunchDiagnostic(float seconds, string profile, bool png) => Launch(seconds, profile, png);
+
+    private static void Launch(float seconds, string profile, bool png)
     {
-        SessionState.SetFloat(PendingKey, seconds);
+        SessionState.SetString(PendingKey, seconds.ToString(CultureInfo.InvariantCulture) + "|" + profile + "|" + (png ? "1" : "0"));
         EditorApplication.EnterPlaymode();
     }
+
+    private static Profile Find(string label) =>
+        label == P1080.label ? P1080 : label == PLegacy.label ? PLegacy : P1440;
 
     private static void OnPlayModeChanged(PlayModeStateChange change)
     {
         if (change == PlayModeStateChange.EnteredPlayMode)
         {
-            float pending = SessionState.GetFloat(PendingKey, -1f);
-            SessionState.EraseFloat(PendingKey);
-            if (pending >= 0f) Begin(pending);
+            string pending = SessionState.GetString(PendingKey, "");
+            SessionState.EraseString(PendingKey);
+            if (pending.Length == 0) return;
+            var parts = pending.Split('|');
+            Begin(float.Parse(parts[0], CultureInfo.InvariantCulture), Find(parts[1]), parts[2] == "1");
         }
         else if (change == PlayModeStateChange.ExitingPlayMode && controller != null)
         {
@@ -83,28 +126,17 @@ public static class TunnelRecording
         }
     }
 
-    private static void Begin(float seconds)
+    private static void Begin(float seconds, Profile profile, bool png)
     {
         var spawner = UnityEngine.Object.FindFirstObjectByType<CueSpawner>();
         string track = spawner != null && spawner.Music != null ? spawner.Music.name : "tunnel";
         Directory.CreateDirectory(OutputFolder);
         outputBase = Path.Combine(OutputFolder, track + "_" + DateTime.Now.ToString("yyyyMMdd_HHmmss")
-                                               + (seconds > 0f ? "_test" : ""));
-
-        var movie = ScriptableObject.CreateInstance<MovieRecorderSettings>();
-        movie.name = "Tunnel Movie";
-        movie.Enabled = true;
-        movie.EncoderSettings = new CoreEncoderSettings
-        {
-            Codec = CoreEncoderSettings.OutputCodec.MP4,
-            EncodingQuality = CoreEncoderSettings.VideoEncodingQuality.High,
-        };
-        movie.ImageInputSettings = new GameViewInputSettings { OutputWidth = Width, OutputHeight = Height };
-        movie.AudioInputSettings.PreserveAudio = true;
-        movie.OutputFile = outputBase;
+                                               + "_" + profile.label + (seconds > 0f ? "_test" : ""));
 
         var settings = ScriptableObject.CreateInstance<RecorderControllerSettings>();
-        settings.AddRecorderSettings(movie);
+        settings.AddRecorderSettings(MovieSettings(profile));
+        if (png) settings.AddRecorderSettings(PngSettings(profile));
         settings.SetRecordModeToManual();
         settings.FrameRatePlayback = FrameRatePlayback.Constant;
         settings.FrameRate = Fps;
@@ -117,6 +149,7 @@ public static class TunnelRecording
         // recording and put back afterwards.
         restoreMute = EditorUtility.audioMasterMute;
         EditorUtility.audioMasterMute = false;
+        RecordingQuality.Apply(profile.renderScale, profile.msaa, profile.smaa);
 
         controller = new RecorderController(settings);
         controller.PrepareRecording();
@@ -124,6 +157,8 @@ public static class TunnelRecording
         {
             Debug.LogError("[TunnelRecording] the recorder did not start - see the messages above");
             controller = null;
+            RecordingQuality.Restore();
+            EditorUtility.audioMasterMute = restoreMute;
             return;
         }
 
@@ -137,7 +172,45 @@ public static class TunnelRecording
         RenderPipelineManager.endContextRendering += LogFrame;
         EditorApplication.update += Watch;
         Debug.Log("[TunnelRecording] recording " + (seconds > 0f ? seconds + " s" : "the full track")
-                + " to " + outputBase + ".mp4");
+                + " at " + profile.width + "x" + profile.height + " to " + outputBase + ".mp4");
+    }
+
+    private static MovieRecorderSettings MovieSettings(Profile profile)
+    {
+        var movie = ScriptableObject.CreateInstance<MovieRecorderSettings>();
+        movie.name = "Tunnel Movie";
+        movie.Enabled = true;
+        // The Recorder's quality presets ("High" included) take Unity's legacy encoder path, which
+        // writes H.264 Baseline at ~8 Mbit/s at 1080p60 - the soft, blocky look of the first
+        // recordings. Custom takes the path with a profile, B-frames and a bitrate of our choosing.
+        movie.EncoderSettings = profile.megabits > 0f
+            ? new CoreEncoderSettings
+            {
+                Codec = CoreEncoderSettings.OutputCodec.MP4,
+                EncodingQuality = CoreEncoderSettings.VideoEncodingQuality.Custom,
+                EncodingProfile = CoreEncoderSettings.H264EncodingProfile.High,
+                TargetBitRate = profile.megabits,
+            }
+            : new CoreEncoderSettings
+            {
+                Codec = CoreEncoderSettings.OutputCodec.MP4,
+                EncodingQuality = CoreEncoderSettings.VideoEncodingQuality.High,
+            };
+        movie.ImageInputSettings = new GameViewInputSettings { OutputWidth = profile.width, OutputHeight = profile.height };
+        movie.AudioInputSettings.PreserveAudio = true;
+        movie.OutputFile = outputBase;
+        return movie;
+    }
+
+    private static ImageRecorderSettings PngSettings(Profile profile)
+    {
+        var png = ScriptableObject.CreateInstance<ImageRecorderSettings>();
+        png.name = "Tunnel Frames";
+        png.Enabled = true;
+        png.OutputFormat = ImageRecorderSettings.ImageRecorderOutputFormat.PNG;
+        png.imageInputSettings = new GameViewInputSettings { OutputWidth = profile.width, OutputHeight = profile.height };
+        png.OutputFile = outputBase + "_png/frame_" + DefaultWildcard.Frame;
+        return png;
     }
 
     /// One row per rendered frame: what the game believed the song time was on it.
@@ -149,11 +222,11 @@ public static class TunnelRecording
         if (frame < 0) return;
         var spawner = UnityEngine.Object.FindFirstObjectByType<CueSpawner>();
         var clock = spawner != null ? spawner.Clock : null;
-        string song = clock != null && clock.IsRunning ? clock.SongTime.ToString("F4", System.Globalization.CultureInfo.InvariantCulture) : "";
+        string song = clock != null && clock.IsRunning ? clock.SongTime.ToString("F4", CultureInfo.InvariantCulture) : "";
         sync.Append(frame).Append(',')
-            .Append((frame / Fps).ToString("F4", System.Globalization.CultureInfo.InvariantCulture)).Append(',')
+            .Append((frame / Fps).ToString("F4", CultureInfo.InvariantCulture)).Append(',')
             .Append(song).Append(',')
-            .Append(AudioSettings.dspTime.ToString("F4", System.Globalization.CultureInfo.InvariantCulture)).Append('\n');
+            .Append(AudioSettings.dspTime.ToString("F4", CultureInfo.InvariantCulture)).Append('\n');
     }
 
     private static void Watch()
@@ -178,9 +251,53 @@ public static class TunnelRecording
         RenderPipelineManager.endContextRendering -= LogFrame;
         controller.StopRecording();
         controller = null;
+        RecordingQuality.Restore();
         EditorUtility.audioMasterMute = restoreMute;
         if (sync != null) File.WriteAllText(outputBase + "_sync.csv", sync.ToString());
         sync = null;
         Debug.Log("[TunnelRecording] saved " + outputBase + ".mp4");
+    }
+
+    /// Render settings raised for a recording and put back afterwards. The render pipeline asset
+    /// is a project asset, so a change to it outlives Play mode: the original values are kept in
+    /// SessionState too, and put back on the next load if the Editor never got to Restore.
+    private static class RecordingQuality
+    {
+        private const string SavedKey = "TunnelRecording.SavedQuality";   // "asset path|renderScale|msaa"
+
+        public static void Apply(float renderScale, int msaa, bool smaa)
+        {
+            var urp = GraphicsSettings.currentRenderPipeline as UniversalRenderPipelineAsset;
+            if (urp != null)
+            {
+                if (SessionState.GetString(SavedKey, "").Length == 0)
+                    SessionState.SetString(SavedKey, AssetDatabase.GetAssetPath(urp) + "|"
+                        + urp.renderScale.ToString(CultureInfo.InvariantCulture) + "|" + urp.msaaSampleCount);
+                urp.renderScale = renderScale;
+                urp.msaaSampleCount = msaa;
+            }
+            // The camera is a scene object, so this one reverts with Play mode by itself.
+            var camera = Camera.main;
+            var data = camera != null ? camera.GetComponent<UniversalAdditionalCameraData>() : null;
+            if (data != null && smaa)
+            {
+                data.antialiasing = AntialiasingMode.SubpixelMorphologicalAntiAliasing;
+                data.antialiasingQuality = AntialiasingQuality.High;
+            }
+        }
+
+        public static void Restore() => RestoreLeftovers();
+
+        public static void RestoreLeftovers()
+        {
+            string saved = SessionState.GetString(SavedKey, "");
+            if (saved.Length == 0) return;
+            SessionState.EraseString(SavedKey);
+            var parts = saved.Split('|');
+            var urp = AssetDatabase.LoadAssetAtPath<UniversalRenderPipelineAsset>(parts[0]);
+            if (urp == null) return;
+            urp.renderScale = float.Parse(parts[1], CultureInfo.InvariantCulture);
+            urp.msaaSampleCount = int.Parse(parts[2], CultureInfo.InvariantCulture);
+        }
     }
 }
