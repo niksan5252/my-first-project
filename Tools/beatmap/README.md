@@ -43,6 +43,53 @@ works from any working directory.
 Set `beatmapFileName` on the `CueSpawner` component to the file name you produced (just the
 name, not the path — `BeatmapReader.ResolvePath` prepends `StreamingAssets/Beatmaps`).
 
+## Which moments get a note — `--detector`
+
+**`drums` (default): notes on the kick and the clap/snare only.** Hats, shakers, small percussion,
+sustains and melody never reach the chart. Each drum is found in its own band, against its own
+threshold, on an **amplitude** envelope (99th percentile = 1) — not on spectral flux:
+
+* kick — the band below `--kick-hz`; a peak must reach `--kick-threshold` (0.7);
+* clap / snare — the geometric mean of the mid band and the band above `--punch-hz`, i.e. a hit
+  that is loud in both at once; a peak must reach `--clap-threshold` (0.6);
+* both must stand `--drum-prominence` (0.3) above the valleys around them. `--no-claps` keeps the
+  kick only.
+
+Amplitude rather than flux is what makes the kick findable under a bass line: flux is computed on
+decibels, which inflate small changes, so a bass wobbling between 20% and 50% of the low band
+reads as onsets as strong as the kick's. In amplitude the kick jumps to ~1.0 and the bass stays
+under ~0.5. The drum's type still does not decide the note's type — the workout set does; the drum
+only decides *when*.
+
+Measured on `irokz_goodbye_my_love.wav` (a phonk-house track, 128 BPM), share of chart notes
+within 40 ms of a beat, after removing each detector's constant offset from the fitted grid:
+
+| detector | notes | on a beat | off the grid | median error |
+|---|---|---|---|---|
+| `all` (the old behaviour) | 276 | 44% | 45% | 34 ms |
+| `drums` | 277 | 27% | 69% | 55 ms |
+| `drums --no-claps` | 174 | 74% | 24% | 8 ms |
+
+That track has no clap backbeat — the "claps" it finds are its bell melody — so on it the clap
+half makes things worse and `--no-claps` is the right call. Most of the remaining 24% is real:
+parts of the track use a syncopated kick pattern, not four-on-the-floor. `--detector all` keeps
+the original every-onset behaviour.
+
+**`grid`: a note on every beat, but only where the drums play.** The fitted beat grid decides
+*when*, the kick decides *where*: a bar gets a note on each of its beats only if the drums detector
+finds at least `--grid-min-kicks` (2) kicks in it; every other bar — breakdowns, fills, quiet
+stretches — is a rest. The rule lives in `drums_play_in_bar`. Notes sit on the grid shifted by the
+median offset between the detected kicks and their nearest beats, measured per track (+25 ms on
+the track below: the comb that fits the grid reads spectral flux, which peaks just before the
+kick's attack). The run prints a map of the bars, `#` drums and `.` rest, 16 to a row.
+
+This is what `irokz_goodbye_my_love.json` in the scene is made with — 69 of 106 bars carry notes,
+every interval is a whole number of beats, and the rests line up with the breakdowns:
+
+```powershell
+.venv\Scripts\python generate_beatmap.py ..\..\Assets\Audio\Tracks\irokz_goodbye_my_love.wav --detector grid
+```
+
 ## What it does
 
 1. **Onsets and tempo.** One mel spectrogram feeds the whole pipeline, so the onset envelope,

@@ -268,6 +268,194 @@ def classify(lo: float, mid: float, hi: float, strength: float, cfg) -> str:
 
 
 # --------------------------------------------------------------------------------------
+# Detection: which moments get a note at all
+# --------------------------------------------------------------------------------------
+#
+# Two detectors, chosen by --detector. `drums` (the default) puts notes on the kick and on the
+# clap/snare and nothing else. `all` is the original: every onset in the loudest band, which on a
+# dance track means the hats and the shakers too, and a chart whose rhythm cannot be read.
+
+def drum_envelopes(y: np.ndarray, sr: int, cfg) -> Tuple[np.ndarray, np.ndarray, float]:
+    """(kick envelope, clap envelope, envelope rate). This is the whole rule for what counts as a
+    kick and what counts as a clap, and the function to change if either picks the wrong things.
+
+    Both are AMPLITUDE envelopes of band-limited copies of the signal, each normalised so its 99th
+    percentile is 1 - not the spectral flux the `all` detector uses. The difference is what makes
+    the kick findable under a bass line. Flux is computed on decibels, which inflate small changes:
+    a bass line wobbling between 20% and 50% of the low band's level reads as a stream of onsets
+    as strong as the kick's. In amplitude the kick is a jump to the top of the band (~1.0 from
+    ~0.2) and the bass stays underneath it, so a height threshold separates them.
+
+      * kick: the band below --kick-hz.
+      * clap / snare: the geometric mean of the mid band and the band above --punch-hz. A clap
+        has a body in the mids and a noise burst in the highs, so both jump at once; a hi-hat
+        lives in the highs and a melody in the mids, and the geometric mean of a large and a small
+        number is small, which a sum or a max would not be.
+
+    The windows are the ones the timing refinement was calibrated with, so the attack read off
+    these envelopes is already as precise as that pass would make it.
+    """
+    hop = max(1, int(round(cfg.refine_hop * sr)))
+
+    def band(low: float, high: float, window: float) -> np.ndarray:
+        env = rms_envelope(band_filter(y, sr, low, high), max(2, int(round(window * sr))), hop)
+        return env / robust_reference(env, cfg.norm_percentile)
+
+    kick = band(0.0, cfg.kick_hz, cfg.refine_low_window)
+    clap = np.sqrt(band(cfg.kick_hz, cfg.punch_hz, cfg.refine_high_window)
+                   * band(cfg.punch_hz, sr / 2.0, cfg.refine_high_window))
+    clap = clap / robust_reference(clap, cfg.norm_percentile)
+    return kick, clap, sr / hop
+
+
+def drums_play_in_bar(kicks_in_bar: int, cfg) -> bool:
+    """Whether a bar counts as one where the drums play, and so gets a note on every beat.
+
+    The one rule the grid detector's shape hangs on, kept apart so it can be changed alone. A
+    kick COUNT rather than "a kick on every beat", because parts of a track can carry a
+    syncopated pattern (1, 2, 3, the "a" of 3, the "and" of 4) that is plainly a drum bar while
+    leaving a beat or two without a kick of its own; and a count of at least two, so one stray
+    low hit in a breakdown does not light up a whole bar.
+    """
+    return kicks_in_bar >= cfg.grid_min_kicks
+
+
+def detect_grid(y: np.ndarray, sr: int, mel_hop: int, low_onsets: np.ndarray,
+                beat_period: float, beat_phase: float, cfg) -> Tuple[List[Event], List[str]]:
+    """Notes on every beat of the fitted grid, in the bars where the drums play, and nowhere else.
+
+    The grid decides WHEN - which is what makes the chart regular enough to follow as a workout.
+    The kick decides WHERE: a bar gets its beats only if `drums_play_in_bar` says so, so
+    breakdowns and quiet stretches come out as rests. Returns the events and a one-character map
+    of the bars ('#' drums, '.' none) for the report.
+
+    The notes sit on the grid shifted by the MEDIAN offset between the detected kicks and their
+    nearest beats. The comb that fits the grid reads spectral flux, which peaks a little before
+    the kick's attack; measured per track rather than assumed, so it is a property of the audio
+    and not a constant someone has to maintain.
+    """
+    duration = len(y) / sr
+    kicks = [ev for ev in detect_drums(y, sr, mel_hop, cfg, claps=False)]
+    kick_times = np.array([ev.time for ev in kicks])
+    kick_level = {round(ev.time, 4): ev.intensity for ev in kicks}
+
+    grid = np.arange(beat_phase, duration, beat_period)
+    grid_frames = np.rint(grid * sr / mel_hop).astype(int)
+    bar_starts = find_bar_lines(grid, low_onsets, grid_frames, cfg.beats_per_bar)
+
+    offset = 0.0
+    if kick_times.size:
+        nearest = grid[np.clip(np.searchsorted(grid, kick_times), 1, len(grid) - 1) - 1]
+        delta = kick_times - nearest
+        delta = np.where(delta > beat_period / 2, delta - beat_period, delta)
+        close = np.abs(delta) <= beat_period / 4
+        if close.any():
+            offset = float(np.median(delta[close]))
+
+    events: List[Event] = []
+    bar_map: List[str] = []
+    for index, start in enumerate(bar_starts):
+        end = bar_starts[index + 1] if index + 1 < len(bar_starts) else start + cfg.beats_per_bar * beat_period
+        inside = kick_times[(kick_times >= start + offset - beat_period / 4) & (kick_times < end + offset - beat_period / 4)]
+        active = drums_play_in_bar(len(inside), cfg)
+        bar_map.append("#" if active else ".")
+        if not active:
+            continue
+        for beat in grid[(grid >= start - 1e-6) & (grid < end - 1e-6)]:
+            time = float(beat + offset)
+            if time < 0.0 or time >= duration:
+                continue
+            # Intensity from the kick on this beat when there is one; a beat the pattern leaves
+            # empty borrows the bar's median so it reads as part of the same bar, not as quiet.
+            near = inside[np.abs(inside - time) <= beat_period / 4]
+            level = (kick_level.get(round(float(near[0]), 4), 1.0) if near.size
+                     else float(np.median([kick_level.get(round(float(k), 4), 1.0) for k in inside])))
+            events.append(Event(time=time, type=KICK, acoustic=KICK, intensity=level,
+                                frame=int(round(time * sr / mel_hop))))
+    return events, bar_map
+
+
+def detect_drums(y: np.ndarray, sr: int, mel_hop: int, cfg, claps: bool = True) -> List[Event]:
+    """Notes on the kick and the clap/snare only, each found in its own band against its own threshold.
+
+    A hit is an envelope peak at least --kick-threshold / --clap-threshold high that also stands
+    --drum-prominence above the valleys around it, no closer than --min-interval to the next. Its
+    time is the attack in front of the peak, read with the same rule as the refinement pass.
+
+    A kick and a clap landing together come out as two events a few ms apart; `filter_min_interval`
+    downstream keeps the stronger. `acoustic` records which drum it was - the note's TYPE is still
+    decided by the workout set, as for every other note.
+    """
+    from scipy.signal import find_peaks
+
+    kick_env, clap_env, rate = drum_envelopes(y, sr, cfg)
+    sources = [(KICK, kick_env, cfg.kick_threshold, cfg.refine_low_rise)]
+    if claps and not cfg.no_claps:
+        sources.append((PUNCH, clap_env, cfg.clap_threshold, cfg.refine_rise))
+
+    events: List[Event] = []
+    for source, env, threshold, rise in sources:
+        peaks, props = find_peaks(env, height=threshold, prominence=cfg.drum_prominence,
+                                  distance=max(1, int(round(cfg.min_interval * rate))))
+        for peak, height in zip(peaks, props["peak_heights"]):
+            # A short search window: the peak is already known, this only walks back to its attack.
+            attack = refine_onset(env, rate, peak / rate, 0.02, rise)
+            time = attack if attack is not None else peak / rate
+            events.append(Event(
+                time=float(time), type=source, acoustic=source,
+                intensity=float(np.clip(height, 0.0, 1.0)),
+                frame=int(round(time * sr / mel_hop)),
+                bands=(float(kick_env[peak]), float(clap_env[peak]), 0.0),
+            ))
+    events.sort(key=lambda e: e.time)
+    return events
+
+
+def detect_all_onsets(detect_env: np.ndarray, norm_bands: np.ndarray, sr: int, hop: int,
+                      wait_frames: int, last_frame: int, cfg) -> List[Event]:
+    """The original detector: every onset of the loudest band, typed by `classify`."""
+    onset_frames = librosa.onset.onset_detect(
+        onset_envelope=detect_env, sr=sr, hop_length=hop,
+        units="frames", backtrack=False,
+        delta=cfg.onset_delta, wait=wait_frames,
+    )
+    if len(onset_frames) == 0:
+        raise SystemExit(
+            "no onsets detected - try lowering --onset-delta, or check the file is not silence"
+        )
+    onset_times = librosa.frames_to_time(onset_frames, sr=sr, hop_length=hop)
+
+    # Intensity is read off the SAME loudest-band envelope that detection uses, not off the
+    # sum of the three bands. Summing looks like the natural "how big is this hit" measure
+    # and quietly breaks the chart: a hi-hat lights all three bands and scores ~3x its
+    # per-band value, a kick lights one and scores ~1x, so on any track with hats the kicks
+    # come out as the weakest events in the map. Referenced against the onsets themselves
+    # rather than every frame, so the silence between notes does not push the chart to 1.
+    strength_ref = robust_reference(detect_env[onset_frames], cfg.norm_percentile)
+
+    events: List[Event] = []
+    for frame, time in zip(onset_frames, onset_times):
+        # Peak over a couple of frames: the flux peak and the onset frame do not always
+        # coincide, and a single-frame reading makes classification jittery.
+        window = slice(int(frame), min(last_frame, int(frame) + cfg.peak_frames) + 1)
+        lo = float(np.max(norm_bands[0][window]))
+        mid = float(np.max(norm_bands[1][window]))
+        hi = float(np.max(norm_bands[2][window]))
+        strength = float(np.max(detect_env[window])) / strength_ref
+
+        sound = classify(lo, mid, hi, strength, cfg)
+        events.append(Event(
+            time=float(time),
+            type=sound,             # provisional: workout mode overwrites this from the set
+            acoustic=sound,         # what the audio is, kept for the refinement band choice
+            intensity=float(np.clip(strength, 0.0, 1.0)),
+            frame=int(frame),
+            bands=(lo, mid, hi),
+        ))
+    return events
+
+
+# --------------------------------------------------------------------------------------
 # Per-band timing refinement
 # --------------------------------------------------------------------------------------
 #
@@ -965,32 +1153,7 @@ def analyse(path: Path, cfg) -> Tuple[List[Event], float, float, int, List[Worko
         )
         bpm = round(60.0 / beat_period, 3)
 
-    wait_frames = int(round(cfg.onset_wait * sr / hop))
-    onset_frames = librosa.onset.onset_detect(
-        onset_envelope=detect_env, sr=sr, hop_length=hop,
-        units="frames", backtrack=False,
-        delta=cfg.onset_delta, wait=max(0, wait_frames),
-    )
-    if len(onset_frames) == 0:
-        raise SystemExit(
-            "no onsets detected - try lowering --onset-delta, or check the file is not silence"
-        )
-
-    onset_times = librosa.frames_to_time(onset_frames, sr=sr, hop_length=hop)
-
-    # Intensity is read off the SAME loudest-band envelope that detection uses, not off the
-    # sum of the three bands. Summing looks like the natural "how big is this hit" measure
-    # and quietly breaks the chart: a hi-hat lights all three bands and scores ~3x its
-    # per-band value, a kick lights one and scores ~1x, so on any track with hats the kicks
-    # come out as the weakest events in the map. That then feeds the cluster rule below,
-    # which drops a kick in favour of a hat 40 ms away — the drum that carries the beat
-    # loses to the one decorating it. Measuring in the band each event actually owns puts
-    # them on equal footing.
-    #
-    # Referenced against the onsets themselves rather than every frame in the track: the
-    # silence between notes would otherwise drag the reference down and push most of the
-    # chart to intensity 1.
-    strength_ref = robust_reference(detect_env[onset_frames], cfg.norm_percentile)
+    wait_frames = max(0, int(round(cfg.onset_wait * sr / hop)))
 
     # Band energy (amplitude, not flux) drives sustain measurement: a held note produces no
     # flux after its attack, so a flux-based reading would call every note a one-shot.
@@ -1000,27 +1163,23 @@ def analyse(path: Path, cfg) -> Tuple[List[Event], float, float, int, List[Worko
     ]
     kick_energy = band_energy[0]
     punch_energy = np.sqrt(band_energy[1] ** 2 + band_energy[2] ** 2)
-
     last_frame = onset_bands.shape[1] - 1
-    events: List[Event] = []
-    for frame, time in zip(onset_frames, onset_times):
-        # Peak over a couple of frames: the flux peak and the onset frame do not always
-        # coincide, and a single-frame reading makes classification jittery.
-        window = slice(int(frame), min(last_frame, int(frame) + cfg.peak_frames) + 1)
-        lo = float(np.max(norm_bands[0][window]))
-        mid = float(np.max(norm_bands[1][window]))
-        hi = float(np.max(norm_bands[2][window]))
-        strength = float(np.max(detect_env[window])) / strength_ref
 
-        sound = classify(lo, mid, hi, strength, cfg)
-        events.append(Event(
-            time=float(time),
-            type=sound,             # provisional: workout mode overwrites this from the set
-            acoustic=sound,         # what the audio is, kept for the refinement band choice
-            intensity=float(np.clip(strength, 0.0, 1.0)),
-            frame=int(frame),
-            bands=(lo, mid, hi),
-        ))
+    cfg.bar_map = []
+    if cfg.detector == "grid":
+        if beat_period is None:
+            raise SystemExit("--detector grid needs a fitted beat grid, and too few beats were "
+                             "tracked for one - use --detector drums")
+        events, cfg.bar_map = detect_grid(y, sr, hop, norm_bands[0], beat_period, beat_phase, cfg)
+        if not events:
+            raise SystemExit("no bar had enough kicks - lower --grid-min-kicks or --kick-threshold")
+    elif cfg.detector == "drums":
+        events = detect_drums(y, sr, hop, cfg)
+        if not events:
+            raise SystemExit("no kick or clap passed its threshold - lower --kick-threshold / "
+                             "--clap-threshold, or use --detector all")
+    else:
+        events = detect_all_onsets(detect_env, norm_bands, sr, hop, wait_frames, last_frame, cfg)
 
     events = [ev for ev in events if ev.intensity >= cfg.min_intensity]
     if not events:
@@ -1028,7 +1187,9 @@ def analyse(path: Path, cfg) -> Tuple[List[Event], float, float, int, List[Worko
 
     events = filter_min_interval(events, cfg.min_interval)
 
-    if not cfg.no_refine:
+    # The drums detector reads its attacks off amplitude envelopes with the refinement's own
+    # windows and rise fractions, so running the refinement again would only re-derive them.
+    if not cfg.no_refine and cfg.detector == "all":
         # Two envelopes, each with the window its own band needs. The low band is read over a
         # window long enough to hold a cycle of the frequencies in it; the upper band over a
         # short one, so a fast transient is not blurred. Both share a hop, which sets the
@@ -1231,7 +1392,26 @@ def build_parser() -> argparse.ArgumentParser:
     g.add_argument("--onset-wait", type=float, default=0.03,
                    help="seconds librosa waits after an onset before accepting the next")
 
-    g = p.add_argument_group("classification")
+    g = p.add_argument_group("detection")
+    g.add_argument("--detector", choices=("drums", "grid", "all"), default="drums",
+                   help="drums: notes on the kick and the clap/snare only, each found in its own "
+                        "band; grid: a note on every beat of the fitted grid, but only in bars "
+                        "where the kick plays; all: every onset, hats and percussion included "
+                        "(the old behaviour)")
+    g.add_argument("--grid-min-kicks", type=int, default=2,
+                   help="grid detector: kicks a bar needs to count as a drum bar")
+    g.add_argument("--kick-threshold", type=float, default=0.7,
+                   help="drums detector: peak height of the low-band amplitude envelope (99th "
+                        "percentile = 1) a kick must reach; a bass line sits below ~0.5")
+    g.add_argument("--clap-threshold", type=float, default=0.6,
+                   help="drums detector: peak height of the broadband mid x high envelope a "
+                        "clap/snare must reach")
+    g.add_argument("--drum-prominence", type=float, default=0.3,
+                   help="drums detector: how far a peak must rise above the valleys around it")
+    g.add_argument("--no-claps", action="store_true",
+                   help="drums detector: kick only, for tracks with no clap or snare backbeat")
+
+    g = p.add_argument_group("classification (--detector all)")
     g.add_argument("--kick-hz", type=float, default=150.0,
                    help="upper edge of the low (Kick) band")
     g.add_argument("--punch-hz", type=float, default=2000.0,
@@ -1396,6 +1576,16 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         print(f"  density: {len(document['events']) / max(seconds, 1e-6):.2f} events/s, "
               f"lane mode {cfg.lane_mode}")
 
+    if getattr(cfg, "bar_map", None):
+        # One character per bar, 16 to a row: '#' drums play, '.' a rest. Row labels are the
+        # time of the row's first bar, so a stretch can be checked against the audio by ear.
+        drum_bars = cfg.bar_map.count("#")
+        bar_s = cfg.beats_per_bar * 60.0 / bpm
+        print(f"  grid: notes on every beat of {drum_bars} of {len(cfg.bar_map)} bars "
+              f"(# = drums, . = rest)")
+        for row in range(0, len(cfg.bar_map), 16):
+            print(f"    {row * bar_s:6.1f}s  {''.join(cfg.bar_map[row:row + 16])}")
+
     if cfg.show_sets and sets:
         print()
         # The gap column is the silence a person actually experiences: last note of this set to
@@ -1424,11 +1614,28 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         print(f"  wrote {output}")
 
     if cfg.preview > 0:
+        # `gap` is the interval from the previous note. `beat` is where the note sits in the bar
+        # (1..beats-per-bar, fraction for off-beats) and `off` how far it is from the nearest
+        # half-beat of the fitted grid - what to read to see whether the chart follows the rhythm.
+        beat_s = 60.0 / bpm if bpm > 0 else 0.0
+        origin = float(bar_lines[0]) if len(bar_lines) else None
+        source_name = {KICK: "kick", PUNCH: "clap", JUMP: "full"}
         print()
-        print(f"{'#':>4}  {'time':>8}  {'type':<10} {'lane':>4}  {'dur':>6}  {'int':>5}")
-        for index, item in enumerate(document["events"][:cfg.preview]):
-            print(f"{index:>4}  {item['time']:>8.3f}  {item['type']:<10} {item['lane']:>4}  "
-                  f"{item['duration']:>6.3f}  {item['intensity']:>5.3f}")
+        print(f"{'#':>4}  {'time':>8}  {'gap ms':>7}  {'src':<5} {'type':<10} {'lane':>4}  "
+              f"{'dur':>6}  {'int':>5}" + (f"  {'beat':>5}  {'off ms':>6}" if origin is not None else ""))
+        previous = None
+        for index, (item, ev) in enumerate(zip(document["events"][:cfg.preview], events)):
+            gap = "" if previous is None else f"{(item['time'] - previous) * 1000:7.0f}"
+            previous = item["time"]
+            grid = ""
+            if origin is not None and beat_s > 0:
+                position = (item["time"] - origin) / beat_s
+                half = round(position * 2) / 2
+                grid = (f"  {half % cfg.beats_per_bar + 1:>5.1f}  "
+                        f"{(position - half) * beat_s * 1000:>+6.0f}")
+            print(f"{index:>4}  {item['time']:>8.3f}  {gap:>7}  {source_name.get(ev.acoustic, '?'):<5} "
+                  f"{item['type']:<10} {item['lane']:>4}  {item['duration']:>6.3f}  "
+                  f"{item['intensity']:>5.3f}{grid}")
 
     return 0
 
