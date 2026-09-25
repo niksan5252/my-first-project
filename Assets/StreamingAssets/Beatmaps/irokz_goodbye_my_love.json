@@ -6,6 +6,69 @@
   "generator": "Tools/beatmap/generate_beatmap.py (librosa)",
   "events": [
     {
+      "time": 2.014,
+      "type": "Dodge",
+      "lane": 3,
+      "duration": 0.0,
+      "intensity": 0.7
+    },
+    {
+      "time": 3.889,
+      "type": "Dodge",
+      "lane": 0,
+      "duration": 0.0,
+      "intensity": 0.7
+    },
+    {
+      "time": 5.764,
+      "type": "Dodge",
+      "lane": 3,
+      "duration": 0.0,
+      "intensity": 0.7
+    },
+    {
+      "time": 7.638,
+      "type": "Dodge",
+      "lane": 3,
+      "duration": 0.0,
+      "intensity": 0.7
+    },
+    {
+      "time": 9.513,
+      "type": "Dodge",
+      "lane": 0,
+      "duration": 0.0,
+      "intensity": 0.7
+    },
+    {
+      "time": 11.388,
+      "type": "Dodge",
+      "lane": 3,
+      "duration": 0.0,
+      "intensity": 0.7
+    },
+    {
+      "time": 13.263,
+      "type": "Dodge",
+      "lane": 0,
+      "duration": 0.0,
+      "intensity": 0.7
+    },
+    {
+      "time": 15.138,
+      "type": "Dodge",
+      "lane": 3,
+      "duration": 0.0,
+      "intensity": 0.7
+    },
+    {
+      "time": 17.012,
+      "type": "Dodge",
+      "lane": 3,
+      "duration": 0.0,
+      "intensity": 0.7
+    },
+    {
       "time": 18.912,
       "type": "Punch",
       "lane": 1,
@@ -137,6 +200,13 @@
       "lane": 2,
       "duration": 0.0,
       "intensity": 1.0
+    },
+    {
+      "time": 33.885,
+      "type": "Dodge",
+      "lane": 0,
+      "duration": 0.0,
+      "intensity": 0.7
     },
     {
       "time": 35.785,
@@ -370,6 +440,13 @@
       "intensity": 1.0
     },
     {
+      "time": 65.757,
+      "type": "Dodge",
+      "lane": 3,
+      "duration": 0.0,
+      "intensity": 0.7
+    },
+    {
       "time": 67.656,
       "type": "Kick",
       "lane": 1,
@@ -426,6 +503,20 @@
       "intensity": 0.708
     },
     {
+      "time": 73.256,
+      "type": "Dodge",
+      "lane": 0,
+      "duration": 0.0,
+      "intensity": 0.7
+    },
+    {
+      "time": 75.13,
+      "type": "Dodge",
+      "lane": 3,
+      "duration": 0.0,
+      "intensity": 0.7
+    },
+    {
       "time": 77.03,
       "type": "PunchHold",
       "lane": 1,
@@ -438,6 +529,55 @@
       "lane": 2,
       "duration": 0.364,
       "intensity": 0.77
+    },
+    {
+      "time": 80.755,
+      "type": "Dodge",
+      "lane": 0,
+      "duration": 0.0,
+      "intensity": 0.7
+    },
+    {
+      "time": 82.63,
+      "type": "Dodge",
+      "lane": 0,
+      "duration": 0.0,
+      "intensity": 0.7
+    },
+    {
+      "time": 84.504,
+      "type": "Dodge",
+      "lane": 3,
+      "duration": 0.0,
+      "intensity": 0.7
+    },
+    {
+      "time": 86.379,
+      "type": "Dodge",
+      "lane": 0,
+      "duration": 0.0,
+      "intensity": 0.7
+    },
+    {
+      "time": 88.254,
+      "type": "Dodge",
+      "lane": 3,
+      "duration": 0.0,
+      "intensity": 0.7
+    },
+    {
+      "time": 90.129,
+      "type": "Dodge",
+      "lane": 3,
+      "duration": 0.0,
+      "intensity": 0.7
+    },
+    {
+      "time": 92.003,
+      "type": "Dodge",
+      "lane": 0,
+      "duration": 0.0,
+      "intensity": 0.7
     },
     {
       "time": 93.903,
@@ -1243,6 +1383,41 @@
       "lane": 2,
       "duration": 1.77,
       "intensity": 0.849
+    },
+    {
+      "time": 187.617,
+      "type": "Dodge",
+      "lane": 3,
+      "duration": 0.0,
+      "intensity": 0.7
+    },
+    {
+      "time": 189.492,
+      "type": "Dodge",
+      "lane": 0,
+      "duration": 0.0,
+      "intensity": 0.7
+    },
+    {
+      "time": 191.367,
+      "type": "Dodge",
+      "lane": 3,
+      "duration": 0.0,
+      "intensity": 0.7
+    },
+    {
+      "time": 193.241,
+      "type": "Dodge",
+      "lane": 0,
+      "duration": 0.0,
+      "intensity": 0.7
+    },
+    {
+      "time": 195.116,
+      "type": "Dodge",
+      "lane": 0,
+      "duration": 0.0,
+      "intensity": 0.7
     }
   ],
   "sets": [

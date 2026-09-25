@@ -58,6 +58,10 @@ public class CueSpawner : MonoBehaviour
     // When the intro ends in the middle of a workout set, skip the rest of that set too, so the
     // first block the player sees is a whole one. Off keeps every note after the cutoff.
     [SerializeField] private bool introSkipsPartialSet = true;
+    // Dodge walls the generator put into the intro (--fill-gaps-dodge) are the one thing allowed
+    // on the road before `introBars` ends: they start spawning this many bars after the music.
+    // See IntroWallFloor.
+    [SerializeField, Min(0f)] private float introWallBars = 1f;
     // How weak the feedback gets for a note the generator marked as quiet. Randomly spawned notes
     // always report full intensity, so this only ever affects chart playback.
     [SerializeField, Range(0f, 1f)] private float intensityFeedbackFloor = 0.55f;
@@ -830,7 +834,8 @@ public class CueSpawner : MonoBehaviour
 
         int total = cues.Count;
         float cutoff = IntroCutoff(introBars, beatmapMeta.bpm, FlightTime, beatmapMeta.sets, introSkipsPartialSet);
-        cues = TrimIntro(cues, beatmapMeta, cutoff);
+        float wallFloor = IntroWallFloor(introWallBars, beatmapMeta.bpm, FlightTime);
+        cues = TrimIntro(cues, beatmapMeta, cutoff, wallFloor);
 
         sequencer = new BeatmapSequencer(cues);
         RetireAllCues();
@@ -905,13 +910,33 @@ public class CueSpawner : MonoBehaviour
         return straddling + 1 < sets.Length ? Mathf.Max(fallback, sets[straddling + 1].start) : float.PositiveInfinity;
     }
 
-    /// Drops every note before `cutoff` and, with them, every set that no longer has notes. The
+    /// The earliest arrival an intro wall may have: born `bars` after the music starts.
+    private static float IntroWallFloor(float bars, float bpm, float flight)
+    {
+        float beat = 60f / (bpm > 0f ? bpm : 120f);
+        return Mathf.Max(0f, bars) * IntroBeatsPerBar * beat + flight;
+    }
+
+    /// Whether a note before the intro cutoff is a gap-filling wall and may stay. Such a wall is
+    /// a Dodge that no workout set counts among its notes - the generator adds them after the
+    /// sets are planned, so the sets it writes say 0 notes wherever only walls stand.
+    private static bool IsIntroWall(BeatmapCue cue, BeatmapSet[] sets, float floor)
+    {
+        if (cue.type != CueType.Dodge || cue.time < floor) return false;
+        if (sets == null) return true;
+        foreach (var set in sets)
+            if (set.notes > 0 && cue.time >= set.start - 0.001f && cue.time <= set.restEnd) return false;
+        return true;
+    }
+
+    /// Drops every note before `cutoff` except the intro walls (see IsIntroWall) and, with them,
+    /// every set that no longer has notes. The
     /// sets matter as much as the notes: the HUD walks them in order and banners each one as the
     /// notes pass its end, so a set left over from the intro would fire its banner on the first
     /// real note, and the "all notes scored" final banner compares against the sequencer's count.
-    private static List<BeatmapCue> TrimIntro(List<BeatmapCue> cues, Beatmap meta, float cutoff)
+    private static List<BeatmapCue> TrimIntro(List<BeatmapCue> cues, Beatmap meta, float cutoff, float wallFloor)
     {
-        var kept = cues.FindAll(c => c.time >= cutoff);
+        var kept = cues.FindAll(c => c.time >= cutoff || IsIntroWall(c, meta.sets, wallFloor));
         if (meta.sets == null) return kept;
 
         var sets = new List<BeatmapSet>();

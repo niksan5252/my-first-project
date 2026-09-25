@@ -87,8 +87,34 @@ This is what `irokz_goodbye_my_love.json` in the scene is made with — 69 of 10
 every interval is a whole number of beats, and the rests line up with the breakdowns:
 
 ```powershell
-.venv\Scripts\python generate_beatmap.py ..\..\Assets\Audio\Tracks\irokz_goodbye_my_love.wav --detector grid
+.venv\Scripts\python generate_beatmap.py ..\..\Assets\Audio\Tracks\irokz_goodbye_my_love.wav --detector grid --fill-gaps-dodge
 ```
+
+## Filling empty stretches with Dodge walls — `--fill-gaps-dodge`
+
+Grid charts leave the intro, the breakdowns and the outro empty. `--fill-gaps-dodge` puts Dodge
+walls there, so the player keeps moving between exercise blocks:
+
+* a stretch with no note longer than `--gap-min-bars` (2) is filled — measured from the end of a
+  hold, not its start;
+* walls sit on the fitted bar grid, one every `--gap-dodge-every` beats (4 = one per bar), so they
+  follow the tempo even where no drum plays;
+* each wall keeps `--gap-margin-bars` (1) clear of the nearest note on both sides, so the camera
+  is back in the centre before the next exercise;
+* in the intro the first `--gap-intro-bars` (1) after the music starts stay empty;
+* sides mostly alternate, one time in three the same side repeats, never three in a row
+  (`next_dodge_side`, seeded by `--seed`). The run prints the walls as `time L|R`, where L/R is
+  the way the player moves.
+
+The walls are added after the workout sets are planned, so no set counts them among its notes.
+`CueSpawner` relies on that: its intro trim drops every note before the intro cutoff *except* a
+Dodge outside any set with notes, which it keeps once it can be born `introWallBars` (1) after
+the music starts. A note spawns one flight (≈6.9 s in TunnelScene) before it arrives, so the first
+intro wall that actually appears arrives at ≈9.5 s; earlier ones stay in the chart for scenes with
+a shorter flight.
+
+On `irokz_goodbye_my_love.wav`: 25 walls — 9 in the intro (5 of them shown in the scene),
+1 at 33.9 s, 10 across the 65–92 s breakdowns, 5 in the outro.
 
 ## What it does
 

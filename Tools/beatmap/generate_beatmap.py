@@ -1261,6 +1261,9 @@ def analyse(path: Path, cfg) -> Tuple[List[Event], float, float, int, List[Worko
         size_workout_holds(events, sets, cfg)
         assign_workout_lanes(events, sets, pairs, cfg.lanes)
         resolve_hold_overlaps(events, cfg.lanes, cfg.hold_gap)
+        if cfg.fill_gaps_dodge:
+            cfg.gap_walls = fill_gaps_with_dodges(events, bar_lines, beat, track_end, cfg)
+            events = sorted(events + cfg.gap_walls, key=lambda e: e.time)
         return events, bpm, track_end, int(sr), sets, bar_lines
 
     if not cfg.no_holds:
@@ -1294,6 +1297,78 @@ def analyse(path: Path, cfg) -> Tuple[List[Event], float, float, int, List[Worko
     resolve_hold_overlaps(events, cfg.lanes, cfg.hold_gap)
 
     return events, bpm, track_end, int(sr), [], np.zeros(0)
+
+
+# --------------------------------------------------------------------------------------
+# Gap filling: Dodge walls where the chart would otherwise be empty
+# --------------------------------------------------------------------------------------
+
+def next_dodge_side(history: List[int], rng: random.Random) -> int:
+    """-1 (wall on the left, player goes right) or +1 (wall on the right, player goes left).
+
+    The whole direction rule, kept apart so it can be changed alone: mostly alternating, but one
+    time in three the same side again - never three in a row - so the walls do not become a
+    metronome the player stops watching.
+    """
+    if not history:
+        return rng.choice((-1, 1))
+    if len(history) >= 2 and history[-1] == history[-2]:
+        return -history[-1]
+    return history[-1] if rng.random() < 1.0 / 3.0 else -history[-1]
+
+
+def fill_gaps_with_dodges(events: List[Event], bar_lines: np.ndarray, beat: float,
+                          track_end: float, cfg) -> List[Event]:
+    """Dodge walls in every stretch without notes longer than --gap-min-bars, the intro and the
+    outro included. Returns the walls.
+
+    The walls sit on the bar grid - one every --gap-dodge-every beats, counted from the first bar
+    line - so they follow the tempo even where no drum plays (an intro that is only pads still has
+    a fitted grid). Each keeps --gap-margin-bars clear of the notes on both sides, so the camera
+    is back in the centre before the next real exercise. The intro gap starts --gap-intro-bars
+    after the music starts rather than at the margin, since there is no note before it to clear.
+
+    The scene still decides which intro walls can actually be shown: a note spawns one flight
+    before it arrives, so CueSpawner keeps an intro wall only when it would be born after its own
+    intro allowance. The chart carries every wall the music has room for.
+    """
+    bar = cfg.beats_per_bar * beat
+    step = cfg.gap_dodge_every * beat
+    margin = cfg.gap_margin_bars * bar
+    # Grid of candidate wall times, extended backwards from the first bar line to the start.
+    origin = float(bar_lines[0]) if len(bar_lines) else 0.0
+    origin -= np.floor(origin / step) * step
+    slots = np.arange(origin, track_end, step)
+
+    # Each gap as (start, end, earliest wall, latest wall). A note occupies the road from its
+    # arrival to the end of its hold; the track's start and end are edges with no note to clear.
+    notes = sorted(events, key=lambda e: e.time)
+    gaps: List[Tuple[float, float, float, float]] = []
+    previous = None
+    for ev in notes:
+        if previous is None:
+            gaps.append((0.0, ev.time, cfg.gap_intro_bars * bar, ev.time - margin))
+        else:
+            gaps.append((previous, ev.time, previous + margin, ev.time - margin))
+        previous = max(previous or 0.0, ev.time + ev.duration)
+    if previous is None:
+        gaps.append((0.0, track_end, cfg.gap_intro_bars * bar, track_end - margin))
+    else:
+        gaps.append((previous, track_end, previous + margin, track_end - margin))
+
+    rng = random.Random(cfg.seed)
+    history: List[int] = []
+    walls: List[Event] = []
+    for start, end, lo, hi in gaps:
+        if end - start <= cfg.gap_min_bars * bar:
+            continue
+        for time in slots[(slots >= lo - 1e-6) & (slots <= hi + 1e-6)]:
+            side = next_dodge_side(history, rng)
+            history.append(side)
+            walls.append(Event(time=float(time), type=DODGE, acoustic=DODGE, intensity=0.7,
+                               lane=0 if side < 0 else cfg.lanes - 1,
+                               frame=0))
+    return walls
 
 
 def to_document(events: List[Event], bpm: float, track: str, audio_offset: float,
@@ -1466,6 +1541,18 @@ def build_parser() -> argparse.ArgumentParser:
                         "as well as inside a set. The camera performs the movement and has to be "
                         "back at centre before the next one starts; the longest reaction (the "
                         "dodge) runs 1.59 s. Default 8 beats = 3.43 s at 140 BPM.")
+    g.add_argument("--fill-gaps-dodge", action="store_true",
+                   help="put Dodge walls, alternating sides, into every stretch without notes: "
+                        "the intro, breakdowns, the outro")
+    g.add_argument("--gap-min-bars", type=float, default=2.0,
+                   help="--fill-gaps-dodge: a stretch without notes longer than this is filled")
+    g.add_argument("--gap-dodge-every", type=float, default=4.0,
+                   help="--fill-gaps-dodge: beats between walls (4 = one per bar). The dodge "
+                        "reaction runs 1.59 s, so keep this above that")
+    g.add_argument("--gap-margin-bars", type=float, default=1.0,
+                   help="--fill-gaps-dodge: bars kept clear between a wall and the nearest note")
+    g.add_argument("--gap-intro-bars", type=float, default=1.0,
+                   help="--fill-gaps-dodge: bars after the music starts before the first wall")
     g.add_argument("--show-sets", action="store_true",
                    help="print the planned routine: one line per set with its timecode")
 
@@ -1585,6 +1672,14 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
               f"(# = drums, . = rest)")
         for row in range(0, len(cfg.bar_map), 16):
             print(f"    {row * bar_s:6.1f}s  {''.join(cfg.bar_map[row:row + 16])}")
+
+    walls = getattr(cfg, "gap_walls", None)
+    if cfg.fill_gaps_dodge:
+        # Direction is the way the PLAYER goes: a wall on the right sends them left.
+        listed = ", ".join(f"{w.time:.2f} {'L' if w.lane >= cfg.lanes / 2 else 'R'}"
+                           for w in (walls or [])[:12])
+        print(f"  gap walls: {len(walls or [])} Dodge (time + dodge direction): {listed}"
+              + (" ..." if walls and len(walls) > 12 else ""))
 
     if cfg.show_sets and sets:
         print()
