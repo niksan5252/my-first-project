@@ -34,6 +34,15 @@ public class CenterWordSet : ScriptableObject
     [Range(0f, 1f)] public float glow = 0.45f;
     [Range(0f, 1f)] public float flashGlow = 1f;
 
+    [Header("Colour (overrides the theme for these words only)")]
+    // Off: the words take the theme's accents like the rest of the HUD. On: the colours below.
+    public bool overrideThemeColours = true;
+    public Color topColor = new Color(1f, 0.894f, 0.361f);      // #FFE45C, the light top of the chrome
+    public Color bottomColor = new Color(1f, 0.604f, 0f);       // between #FFB000 and #FF8A00
+    public Color outlineColor = new Color(0.62f, 0.13f, 0.02f); // dark orange edge, reads on pink/cyan
+    public Color glowColor = new Color(1f, 0.72f, 0.1f);        // warm yellow, outside the glyph
+    public Color echoColor = new Color(1f, 0.78f, 0.15f);       // the big outlined copy behind
+
     [Header("Animation (beats)")]
     public float punchInBeats = 0.375f;
     public float holdBeats = 2f;

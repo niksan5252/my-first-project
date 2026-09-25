@@ -35,6 +35,12 @@ MonoBehaviour:
   centerY: -330
   glow: 0.45
   flashGlow: 1
+  overrideThemeColours: 1
+  topColor: {r: 1, g: 0.894, b: 0.361, a: 1}
+  bottomColor: {r: 1, g: 0.604, b: 0, a: 1}
+  outlineColor: {r: 0.62, g: 0.13, b: 0.02, a: 1}
+  glowColor: {r: 1, g: 0.72, b: 0.1, a: 1}
+  echoColor: {r: 1, g: 0.78, b: 0.15, a: 1}
   punchInBeats: 0.375
   holdBeats: 2
   fadeOutBeats: 0.5

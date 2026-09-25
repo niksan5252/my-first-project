@@ -14,7 +14,8 @@ using UnityEngine;
 /// is up waits for the next bar, and the banner holds its next word until this one is gone.
 ///
 /// Looks like HUD look A (italic chrome gradient, neon edge) with a huge outlined "echo" of the
-/// word behind it that swells and fades. All timing is in beats on the song clock's smoothed time.
+/// word behind it that swells and fades. Colours are the set's own (warm yellow) unless it is
+/// told to follow the theme. All timing is in beats on the song clock's smoothed time.
 public class CenterWords : MonoBehaviour
 {
     [SerializeField] private CenterWordSet set;
@@ -222,26 +223,37 @@ public class CenterWords : MonoBehaviour
         main.ForceMeshUpdate();
         echo.fontSize = main.fontSize;
 
-        // Alternate which accent leads, so consecutive words are not the same stamp twice.
-        Color a = hud.PrimaryColor, b = hud.SecondaryColor;
-        if (shownCount % 2 == 1) (a, b) = (b, a);
+        // Every word the same colours: the set's own when it overrides the theme (warm yellow by
+        // default), otherwise the theme's accents.
+        Color top, bottom, outline, glowColor, echoColor;
+        if (set.overrideThemeColours)
+        {
+            top = set.topColor; bottom = set.bottomColor; outline = set.outlineColor;
+            glowColor = set.glowColor; echoColor = set.echoColor;
+        }
+        else
+        {
+            Color a = hud.PrimaryColor, b = hud.SecondaryColor;
+            top = Color.Lerp(b, Color.white, 0.45f); bottom = a; outline = Color.Lerp(b, Color.white, 0.25f);
+            glowColor = a; echoColor = b;
+        }
         shownCount++;
 
         main.enableVertexGradient = true;
         main.color = Color.white;
-        main.colorGradient = new VertexGradient(Color.Lerp(b, Color.white, 0.45f), Color.Lerp(b, Color.white, 0.45f), a, a);
-        HudGlow.Apply(main, a, set.glow);
+        main.colorGradient = new VertexGradient(top, top, bottom, bottom);
+        HudGlow.Apply(main, glowColor, set.glow);
         var mm = main.fontMaterial;
-        mm.SetColor(ShaderUtilities.ID_OutlineColor, Color.Lerp(b, Color.white, 0.25f));
-        mm.SetFloat(ShaderUtilities.ID_OutlineWidth, 0.08f);
+        mm.SetColor(ShaderUtilities.ID_OutlineColor, outline);
+        mm.SetFloat(ShaderUtilities.ID_OutlineWidth, set.overrideThemeColours ? 0.12f : 0.08f);
 
         // The echo is hollow: a faint tinted face and a bright edge, so it reads as a giant
         // outline of the word rather than as a second, blurrier copy.
         var em = echo.fontMaterial;
         em.DisableKeyword(ShaderUtilities.Keyword_Glow);
         em.EnableKeyword(ShaderUtilities.Keyword_Outline);
-        em.SetColor(ShaderUtilities.ID_FaceColor, new Color(b.r, b.g, b.b, 0.12f));
-        em.SetColor(ShaderUtilities.ID_OutlineColor, new Color(b.r, b.g, b.b, 1f));
+        em.SetColor(ShaderUtilities.ID_FaceColor, new Color(echoColor.r, echoColor.g, echoColor.b, 0.12f));
+        em.SetColor(ShaderUtilities.ID_OutlineColor, new Color(echoColor.r, echoColor.g, echoColor.b, 1f));
         em.SetFloat(ShaderUtilities.ID_OutlineWidth, 0.18f);
         echo.color = Color.white;
         root.gameObject.SetActive(true);
