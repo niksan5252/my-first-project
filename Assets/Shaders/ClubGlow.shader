@@ -9,6 +9,7 @@ Shader "Tunnel/ClubGlow"
         _MainTex ("Mask", 2D) = "white" {}
         _Color ("Colour", Color) = (1, 0.45, 0.05, 1)
         _Intensity ("Intensity", Range(0, 3)) = 1
+        _UseAlpha ("Mask from alpha (0 = red)", Range(0, 1)) = 0
     }
     SubShader
     {
@@ -30,6 +31,7 @@ Shader "Tunnel/ClubGlow"
                 float4 _MainTex_ST;
                 half4 _Color;
                 half _Intensity;
+                half _UseAlpha;
             CBUFFER_END
             TEXTURE2D(_MainTex); SAMPLER(sampler_MainTex);
 
@@ -47,7 +49,9 @@ Shader "Tunnel/ClubGlow"
 
             half4 frag(Varyings i) : SV_Target
             {
-                half m = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.uv).r;
+                half4 t = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.uv);
+                // Light masks keep the shape in red; sprites like smoke puffs keep it in alpha.
+                half m = lerp(t.r, t.a, _UseAlpha);
                 half3 c = _Color.rgb * m * _Intensity;
                 // Additive: fog fades the light out (towards black) rather than tinting it.
                 c = MixFogColor(c, half3(0, 0, 0), i.fog);

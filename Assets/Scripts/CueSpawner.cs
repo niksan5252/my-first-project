@@ -862,11 +862,44 @@ public class CueSpawner : MonoBehaviour
         return clip == null || clip.loadState == AudioDataLoadState.Loaded || clip.loadState == AudioDataLoadState.Failed;
     }
 
+    // Where in the track the song clock starts; 0 = the beginning. Set by SetStartTime.
+    private float startAt;
+
+    /// Starts the track `seconds` in instead of at its beginning - for a test recording of a
+    /// track whose notes begin late. Notes due before that point are skipped (not spawned, not
+    /// scored). Call before the clock starts; called after, it restarts the clock there.
+    public void SetStartTime(float seconds)
+    {
+        startAt = Mathf.Max(0f, seconds);
+        if (sequencer != null) sequencer.SkipBefore(startAt);
+        if (songClock.IsRunning && !songClock.IsOffline)
+        {
+            RetireAllCues();
+            StartSongClock();
+        }
+        Debug.Log("[CueSpawner] starting the track at " + startAt.ToString("F2") + " s", this);
+    }
+
+    /// Arrival time of the first note (not an obstacle) once the intro trim is applied, or -1.
+    public float FirstNoteTime
+    {
+        get
+        {
+            if (sequencer == null) return -1f;
+            for (int i = 0; i < sequencer.Count; i++)
+            {
+                var t = sequencer[i].type;
+                if (t == CueType.Kick || t == CueType.Punch || t == CueType.KickHold || t == CueType.PunchHold) return sequencer[i].time;
+            }
+            return -1f;
+        }
+    }
+
     private void StartSongClock()
     {
         AudioSettings.GetDSPBufferSize(out int bufferLength, out _);
         float lead = ClockStartLeadBuffers * bufferLength / (float)Mathf.Max(1, AudioSettings.outputSampleRate);
-        songClock.Begin(musicSource, lead, beatmapMeta.audioOffset, beatmapUserOffset);
+        songClock.Begin(musicSource, lead, beatmapMeta.audioOffset, beatmapUserOffset, startAt);
         Debug.Log("[CueSpawner] song clock started on frame " + Time.frameCount + ", "
                 + Time.timeSinceLevelLoad.ToString("F2") + "s after load, lead " + (lead * 1000f).ToString("F1") + " ms, DSP buffer latency "
                 + (songClock.BufferLatency * 1000f).ToString("F1") + " ms, offset " + ((beatmapMeta.audioOffset + beatmapUserOffset) * 1000f).ToString("F1") + " ms", this);

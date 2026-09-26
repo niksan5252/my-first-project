@@ -28,6 +28,14 @@ public sealed class BeatmapSequencer
 
     public void Rewind() => cursor = 0;
 
+    /// Moves the cursor past every note due before `songTime`, so a run started part-way through
+    /// the track neither spawns nor scores the notes it skipped.
+    public void SkipBefore(float songTime)
+    {
+        cursor = 0;
+        while (cursor < cues.Count && cues[cursor].time < songTime) cursor++;
+    }
+
     /// Releases the next note whose spawn moment has arrived, i.e. whose arrival time minus the
     /// flight time has been reached. Call repeatedly until it returns false: several notes can
     /// come due in the same frame, and a chord across lanes always does.

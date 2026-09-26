@@ -122,7 +122,12 @@ public sealed class SongClock
     /// Starts the clock, scheduling audio to begin leadIn seconds from now. A null source, or one
     /// with no clip, is not an error: the clock still runs and the tunnel still plays the chart,
     /// which is exactly what is wanted when testing timing without a track.
-    public void Begin(AudioSource audioSource, float leadIn, float audioOffset, float deviceLatency)
+    public void Begin(AudioSource audioSource, float leadIn, float audioOffset, float deviceLatency) =>
+        Begin(audioSource, leadIn, audioOffset, deviceLatency, 0f);
+
+    /// As above, but starting `startAt` seconds into the track: the audio plays from there and the
+    /// clock reads startAt as it starts. For a test recording of a track whose notes begin late.
+    public void Begin(AudioSource audioSource, float leadIn, float audioOffset, float deviceLatency, float startAt)
     {
         source = audioSource;
         offset = audioOffset;
@@ -134,12 +139,15 @@ public sealed class SongClock
         bufferLatency = DspBufferLatency();
 
         double now = AudioSettings.dspTime;
-        startDsp = now + Mathf.Max(0f, leadIn);
+        double playDsp = now + Mathf.Max(0f, leadIn);
+        startAt = Mathf.Max(0f, startAt);
+        startDsp = playDsp - startAt;
 
         if (source != null && source.clip != null)
         {
             source.Stop();
-            source.PlayScheduled(startDsp);
+            source.time = Mathf.Min(startAt, Mathf.Max(0f, source.clip.length - 0.01f));
+            source.PlayScheduled(playDsp);
         }
     }
 

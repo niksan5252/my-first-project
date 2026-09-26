@@ -1339,50 +1339,79 @@ def next_dodge_side(history: List[int], rng: random.Random) -> int:
 
 def fill_gaps_with_dodges(events: List[Event], bar_lines: np.ndarray, beat: float,
                           track_end: float, cfg) -> List[Event]:
-    """Dodge walls in every stretch without notes longer than --gap-min-bars, the intro and the
-    outro included. Returns the walls.
+    """Dodge walls in the stretches without notes - measured, not wall-to-wall. Returns the walls.
 
-    The walls sit on the bar grid - one every --gap-dodge-every beats, counted from the first bar
-    line - so they follow the tempo even where no drum plays (an intro that is only pads still has
-    a fitted grid). Each keeps --gap-margin-bars clear of the notes on both sides, so the camera
-    is back in the centre before the next real exercise. The intro gap starts --gap-intro-bars
-    after the music starts rather than at the margin, since there is no note before it to clear.
+    Walls are a break from the exercises, not a replacement for the music: a long intro filled
+    with a wall every bar was 40 s of the same move before the first note. So each kind of gap
+    has its own rule (defaults, all flags):
+
+      * intro - walls only in the last --gap-intro-lead-bars (4) before the first note, one every
+        --gap-intro-every beats (4 = a bar), at most --gap-intro-max (4); before that the road is
+        empty and the trainer just stands in its stance;
+      * breakdowns - one every --gap-dodge-every beats (8 = every other bar), and only in a gap
+        of at least --gap-min-bars (4); a shorter pause keeps no wall at all;
+      * outro - at most --gap-outro-max (3) walls after the last note.
+
+    Every wall sits on the bar grid, so it follows the tempo even where no drum plays, and keeps
+    --gap-margin-bars clear of the notes on both sides, so the camera is back in the centre before
+    the next real exercise. The intro additionally starts --gap-intro-bars after the music.
+
+    The old fill-everything behaviour is --gap-min-bars 2 --gap-dodge-every 4
+    --gap-intro-lead-bars 0 --gap-intro-max 0 --gap-outro-max 0 (0 = no limit).
 
     The scene still decides which intro walls can actually be shown: a note spawns one flight
     before it arrives, so CueSpawner keeps an intro wall only when it would be born after its own
     intro allowance. The chart carries every wall the music has room for.
     """
     bar = cfg.beats_per_bar * beat
-    step = cfg.gap_dodge_every * beat
     margin = cfg.gap_margin_bars * bar
-    # Grid of candidate wall times, extended backwards from the first bar line to the start.
-    origin = float(bar_lines[0]) if len(bar_lines) else 0.0
-    origin -= np.floor(origin / step) * step
-    slots = np.arange(origin, track_end, step)
+    # Candidate wall times on a grid of `every` beats, counted from the first bar line and
+    # extended backwards from it to the start of the track.
+    first_bar = float(bar_lines[0]) if len(bar_lines) else 0.0
 
-    # Each gap as (start, end, earliest wall, latest wall). A note occupies the road from its
-    # arrival to the end of its hold; the track's start and end are edges with no note to clear.
+    def slots_for(every_beats: float) -> np.ndarray:
+        step = every_beats * beat
+        origin = first_bar - np.floor(first_bar / step) * step
+        return np.arange(origin, track_end, step)
+
+    # Each gap as (kind, start, end, earliest wall, latest wall). A note occupies the road from
+    # its arrival to the end of its hold; the track's start and end are edges with no note to clear.
     notes = sorted(events, key=lambda e: e.time)
-    gaps: List[Tuple[float, float, float, float]] = []
+    gaps: List[Tuple[str, float, float, float, float]] = []
     previous = None
     for ev in notes:
         if previous is None:
-            gaps.append((0.0, ev.time, cfg.gap_intro_bars * bar, ev.time - margin))
+            lo = cfg.gap_intro_bars * bar
+            if cfg.gap_intro_lead_bars > 0:
+                lo = max(lo, ev.time - cfg.gap_intro_lead_bars * bar)
+            gaps.append(("intro", 0.0, ev.time, lo, ev.time - margin))
         else:
-            gaps.append((previous, ev.time, previous + margin, ev.time - margin))
+            gaps.append(("break", previous, ev.time, previous + margin, ev.time - margin))
         previous = max(previous or 0.0, ev.time + ev.duration)
     if previous is None:
-        gaps.append((0.0, track_end, cfg.gap_intro_bars * bar, track_end - margin))
+        gaps.append(("intro", 0.0, track_end, cfg.gap_intro_bars * bar, track_end - margin))
     else:
-        gaps.append((previous, track_end, previous + margin, track_end - margin))
+        gaps.append(("outro", previous, track_end, previous + margin, track_end - margin))
 
+    intro_slots = slots_for(cfg.gap_intro_every)
+    break_slots = slots_for(cfg.gap_dodge_every)
     rng = random.Random(cfg.seed)
     history: List[int] = []
     walls: List[Event] = []
-    for start, end, lo, hi in gaps:
-        if end - start <= cfg.gap_min_bars * bar:
+    cfg.gap_wall_counts = {"intro": 0, "break": 0, "outro": 0}
+    for kind, start, end, lo, hi in gaps:
+        # The minimum length is a rule for pauses between notes; the intro and outro are edges of
+        # the track, and have their own limits instead.
+        if kind == "break" and end - start < cfg.gap_min_bars * bar - 1e-6:
             continue
-        for time in slots[(slots >= lo - 1e-6) & (slots <= hi + 1e-6)]:
+        slots = intro_slots if kind == "intro" else break_slots
+        chosen = slots[(slots >= lo - 1e-6) & (slots <= hi + 1e-6)]
+        if kind == "intro" and cfg.gap_intro_max > 0:
+            chosen = chosen[-cfg.gap_intro_max:]          # the ones nearest the first note
+        if kind == "outro" and cfg.gap_outro_max > 0:
+            chosen = chosen[:cfg.gap_outro_max]           # the ones nearest the last note
+        cfg.gap_wall_counts[kind] += len(chosen)
+        for time in chosen:
             side = next_dodge_side(history, rng)
             history.append(side)
             walls.append(Event(time=float(time), type=DODGE, acoustic=DODGE, intensity=0.7,
@@ -1567,15 +1596,26 @@ def build_parser() -> argparse.ArgumentParser:
     g.add_argument("--fill-gaps-dodge", action="store_true",
                    help="put Dodge walls, alternating sides, into every stretch without notes: "
                         "the intro, breakdowns, the outro")
-    g.add_argument("--gap-min-bars", type=float, default=2.0,
-                   help="--fill-gaps-dodge: a stretch without notes longer than this is filled")
-    g.add_argument("--gap-dodge-every", type=float, default=4.0,
-                   help="--fill-gaps-dodge: beats between walls (4 = one per bar). The dodge "
+    g.add_argument("--gap-min-bars", type=float, default=4.0,
+                   help="--fill-gaps-dodge: a pause between notes shorter than this, in bars, "
+                        "keeps no wall")
+    g.add_argument("--gap-dodge-every", type=float, default=8.0,
+                   help="--fill-gaps-dodge: beats between walls in a breakdown (8 = every other "
+                        "bar, 4 = every bar). The dodge "
                         "reaction runs 1.59 s, so keep this above that")
     g.add_argument("--gap-margin-bars", type=float, default=1.0,
                    help="--fill-gaps-dodge: bars kept clear between a wall and the nearest note")
     g.add_argument("--gap-intro-bars", type=float, default=1.0,
                    help="--fill-gaps-dodge: bars after the music starts before the first wall")
+    g.add_argument("--gap-intro-lead-bars", type=float, default=4.0,
+                   help="--fill-gaps-dodge: intro walls only in this many bars before the first "
+                        "note (0 = the whole intro)")
+    g.add_argument("--gap-intro-every", type=float, default=4.0,
+                   help="--fill-gaps-dodge: beats between intro walls (4 = one per bar)")
+    g.add_argument("--gap-intro-max", type=int, default=4,
+                   help="--fill-gaps-dodge: most walls in the intro (0 = no limit)")
+    g.add_argument("--gap-outro-max", type=int, default=3,
+                   help="--fill-gaps-dodge: most walls after the last note (0 = no limit)")
     g.add_argument("--show-sets", action="store_true",
                    help="print the planned routine: one line per set with its timecode")
 
@@ -1703,6 +1743,9 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         # Direction is the way the PLAYER goes: a wall on the right sends them left.
         listed = ", ".join(f"{w.time:.2f} {'L' if w.lane >= cfg.lanes / 2 else 'R'}"
                            for w in (walls or [])[:12])
+        counts = getattr(cfg, "gap_wall_counts", None)
+        if counts:
+            print(f"  gap walls by stretch: intro {counts['intro']}, breakdowns {counts['break']}, outro {counts['outro']}")
         print(f"  gap walls: {len(walls or [])} Dodge (time + dodge direction): {listed}"
               + (" ..." if walls and len(walls) > 12 else ""))
 

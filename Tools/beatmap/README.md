@@ -98,15 +98,20 @@ the other sets are unchanged, there are just fewer of them in a longer cycle.
 ## Filling empty stretches with Dodge walls — `--fill-gaps-dodge`
 
 Grid charts leave the intro, the breakdowns and the outro empty. `--fill-gaps-dodge` puts Dodge
-walls there, so the player keeps moving between exercise blocks:
+walls there - measured, so walls are a break between exercise blocks rather than a replacement
+for the music (a wall every bar through a 40 s intro was the problem this replaced):
 
-* a stretch with no note longer than `--gap-min-bars` (2) is filled — measured from the end of a
+* **intro** — walls only in the last `--gap-intro-lead-bars` (4) before the first note, one every
+  `--gap-intro-every` beats (4 = a bar), at most `--gap-intro-max` (4); before that the road is
+  empty and the trainer stands in its stance. The first `--gap-intro-bars` (1) after the music
+  starts always stay empty;
+* **breakdowns** — one wall every `--gap-dodge-every` beats (8 = every other bar), only in a pause
+  of at least `--gap-min-bars` (4) — a shorter pause keeps no wall — measured from the end of a
   hold, not its start;
-* walls sit on the fitted bar grid, one every `--gap-dodge-every` beats (4 = one per bar), so they
-  follow the tempo even where no drum plays;
-* each wall keeps `--gap-margin-bars` (1) clear of the nearest note on both sides, so the camera
-  is back in the centre before the next exercise;
-* in the intro the first `--gap-intro-bars` (1) after the music starts stay empty;
+* **outro** — at most `--gap-outro-max` (3) walls after the last note;
+* every wall sits on the fitted bar grid, so walls follow the tempo even where no drum plays, and
+  keeps `--gap-margin-bars` (1) clear of the nearest note on both sides, so the camera is back in
+  the centre before the next exercise;
 * sides mostly alternate, one time in three the same side repeats, never three in a row
   (`next_dodge_side`, seeded by `--seed`). The run prints the walls as `time L|R`, where L/R is
   the way the player moves.
@@ -118,8 +123,20 @@ the music starts. A note spawns one flight (≈6.9 s in TunnelScene) before it a
 intro wall that actually appears arrives at ≈9.5 s; earlier ones stay in the chart for scenes with
 a shorter flight.
 
-On `irokz_goodbye_my_love.wav`: 25 walls — 9 in the intro (5 of them shown in the scene),
-1 at 33.9 s, 10 across the 65–92 s breakdowns, 5 in the outro.
+The run prints the count per stretch (`gap walls by stretch: intro …, breakdowns …, outro …`).
+
+**The old fill-everything behaviour** (a wall every bar in every gap of 2+ bars) is still there:
+`--gap-min-bars 2 --gap-dodge-every 4 --gap-intro-lead-bars 0 --gap-intro-max 0 --gap-outro-max 0`
+(0 = no limit). The committed `irokz_goodbye_my_love.json` and `adikop_bring_me_back.json` were
+made that way, before the new defaults; regenerating them with these flags reproduces them.
+
+On `irokz_goodbye_my_love.wav` (old behaviour): 25 walls — 9 in the intro (5 of them shown in the
+scene), 1 at 33.9 s, 10 across the 65–92 s breakdowns, 5 in the outro.
+On `adikop_bring_me_back.wav`: 43 walls with the old behaviour (intro 22, breakdowns 21), 13 with
+the new defaults (intro 3, breakdowns 10, outro 0).
+On `rameses_offline.wav` (new defaults, the committed chart): 12 walls — intro 3, breakdowns 8,
+outro 1. It runs at 125 BPM: the kick is four-on-the-floor at ~480 ms, i.e. one note per beat is
+2.08 notes/s; the 83 BPM that tempo estimators also offer is the triplet clap pattern, not the pulse.
 
 ## What it does
 

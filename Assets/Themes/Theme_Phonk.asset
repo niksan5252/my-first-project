@@ -1,0 +1,38 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 94c0c3a29fbf85f4a89ff12e7504245b, type: 3}
+  m_Name: Theme_Phonk
+  m_EditorClassIdentifier: Assembly-CSharp::TunnelTheme
+  primaryColor: {r: 0.6, g: 0.66, b: 0.82, a: 1}
+  secondaryColor: {r: 0.92, g: 0.04, b: 0.1, a: 1}
+  accentEmissionIntensity: 1.25
+  ringArchPrefab: {fileID: 7739266831624275705, guid: f9a0cd1592ad3f64a8154039d61a02ff, type: 3}
+  floorMaterialOverride: {fileID: 0}
+  floorColor: {r: 0.015, g: 0.015, b: 0.02, a: 1}
+  floorMetallic: 0.25
+  floorSmoothness: 0.8
+  floorGridLineColor: {r: 0.45, g: 0.03, b: 0.06, a: 1}
+  floorGridGlintIntensity: 0.3
+  laneLineColor: {r: 0.6, g: 0.66, b: 0.82, a: 1}
+  laneLineEmissionIntensity: 0.4
+  fogColor: {r: 0.045, g: 0.008, b: 0.014, a: 1}
+  fogStartRatio: 0.3
+  fogEndRatio: 0.95
+  lightIntensity: 0.3
+  lightColor: {r: 0.75, g: 0.8, b: 1, a: 1}
+  skyboxMaterial: {fileID: 0}
+  cameraBackgroundColor: {r: 0.01, g: 0.008, b: 0.012, a: 1}
+  environmentPrefab: {fileID: 7953038499511328410, guid: 7713922181bd3504d8037487d8415b0f, type: 3}
+  airParticles: {fileID: 11400000, guid: 776fd083914a012469bdfda773a6657a, type: 2}
+  postProcessingProfile: {fileID: 11400000, guid: c62244bfe4c17bf4a803d1ee2f5abbd9, type: 2}
+  hudComboTextColor: {r: 0.92, g: 0.04, b: 0.1, a: 1}
+  hudBannerBorderColor: {r: 0.6, g: 0.66, b: 0.82, a: 1}
