@@ -14,6 +14,10 @@ using UnityEngine;
 public static class SilhouetteMotionSetBuilder
 {
     public const string AssetPath = SilhouetteMixamoImport.Root + "/XBotMotionSet.asset";
+    // Second preset: the same clips and gestures on Jennifer, retargeted through the humanoid.
+    // Created as a copy of the X Bot set, so gesture tuning carries over; the model differs.
+    public const string JenniferModel = SilhouetteMixamoImport.CharactersFolder + "Jennifer.fbx";
+    public const string JenniferAssetPath = SilhouetteMixamoImport.Root + "/JenniferMotionSet.asset";
 
     // The straight jump up, facing the viewer, landing on its own. "Jumping Up" is left out: it
     // turns half sideways in its crouch and takes off spread-eagled, which reads as flying away
@@ -23,20 +27,31 @@ public static class SilhouetteMotionSetBuilder
     // "Idle" take itself is a low boxing stance, and so are the fight idles.
     private const string Stance = "Fight Idle To Standing Idle";
 
-    [MenuItem("Tunnel/Silhouette/Build Motion Set", priority = 42)]
-    public static void Build()
+    [MenuItem("Tunnel/Silhouette/Build Motion Set (X Bot)", priority = 42)]
+    public static void Build() => Build(SilhouetteMixamoImport.SkinFile, AssetPath, null);
+
+    [MenuItem("Tunnel/Silhouette/Build Motion Set (Jennifer)", priority = 43)]
+    public static void BuildJennifer() => Build(JenniferModel, JenniferAssetPath, AssetPath);
+
+    /// Writes the set at `assetPath` for the model at `modelPath`. A new set starts as a copy of
+    /// `templatePath` when there is one, so its gesture and timing settings match.
+    public static void Build(string modelPath, string assetPath, string templatePath)
     {
         var results = SilhouetteClipAnalysis.AnalyzeAll(out string table);
         Debug.Log(table);
         var byName = new Dictionary<string, SilhouetteClipAnalysis.Result>();
         foreach (var r in results) byName[r.clip.name] = r;
 
-        var set = AssetDatabase.LoadAssetAtPath<SilhouetteMotionSet>(AssetPath);
+        var set = AssetDatabase.LoadAssetAtPath<SilhouetteMotionSet>(assetPath);
         bool created = set == null;
-        if (created) set = ScriptableObject.CreateInstance<SilhouetteMotionSet>();
+        if (created)
+        {
+            var template = templatePath != null ? AssetDatabase.LoadAssetAtPath<SilhouetteMotionSet>(templatePath) : null;
+            set = template != null ? Object.Instantiate(template) : ScriptableObject.CreateInstance<SilhouetteMotionSet>();
+        }
 
-        set.model = AssetDatabase.LoadAssetAtPath<GameObject>(SilhouetteMixamoImport.SkinFile);
-        set.avatar = AssetDatabase.LoadAllAssetsAtPath(SilhouetteMixamoImport.SkinFile).OfType<Avatar>().FirstOrDefault();
+        set.model = AssetDatabase.LoadAssetAtPath<GameObject>(modelPath);
+        set.avatar = AssetDatabase.LoadAllAssetsAtPath(modelPath).OfType<Avatar>().FirstOrDefault();
 
         List<SilhouetteMotion> List(string[] names) => names.Select(n => Motion(byName, n)).Where(m => m != null).ToList();
         set.idle = List(new[] { Stance });
@@ -49,10 +64,10 @@ public static class SilhouetteMotionSetBuilder
         foreach (var m in set.curb)
             if (m.impact >= m.Length - 0.1f) m.reverseAfterImpact = true;
 
-        if (created) AssetDatabase.CreateAsset(set, AssetPath);
+        if (created) AssetDatabase.CreateAsset(set, assetPath);
         EditorUtility.SetDirty(set);
         AssetDatabase.SaveAssets();
-        Debug.Log("[Silhouette] motion set written to " + AssetPath);
+        Debug.Log("[Silhouette] motion set written to " + assetPath);
     }
 
     private static SilhouetteMotion Motion(Dictionary<string, SilhouetteClipAnalysis.Result> byName, string name)

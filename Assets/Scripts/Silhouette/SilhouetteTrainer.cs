@@ -62,6 +62,12 @@ public class SilhouetteTrainer : MonoBehaviour
     [SerializeField] private float viewHeight = 3f;
     [SerializeField] private float viewCenterY = 1.2f;
     [SerializeField] private float viewAheadZ = 0f;
+    // Frame the figure by its own height instead of the two numbers above, so a shorter or taller
+    // character stands full-length in the middle of the panel with the same room for a jump and a
+    // raised arm. viewHeight = height x frameHeights, centre at height x frameCenter.
+    [SerializeField] private bool autoFrame = true;
+    [SerializeField] private float frameHeights = 1.7f;
+    [SerializeField] private float frameCenter = 0.66f;
 
     [Header("Diagnostics")]
     // The first N notes log planned vs observed impact time, once, and write it to
@@ -392,7 +398,24 @@ public class SilhouetteTrainer : MonoBehaviour
         rShoulder = stage.transform.InverseTransformPoint(a.GetBoneTransform(HumanBodyBones.RightUpperArm).position);
         lFootRest = stage.transform.InverseTransformPoint(lFootBone.position);
         rFootRest = stage.transform.InverseTransformPoint(rFootBone.position);
+        if (autoFrame) FrameToFigure();
         measured = true;
+    }
+
+    /// Fits the camera to the figure's standing height, measured from its skinned meshes.
+    private void FrameToFigure()
+    {
+        float top = float.NegativeInfinity;
+        foreach (var r in figure.GetComponentsInChildren<SkinnedMeshRenderer>())
+            top = Mathf.Max(top, r.bounds.max.y);
+        if (float.IsNegativeInfinity(top)) return;
+        float height = top - stage.transform.position.y;
+        viewHeight = height * frameHeights;
+        viewCenterY = height * frameCenter;
+        figureCamera.orthographicSize = viewHeight * 0.5f;
+        var rot = figureCamera.transform.localRotation;
+        figureCamera.transform.localPosition = new Vector3(0f, viewCenterY, viewAheadZ) - rot * Vector3.forward * 10f;
+        Debug.Log("[Silhouette] figure " + height.ToString("F2") + " m tall, view " + viewHeight.ToString("F2") + " m, centre " + viewCenterY.ToString("F2"), this);
     }
 
     private float EvaluateStanceOnly(float now)

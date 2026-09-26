@@ -58,6 +58,9 @@ public class SilhouetteMixamoImport : AssetPostprocessor
         return LoopFolders.Contains(Folder(path)) && name != "Fight Idle To Standing Idle" || LoopNames.Contains(name);
     }
 
+    public const string CharactersFolder = Root + "/Characters/";
+    public static bool IsCharacter(string path) => path.Replace('\\', '/').StartsWith(CharactersFolder);
+
     private static bool WantsMirror(string path) => mirrorOneShots && MirrorFolders.Contains(Folder(path)) && !IsLoop(path);
 
     private void OnPreprocessModel()
@@ -65,6 +68,21 @@ public class SilhouetteMixamoImport : AssetPostprocessor
         if (!IsMixamo(assetPath)) return;
         var importer = (ModelImporter)assetImporter;
         bool skin = assetPath.Replace('\\', '/') == SkinFile;
+
+        // A character (Characters/): a rigged T-pose model that is only ever drawn as a contour.
+        // Its own avatar, and neither materials nor animation - the clips come from the other
+        // files, retargeted through the humanoid.
+        if (IsCharacter(assetPath))
+        {
+            importer.animationType = ModelImporterAnimationType.Human;
+            importer.avatarSetup = ModelImporterAvatarSetup.CreateFromThisModel;
+            importer.importAnimation = false;
+            importer.materialImportMode = ModelImporterMaterialImportMode.None;
+            importer.importBlendShapes = false;
+            importer.importCameras = false;
+            importer.importLights = false;
+            return;
+        }
 
         importer.animationType = ModelImporterAnimationType.Human;
         importer.importAnimation = true;
@@ -140,6 +158,7 @@ public class SilhouetteMixamoImport : AssetPostprocessor
         {
             var importer = (ModelImporter)AssetImporter.GetAtPath(path);
             AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceUpdate); // runs OnPreprocessModel
+            if (IsCharacter(path)) continue;
             ApplyClipSettings(importer, path);
             importer.SaveAndReimport();
         }

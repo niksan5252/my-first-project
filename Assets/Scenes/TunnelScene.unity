@@ -382,7 +382,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d584bb8618e2f0f42a35fe6e8af71593, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SilhouetteTrainer
-  motionSet: {fileID: 11400000, guid: e104a0a2c8786854bbcf1bf744b4b3da, type: 2}
+  motionSet: {fileID: 11400000, guid: 86c194812c960da488b6a5c5fa464056, type: 2}
   cueSpawner: {fileID: 350241776}
   hud: {fileID: 306773549}
   bodyShader: {fileID: 4800000, guid: 10e64b4c01f80764d8159e29fed0c20a, type: 3}
@@ -402,6 +402,9 @@ MonoBehaviour:
   viewHeight: 3
   viewCenterY: 1.2
   viewAheadZ: 0
+  autoFrame: 1
+  frameHeights: 1.7
+  frameCenter: 0.66
   syncReportNotes: 10
 --- !u!4 &181401618
 Transform:
