@@ -560,6 +560,8 @@ public class CueSpawner : MonoBehaviour
 
     /// How long a note takes to travel from where it appears to the hit zone. Notes are released
     /// exactly this far ahead of when they are due, so arrival lands on the beat.
+    public int LaneCount => tunnel.LaneCount;
+
     public float FlightTime => (spawnZ - hitZoneZ) / Mathf.Max(0.01f, tunnel.ScrollSpeed);
 
     private void Update()
@@ -775,10 +777,11 @@ public class CueSpawner : MonoBehaviour
         obstacleCamera.Register(move, dueTime, reachSeconds, passSeconds);
     }
 
-    /// When the camera reacts to one obstacle from the chart: fully committed, starting back, and
-    /// home again - the numbers RegisterObstaclePass books, worked out without booking them.
+    /// When the camera reacts to one obstacle from the chart: starting to move, fully committed,
+    /// starting back, and home again - the numbers RegisterObstaclePass books, worked out without
+    /// booking them.
     /// `cameraSide` is -1 when the camera moves left, +1 right, 0 for a hop or a duck.
-    public void ObstacleTiming(BeatmapCue cue, out float commit, out float release, out float settled, out int cameraSide)
+    public void ObstacleTiming(BeatmapCue cue, out float begin, out float commit, out float release, out float settled, out int cameraSide)
     {
         int side = DodgeSideFromLane(cue.lane);
         ObstacleMove move =
@@ -788,7 +791,7 @@ public class CueSpawner : MonoBehaviour
         cameraSide = move == ObstacleMove.DodgeLeft ? -1 : move == ObstacleMove.DodgeRight ? 1 : 0;
         float speed = Mathf.Max(0.01f, tunnel.ScrollSpeed);
         obstacleCamera.Window(move, cue.time, hitZoneZ / speed, (hitZoneZ + ObstacleZExtent(cue.type)) / speed,
-                              out commit, out release, out settled);
+                              out begin, out commit, out release, out settled);
     }
 
     /// Loads the chart; the music and the clock start a couple of frames later, see StartSongClock.

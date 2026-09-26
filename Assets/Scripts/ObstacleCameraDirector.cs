@@ -206,15 +206,17 @@ public sealed class ObstacleCameraDirector
             Mathf.Clamp(roll, -rollLimit, rollLimit));
     }
 
-    /// The same window Evaluate would give an obstacle, without booking it: when the camera is
-    /// fully committed, when it starts back, and when it is home. For presentation that has to move
-    /// WITH the camera (the trainer silhouette) and plans the whole chart in advance.
+    /// The same window Evaluate would give an obstacle, without booking it: when the camera starts
+    /// to move, when it is fully committed, when it starts back, and when it is home. For
+    /// presentation that has to move WITH the camera (the trainer silhouette) and plans the whole
+    /// chart in advance.
     public void Window(ObstacleMove move, float arrivalTime, float reachSeconds, float passSeconds,
-                       out float commit, out float release, out float settled)
+                       out float begin, out float commit, out float release, out float settled)
     {
         var pass = new Pass { move = move, arrival = arrivalTime, reachSeconds = Mathf.Max(0f, reachSeconds), passSeconds = Mathf.Max(0f, passSeconds) };
         Move shape = policy[(int)move];
         commit = AnchorOf(shape, pass);
+        begin = commit - Mathf.Max(0f, Seconds(shape.leadBeats));
         release = commit + HoldOf(shape, pass, commit);
         settled = release + Mathf.Max(0f, Seconds(shape.recoverBeats));
     }

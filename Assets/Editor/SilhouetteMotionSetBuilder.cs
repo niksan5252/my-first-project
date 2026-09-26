@@ -3,23 +3,22 @@ using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
-/// Builds (or refreshes) the X Bot's SilhouetteMotionSet from the Mixamo folder: which clip goes
-/// to which kind of note, with each clip's impact frame measured by SilhouetteClipAnalysis. Run
-/// after the clips change; the asset is ordinary data afterwards and can be edited by hand.
+/// Builds (or refreshes) the X Bot's SilhouetteMotionSet from the Mixamo folder: the relaxed
+/// stance, the jump and the crouch, with each clip's impact frame measured by
+/// SilhouetteClipAnalysis. Punches, kicks, holds and dodges are posed procedurally by the trainer
+/// (SilhouettePoseJob), so their clips are not in the set - the files stay in the project.
 ///
-/// Left out on purpose: Rifle Jump (the pose holds a rifle), and the standing Idle and Fight Idle
-/// To Standing Idle - the trainer stays in its fighting stance between notes.
+/// Left out on purpose: Rifle Jump (the pose holds a rifle), the fighting idles and "Idle" (a low
+/// boxing stance), the dances, and
+/// the MMA/boxing takes - the trainer is a relaxed warm-up instructor, not a fighter.
 public static class SilhouetteMotionSetBuilder
 {
     public const string AssetPath = SilhouetteMixamoImport.Root + "/XBotMotionSet.asset";
 
-    private static readonly string[] Punch = { "Jab Cross", "Jab Cross (1)", "Lead Jab", "Lead Jab (1)", "Punching" };
-    private static readonly string[] Kick = { "Kick Front Snap Lead", "Kick Mma Low", "Kick Mma Medium", "Kick Thrust Lead", "Kick Knee Lead" };
-    private static readonly string[] PunchHold = { "Speedbag" };
-    private static readonly string[] KickHold = { "Stomping", "Stepping Left", "Walking", "Catwalk Walk", "Running Up Stairs" };
     private static readonly string[] Curb = { "Jump", "Jumping Up" };
-    private static readonly string[] Idle = { "Fight Idle", "Fighting Idle" };
-    private static readonly string[] Dance = { "Booty Hip Hop Dance", "Chicken Dance", "House Dancing", "Step Hip Hop Dance", "Swing Dancing" };
+    // The relaxed stance is a still pose: the last frame of the take that ends standing easy. The
+    // "Idle" take itself is a low boxing stance, and so are the fight idles.
+    private const string Stance = "Fight Idle To Standing Idle";
 
     [MenuItem("Tunnel/Silhouette/Build Motion Set", priority = 42)]
     public static void Build()
@@ -37,17 +36,11 @@ public static class SilhouetteMotionSetBuilder
         set.avatar = AssetDatabase.LoadAllAssetsAtPath(SilhouetteMixamoImport.SkinFile).OfType<Avatar>().FirstOrDefault();
 
         List<SilhouetteMotion> List(string[] names) => names.Select(n => Motion(byName, n)).Where(m => m != null).ToList();
-        set.punch = List(Punch);
-        set.kick = List(Kick);
-        set.punchHold = List(PunchHold);
-        set.kickHold = List(KickHold);
+        set.idle = List(new[] { Stance });
+        foreach (var m in set.idle) m.holdFrame = m.Length;
         set.curb = List(Curb);
-        set.dodgeLeft = List(new[] { "Long Left Side Step" });
-        set.dodgeRight = List(new[] { "Long Right Side Step" });
         set.duckDown = Motion(byName, "Standing To Crouched") ?? new SilhouetteMotion();
         set.duckUp = Motion(byName, "Crouched To Standing") ?? new SilhouetteMotion();
-        set.idle = List(Idle);
-        set.dance = List(Dance);
 
         // A take that stops at the top of its jump lands by playing its take-off backwards.
         foreach (var m in set.curb)

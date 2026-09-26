@@ -395,11 +395,11 @@ MonoBehaviour:
   frameCorner: 26
   frameGlow: 0.45
   usePrimaryColor: 0
-  cameraYaw: 45
-  cameraPitch: 6
-  viewHeight: 2.5
-  viewCenterY: 1.05
-  viewAheadZ: 0.35
+  cameraYaw: 180
+  cameraPitch: 4
+  viewHeight: 3
+  viewCenterY: 1.2
+  viewAheadZ: 0
   syncReportNotes: 10
 --- !u!4 &181401618
 Transform:

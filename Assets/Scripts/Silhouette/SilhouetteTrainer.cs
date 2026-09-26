@@ -7,19 +7,22 @@ using UnityEngine.Playables;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.UI;
 
-/// The trainer: a neon silhouette in a window on the left of the screen that performs every note a
-/// moment before the player has to - no, exactly WITH the player: each clip's impact frame lands on
-/// its note.
+/// The trainer: a neon silhouette in a window on the left of the screen, facing the player like an
+/// instructor in a mirror, that shows every note calmly and exactly on it - a hand reaching to the
+/// cube, a foot set down on the tile, a step and a lean away from a wall - and bounces on the beat
+/// in between.
 ///
 /// How it is put together, all at runtime so nothing of it is saved into the scene:
 ///   * the character from a SilhouetteMotionSet, instanced far below the tunnel on its own layer;
-///   * a camera that sees only that layer and renders into a RenderTexture;
+///   * a camera in front of it that sees only that layer and renders into a RenderTexture;
 ///   * a Screen Space Overlay canvas with the panel - dark glass, a chamfered neon frame in the
 ///     theme colour, the figure, and a contour/halo made from the figure's alpha (SilhouetteGlow).
 ///
-/// Motion: SilhouettePlanner lays the whole track out as clip segments on the song clock once the
-/// chart is loaded, and every frame this evaluates a manual PlayableGraph at SongClock's smoothed
-/// time. The pose is therefore a pure function of song time - identical in Play and in a recording.
+/// Motion: SilhouettePlanner lays the whole track out once the chart is loaded - clip segments
+/// (the relaxed stance, the jump, the crouch) and procedural gestures. Every frame this evaluates a
+/// manual PlayableGraph at SongClock's smoothed time: a mixer of the clips, then SilhouettePoseJob,
+/// which poses body, hands and feet from the gestures by IK. The pose is therefore a pure function
+/// of song time - identical in Play and in a recording.
 [DefaultExecutionOrder(100)]
 public class SilhouetteTrainer : MonoBehaviour
 {
@@ -45,19 +48,16 @@ public class SilhouetteTrainer : MonoBehaviour
     [SerializeField] private bool usePrimaryColor;
 
     [Header("Figure camera")]
-    // Seen from behind-left at 45 degrees: the figure faces down the tunnel with the player (its
-    // left is toward the screen's left), a punch or a kick - straight ahead - crosses the screen
-    // instead of vanishing behind the body as in a view from the back, and a side step still
-    // moves across it too.
-    [SerializeField] private float cameraYaw = 45f;
-    [SerializeField] private float cameraPitch = 6f;
-    // Metres of the figure's world that fit the panel's height. The figure is ~1.8 m; a jump and a
-    // high kick need the rest.
-    [SerializeField] private float viewHeight = 2.5f;
-    [SerializeField] private float viewCenterY = 1.05f;
-    // Aim a little AHEAD of the figure: every strike reaches forward, and forward is toward the
-    // panel's left edge in this view, so a centred figure would put a jab's fist through the frame.
-    [SerializeField] private float viewAheadZ = 0.35f;
+    // 180: in front of the figure, looking back at it - the instructor faces the player. What the
+    // figure does to its own left then shows on the screen's right, exactly as in a mirror, which
+    // is what lets every side below be the SCREEN's side.
+    [SerializeField] private float cameraYaw = 180f;
+    [SerializeField] private float cameraPitch = 4f;
+    // Metres of the figure's world that fit the panel's height. The figure is ~1.8 m; the rest is
+    // room for a jump, a raised arm, and an arm held out sideways in a dodge.
+    [SerializeField] private float viewHeight = 3f;
+    [SerializeField] private float viewCenterY = 1.2f;
+    [SerializeField] private float viewAheadZ = 0f;
 
     [Header("Diagnostics")]
     // The first N notes log planned vs observed impact time, once, and write it to
@@ -70,7 +70,6 @@ public class SilhouetteTrainer : MonoBehaviour
     private GameObject stage;
     private Transform figure;
     private Animator animator;
-    private Transform hips;
     private Camera figureCamera;
     private RenderTexture rt;
     private RawImage figureImage, figureGlow;
@@ -82,14 +81,25 @@ public class SilhouetteTrainer : MonoBehaviour
 
     private PlayableGraph graph;
     private AnimationMixerPlayable mixer;
+    private AnimationScriptPlayable poser;
     private readonly Dictionary<AnimationClip, int> inputOf = new Dictionary<AnimationClip, int>();
     private readonly List<AnimationClipPlayable> inputs = new List<AnimationClipPlayable>();
     private float[] weights;
+    private int stanceInput = -1;
+
+    // The figure's own proportions, measured once from its stance, in stage space.
+    private bool measured;
+    private Vector3 lShoulder, rShoulder, lFootRest, rFootRest;
+    private Transform lHandBone, rHandBone, lFootBone, rFootBone;
 
     private List<SilhouettePlanner.Segment> plan;
-    private List<SilhouettePlanner.Stretch> stretches;
+    private List<SilhouettePlanner.Gesture> gestures;
+    private float beatAnchor, secondsPerBeat = 0.5f;
     private int cursor;
     private bool built, planned;
+
+    // What the pose job was last told, for the sync report's reach check.
+    private Vector3 lastLHand, lastRHand, lastLFoot, lastRFoot;
 
     // Sync report
     private readonly List<string> syncRows = new List<string>();
@@ -100,6 +110,7 @@ public class SilhouetteTrainer : MonoBehaviour
     private static readonly List<KeyValuePair<float, string>> captures = new List<KeyValuePair<float, string>>();
 
     public IReadOnlyList<SilhouettePlanner.Segment> Plan => plan;
+    public IReadOnlyList<SilhouettePlanner.Gesture> Gestures => gestures;
 
     /// Asks for a screenshot on the first frame at or after `songTime`. For the visual checks.
     public static void CaptureAt(float songTime, string path) => captures.Add(new KeyValuePair<float, string>(songTime, path));
@@ -161,7 +172,13 @@ public class SilhouetteTrainer : MonoBehaviour
         animator.runtimeAnimatorController = null;
         animator.applyRootMotion = false;
         animator.cullingMode = AnimatorCullingMode.AlwaysAnimate;
-        hips = animator.isHuman ? animator.GetBoneTransform(HumanBodyBones.Hips) : null;
+        if (animator.isHuman)
+        {
+            lHandBone = animator.GetBoneTransform(HumanBodyBones.LeftHand);
+            rHandBone = animator.GetBoneTransform(HumanBodyBones.RightHand);
+            lFootBone = animator.GetBoneTransform(HumanBodyBones.LeftFoot);
+            rFootBone = animator.GetBoneTransform(HumanBodyBones.RightFoot);
+        }
 
         BuildGraph();
         BuildCamera(layer);
@@ -186,10 +203,9 @@ public class SilhouetteTrainer : MonoBehaviour
 
         var clips = new List<AnimationClip>();
         void Add(SilhouetteMotion m) { if (m != null && m.Valid && !clips.Contains(m.clip)) clips.Add(m.clip); }
-        void AddAll(List<SilhouetteMotion> l) { if (l != null) foreach (var m in l) Add(m); }
-        AddAll(motionSet.punch); AddAll(motionSet.kick); AddAll(motionSet.punchHold); AddAll(motionSet.kickHold);
-        AddAll(motionSet.curb); AddAll(motionSet.dodgeLeft); AddAll(motionSet.dodgeRight);
-        Add(motionSet.duckDown); Add(motionSet.duckUp); AddAll(motionSet.idle); AddAll(motionSet.dance);
+        if (motionSet.idle != null) foreach (var m in motionSet.idle) Add(m);
+        if (motionSet.curb != null) foreach (var m in motionSet.curb) Add(m);
+        Add(motionSet.duckDown); Add(motionSet.duckUp);
 
         mixer = AnimationMixerPlayable.Create(graph, clips.Count);
         for (int i = 0; i < clips.Count; i++)
@@ -203,7 +219,12 @@ public class SilhouetteTrainer : MonoBehaviour
             inputs.Add(p);
         }
         weights = new float[clips.Count];
-        output.SetSourcePlayable(mixer);
+        foreach (var m in motionSet.idle) if (m != null && m.Valid) { stanceInput = inputOf[m.clip]; break; }
+
+        poser = AnimationScriptPlayable.Create(graph, new SilhouettePoseJob { forward = Vector3.forward, pin = 1f }, 1);
+        graph.Connect(mixer, 0, poser, 0);
+        poser.SetInputWeight(0, 1f);
+        output.SetSourcePlayable(poser);
     }
 
     private void BuildCamera(int layer)
@@ -313,6 +334,7 @@ public class SilhouetteTrainer : MonoBehaviour
         figureGlow.texture = rt;
     }
 
+
     // --- per frame ---
 
     private void Update()
@@ -322,9 +344,10 @@ public class SilhouetteTrainer : MonoBehaviour
         var meta = cueSpawner.BeatmapMeta;
         if (chart == null || meta == null) return;
 
-        float songEnd = cueSpawner.Music != null ? cueSpawner.Music.length : chart.LastCueTime + 8f;
-        plan = SilhouettePlanner.Plan(motionSet, chart, meta.bpm, songEnd, meta.track ?? cueSpawner.name,
-                                      cueSpawner.ObstacleTiming, out stretches);
+        SilhouettePlanner.Plan(motionSet, chart, meta.bpm, cueSpawner.LaneCount, meta.track ?? cueSpawner.name,
+                               cueSpawner.ObstacleTiming, out plan, out gestures);
+        secondsPerBeat = 60f / (meta.bpm >= 20f ? meta.bpm : 120f);
+        beatAnchor = SilhouettePlanner.BeatAnchor(chart);
         planned = true;
         cursor = 0;
         LogPlan();
@@ -337,29 +360,49 @@ public class SilhouetteTrainer : MonoBehaviour
         ApplyTheme();
 
         float now = Now;
-        if (plan == null || plan.Count == 0) EvaluateIdle(now);
-        else EvaluatePlan(now);
+        float stance = plan == null || plan.Count == 0 ? EvaluateStanceOnly(now) : EvaluatePlan(now);
 
+        // First frame: the stance alone, unposed, to measure the figure by.
+        if (!measured)
+        {
+            poser.SetJobData(new SilhouettePoseJob { forward = Vector3.forward, pin = 1f });
+            graph.Evaluate(0f);
+            Measure();
+            return;
+        }
+
+        poser.SetJobData(Pose(now, stance));
         graph.Evaluate(0f);
-        ClampDrift();
         if (planned) CheckSync(now);
         ServeCaptures(now);
     }
 
-    private void EvaluateIdle(float now)
+    private void Measure()
+    {
+        var a = animator;
+        if (!a.isHuman) { measured = true; return; }
+        lShoulder = stage.transform.InverseTransformPoint(a.GetBoneTransform(HumanBodyBones.LeftUpperArm).position);
+        rShoulder = stage.transform.InverseTransformPoint(a.GetBoneTransform(HumanBodyBones.RightUpperArm).position);
+        lFootRest = stage.transform.InverseTransformPoint(lFootBone.position);
+        rFootRest = stage.transform.InverseTransformPoint(rFootBone.position);
+        measured = true;
+    }
+
+    private float EvaluateStanceOnly(float now)
     {
         System.Array.Clear(weights, 0, weights.Length);
-        if (motionSet.idle.Count == 0 || !motionSet.idle[0].Valid) return;
-        int i = inputOf[motionSet.idle[0].clip];
-        weights[i] = 1f;
-        inputs[i].SetTime(Mathf.Repeat(Mathf.Max(0f, now), motionSet.idle[0].Length));
+        if (stanceInput < 0) return 1f;
+        weights[stanceInput] = 1f;
+        var still = motionSet.idle[0];
+        inputs[stanceInput].SetTime(still.holdFrame >= 0f ? still.holdFrame : Mathf.Repeat(Mathf.Max(0f, now), still.Length));
         PushWeights();
+        return 1f;
     }
 
     /// The segment the clock is in, blended over the ones it is still fading in from. Each
-    /// segment's own fade decides its share; what it leaves goes to the one before, and so on -
-    /// three deep is always enough, since a fade never outlasts the gap between two notes by more.
-    private void EvaluatePlan(float now)
+    /// segment's own fade decides its share; what it leaves goes to the one before, and so on.
+    /// Returns the stance's share - how much the legs belong to the stance rather than a clip move.
+    private float EvaluatePlan(float now)
     {
         while (cursor + 1 < plan.Count && plan[cursor + 1].start <= now) cursor++;
         while (cursor > 0 && plan[cursor].start > now) cursor--;   // a seek back
@@ -374,12 +417,12 @@ public class SilhouetteTrainer : MonoBehaviour
             float w = remaining * share;
             remaining -= w;
             if (!inputOf.TryGetValue(seg.motion.clip, out int i)) continue;
-            // The same clip twice in the stack (a dance resumed after a jump): the newest wins the
-            // time, the weights add.
+            // The same clip twice in the stack: the newest wins the time, the weights add.
             if (weights[i] == 0f) inputs[i].SetTime(seg.ClipTime(now));
             weights[i] += w;
         }
         PushWeights();
+        return stanceInput >= 0 ? weights[stanceInput] : 1f;
     }
 
     private static float Smooth01(float x)
@@ -393,17 +436,105 @@ public class SilhouetteTrainer : MonoBehaviour
         for (int i = 0; i < weights.Length; i++) mixer.SetInputWeight(i, weights[i]);
     }
 
-    /// Keeps the figure in its window: the few clips that travel (the long side steps, ~0.6 m) are
-    /// eased back to within maxDrift of the centre instead of walking out of frame.
-    private void ClampDrift()
+    // --- the pose ---
+
+    // Screen side to the figure's own X. The figure faces +Z and the camera looks back at it, so
+    // the screen's right is the figure's -X - its left.
+    private static float X(int screenSide) => -screenSide;
+
+    private struct Limb
     {
-        if (hips == null) return;
-        figure.localPosition = Vector3.zero;
-        // Every clip is baked on its original root, so standing still is the hips over the root.
-        Vector3 p = figure.InverseTransformPoint(hips.position);
-        float lim = motionSet.maxDrift;
-        float SoftX(float v) => lim * (float)System.Math.Tanh(v / lim);
-        figure.localPosition = new Vector3(SoftX(p.x) - p.x, 0f, SoftX(p.z) - p.z);
+        public float w;
+        public Vector3 target, elbow;
+    }
+
+    /// Everything the pose job needs for this moment, from the gestures and the beat.
+    private SilhouettePoseJob Pose(float now, float stance)
+    {
+        var s = motionSet;
+        var job = new SilhouettePoseJob { forward = stage.transform.forward, pin = stance };
+
+        // The stance's own life: knees give on every beat (lowest ON it), the body sways over two.
+        float beats = (now - beatAnchor) / Mathf.Max(0.05f, secondsPerBeat);
+        float dip = s.bounceDepth * (0.5f + 0.5f * Mathf.Cos(beats * 2f * Mathf.PI));
+        Vector3 body = new Vector3(s.swayWidth * Mathf.Sin(beats * Mathf.PI), -dip, 0f) * stance;
+        float lean = 0f;
+        var hand = new Limb[2];      // 0 = figure's left, 1 = right
+        var foot = new Vector3[2];
+        float[] footW = new float[2];
+
+        if (gestures != null)
+        {
+            foreach (var g in gestures)
+            {
+                float w = g.Weight(now);
+                if (w <= 0f) continue;
+                int limb = g.side > 0 ? 0 : 1;           // the screen's right is the figure's left
+                float x = X(g.side);
+                Vector3 shoulder = limb == 0 ? lShoulder : rShoulder;
+
+                switch (g.kind)
+                {
+                    case SilhouettePlanner.GestureKind.Punch:
+                    case SilhouettePlanner.GestureKind.PunchHold:
+                    {
+                        bool high = g.kind == SilhouettePlanner.GestureKind.PunchHold;
+                        Vector3 t = high
+                            ? shoulder + new Vector3(x * s.punchOutInner, s.punchHoldRaise, s.punchForward * 0.35f)
+                            : shoulder + new Vector3(x * (g.outer ? s.punchOutOuter : s.punchOutInner), -s.punchDrop, s.punchForward);
+                        if (high && now >= g.impact && now <= g.holdEnd)
+                            t.y += s.punchHoldPulse * (0.5f + 0.5f * Mathf.Cos(beats * 2f * Mathf.PI));
+                        Vector3 elbow = shoulder + new Vector3(x * (high ? 0.3f : 0.22f), high ? 0.05f : -0.3f, -0.12f);
+                        Take(ref hand[limb], w, t, elbow);
+                        break;
+                    }
+                    case SilhouettePlanner.GestureKind.Kick:
+                    case SilhouettePlanner.GestureKind.KickHold:
+                    {
+                        float out_ = g.outer ? s.kickOutOuter : s.kickOutInner;
+                        // Lifted on the way there and back, flat on the tile at the note.
+                        float lift = s.kickLift * 4f * w * (1f - w);
+                        Vector3 step = new Vector3(x * out_ * w, lift, s.kickForward * w);
+                        if (w > footW[limb]) { footW[limb] = w; foot[limb] = step; }
+                        body += new Vector3(x * out_ * s.kickBodyFollow * w, g.outer ? -s.kickWideSink * w : 0f, 0f);
+                        break;
+                    }
+                    case SilhouettePlanner.GestureKind.Dodge:
+                    {
+                        body += new Vector3(x * s.dodgeShift * w, -0.02f * w, 0f);
+                        // Positive roll about +Z tips the top toward -X, i.e. toward the screen's right.
+                        lean += s.dodgeLeanDegrees * g.side * w;
+                        Vector3 t = shoulder + new Vector3(x * s.dodgeArmReach, 0.03f, 0.06f);
+                        Take(ref hand[limb], w, t + new Vector3(x * s.dodgeShift, 0f, 0f), shoulder + new Vector3(x * 0.3f, -0.12f, -0.12f));
+                        int other = 1 - limb;
+                        Vector3 lead = new Vector3(x * s.dodgeLeadFoot * w, 0f, 0f), trail = new Vector3(x * s.dodgeTrailFoot * w, 0f, 0f);
+                        if (w > footW[limb]) { footW[limb] = w; foot[limb] = lead; }
+                        if (w > footW[other]) { footW[other] = w; foot[other] = trail; }
+                        break;
+                    }
+                }
+            }
+        }
+
+        job.bodyOffset = body;
+        job.leanDegrees = lean;
+        Vector3 W(Vector3 local) => stage.transform.TransformPoint(local);
+        // The hand's target rides with the body (its bounce and its shift).
+        job.lHandW = hand[0].w; job.lHand = W(hand[0].target + body); job.lElbow = W(hand[0].elbow + body);
+        job.rHandW = hand[1].w; job.rHand = W(hand[1].target + body); job.rElbow = W(hand[1].elbow + body);
+        job.lFootOffset = foot[0];
+        job.rFootOffset = foot[1];
+        lastLHand = hand[0].w > 0f ? job.lHand : Vector3.zero;
+        lastRHand = hand[1].w > 0f ? job.rHand : Vector3.zero;
+        lastLFoot = foot[0];
+        lastRFoot = foot[1];
+        return job;
+    }
+
+    private static void Take(ref Limb l, float w, Vector3 target, Vector3 elbow)
+    {
+        if (w <= l.w) return;
+        l.w = w; l.target = target; l.elbow = elbow;
     }
 
     private void ApplyTheme()
@@ -420,20 +551,38 @@ public class SilhouetteTrainer : MonoBehaviour
 
     // --- diagnostics ---
 
+    /// For each of the first notes, the first frame at or after its impact: when that was against
+    /// the note, and - for a hand - how far the solved hand ended up from where it was sent, which
+    /// is the check that the IK really reached the pose the timing promises.
     private void CheckSync(float now)
     {
-        if (syncReportNotes <= 0 || syncWritten) return;
-        for (int k = Mathf.Max(0, cursor - 3); k <= cursor; k++)
+        if (syncReportNotes <= 0 || syncWritten || gestures == null) return;
+        foreach (var g in gestures)
         {
-            var seg = plan[k];
-            if (seg.note < 0 || syncSeen.Contains(seg.note) || float.IsNaN(seg.impactAt)) continue;
-            if (seg.ClipTime(now) + 1e-4f < seg.motion.impact) continue;
-            syncSeen.Add(seg.note);
-            float noteTime = cueSpawner.Sequencer[seg.note].time;
-            syncRows.Add(string.Format("{0,3} | {1,-9} | {2,-24} | {3,8:F3} | {4,8:F3} | {5,8:F3} | {6,6:+0.0;-0.0;0.0}",
-                syncRows.Count + 1, cueSpawner.Sequencer[seg.note].type, seg.motion.clip.name,
-                noteTime, seg.impactAt, now, (now - noteTime) * 1000f));
-            if (syncRows.Count >= syncReportNotes) WriteSync();
+            if (g.kind == SilhouettePlanner.GestureKind.Dodge || syncSeen.Contains(g.note)) continue;
+            if (now < g.impact || now > g.end) continue;
+            syncSeen.Add(g.note);
+            var cue = cueSpawner.Sequencer[g.note];
+            string reach = "-";
+            bool isHand = g.kind == SilhouettePlanner.GestureKind.Punch || g.kind == SilhouettePlanner.GestureKind.PunchHold;
+            if (isHand)
+            {
+                var bone = g.side > 0 ? lHandBone : rHandBone;
+                Vector3 sent = g.side > 0 ? lastLHand : lastRHand;
+                if (bone != null && sent != Vector3.zero) reach = "hand " + (Vector3.Distance(bone.position, sent) * 1000f).ToString("0") + " mm from goal";
+            }
+            else
+            {
+                // A step: how far the foot really moved from the stance, against the step asked for.
+                bool left = g.side > 0;
+                var bone = left ? lFootBone : rFootBone;
+                Vector3 moved = stage.transform.InverseTransformPoint(bone.position) - (left ? lFootRest : rFootRest);
+                Vector3 asked = left ? lastLFoot : lastRFoot;
+                reach = "foot moved x " + (moved.x * 1000f).ToString("0") + " / asked " + (asked.x * 1000f).ToString("0") + " mm";
+            }
+            syncRows.Add(string.Format("{0,3} | {1,-9} | lane {2} {3,-5} | {4,8:F3} | {5,8:F3} | {6,6:+0.0;-0.0;0.0} | w {7:F2} | {8}",
+                syncRows.Count + 1, cue.type, cue.lane, g.outer ? "outer" : "inner", cue.time, now, (now - cue.time) * 1000f, g.Weight(now), reach));
+            if (syncRows.Count >= syncReportNotes) { WriteSync(); return; }
         }
     }
 
@@ -442,9 +591,10 @@ public class SilhouetteTrainer : MonoBehaviour
         syncWritten = true;
         var sb = new StringBuilder();
         sb.AppendLine("[Silhouette] impact sync, first " + syncRows.Count + " notes (" + (SongClock.Capturing ? "recording" : "play") + ", " + (1f / Mathf.Max(1e-4f, Time.smoothDeltaTime)).ToString("0") + " fps)");
-        sb.AppendLine("  # | type      | clip                     |  note s  | planned  | observed |  d ms");
+        sb.AppendLine("  # | type      | lane         |  note s  | observed |  d ms  | weight | pose check");
         foreach (var r in syncRows) sb.AppendLine(r);
-        sb.AppendLine("planned = song time the plan puts the impact frame at; observed = first frame whose clip time reached it.");
+        sb.AppendLine("The gesture's weight is 1 exactly at the note (planned error 0); observed = first frame at or after it.");
+        sb.AppendLine("hand = distance of the solved hand bone from its IK goal; foot = sideways travel of the foot bone from the stance vs the step asked for.");
         Debug.Log(sb.ToString(), this);
         try
         {
@@ -467,16 +617,15 @@ public class SilhouetteTrainer : MonoBehaviour
 
     private void LogPlan()
     {
-        var sb = new StringBuilder("[Silhouette] plan: " + plan.Count + " segments, " + stretches.Count + " dance stretches\n");
-        foreach (var s in stretches)
-            sb.Append("  dance ").Append(s.start.ToString("F1")).Append("..").Append(s.end.ToString("F1")).Append(' ')
-              .Append(s.dance != null && s.dance.Valid ? s.dance.clip.name : "-").Append(s.quiet ? " (walls ride along)" : "").Append('\n');
-        for (int i = 0; i < plan.Count && i < 60; i++)
-        {
-            var p = plan[i];
-            sb.Append("  ").Append(p.start.ToString("F2")).Append(" fade ").Append(p.fade.ToString("F2"))
-              .Append(" x").Append(p.speed.ToString("F2")).Append(" in ").Append(p.clipIn.ToString("F2"))
+        var sb = new StringBuilder("[Silhouette] plan: " + plan.Count + " clip segments, " + gestures.Count + " gestures, beat grid from " + beatAnchor.ToString("F3") + "\n");
+        foreach (var p in plan)
+            sb.Append("  clip ").Append(p.start.ToString("F2")).Append(" x").Append(p.speed.ToString("F2"))
               .Append(float.IsNaN(p.impactAt) ? "" : " impact@" + p.impactAt.ToString("F3")).Append("  ").Append(p.label).Append('\n');
+        for (int i = 0; i < gestures.Count && i < 40; i++)
+        {
+            var g = gestures[i];
+            sb.Append("  ").Append(g.kind).Append(g.side < 0 ? " L" : " R").Append(g.outer ? " outer" : " inner")
+              .Append(" ").Append(g.start.ToString("F2")).Append(" -> ").Append(g.impact.ToString("F3")).Append(" .. ").Append(g.end.ToString("F2")).Append('\n');
         }
         Debug.Log(sb.ToString(), this);
     }

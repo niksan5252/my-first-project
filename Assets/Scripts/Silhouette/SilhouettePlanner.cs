@@ -1,26 +1,21 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-/// Turns a chart into the silhouette's whole performance, once, before the track starts: a list of
-/// clip segments laid out on the song clock. SilhouetteTrainer then only has to look up where in
-/// that list the clock is - the pose is a pure function of song time, which is what makes it the
-/// same in Play and in a recording, and at any frame rate.
+/// Turns a chart into the trainer's whole performance, once, before the track starts. The result
+/// is two lists on the song clock, and SilhouetteTrainer only looks up where the clock is in them,
+/// so the pose is a pure function of song time - the same in Play and in a recording.
 ///
-/// The rules, all in this file:
-///   * A note's clip is started early enough that its impact frame lands ON the note. When the
-///     notes leave less room than the clip's wind-up needs (a note every beat is 0.47 s at 128 BPM,
-///     and a front kick winds up for a whole second) the clip is sped up, to maxSpeedUp, and past
-///     that the start of the wind-up is cut. Clips always crossfade into each other.
-///   * Obstacles move WITH the camera: the step, the top of the jump and the bottom of the crouch
-///     land on the moment the camera is fully committed (ObstacleCameraDirector's anchor), and the
-///     figure comes back over the same beat the camera does.
-///   * Holds loop their clip for the whole length of the note.
-///   * Between notes: the fighting idle. Intro, finale and breakdowns: a dance, one per stretch,
-///     never the same one twice running. In the intro and the finale the gap-filling walls do not
-///     interrupt the dance; mid-track, and for kerbs and barriers everywhere, the move is made and
-///     the dance picks up where it was.
-///   * Variations never repeat back to back, prefer the other hand/leg to the last one, and are
-///     drawn from a generator seeded by the track, so a track always gets the same performance.
+///   * Segments - clips: the relaxed stance under everything, and the two moves a take shows
+///     better than a pose: the jump over a kerb (its top on the camera's hop) and the crouch
+///     under a barrier (its bottom on the camera's duck). Clips crossfade into each other.
+///   * Gestures - posed procedurally by SilhouettePoseJob: a hand reaching to a punch cube, a foot
+///     set down on a kick tile, both held for a hold note, and the step-and-lean away from a wall.
+///     Each has a weight envelope that reaches 1 exactly ON its note (for a wall: exactly when the
+///     camera is fully committed, and it comes back over the camera's own recovery).
+///
+/// Sides are the SCREEN's, because the trainer faces the player like a mirror: a cube in the left
+/// lanes is answered with the limb on the screen's left, a dodge to the right moves the figure to
+/// the screen's right, with the camera.
 public static class SilhouettePlanner
 {
     public struct Segment
@@ -32,7 +27,7 @@ public static class SilhouettePlanner
         public float speed;
         public bool loop;
         public float impactAt;   // song time the impact frame is reached; NaN for loops
-        public int note;         // index into the chart for a note's segment, -1 otherwise
+        public int note;         // chart index for an obstacle's segment, -1 for the stance
         public string label;
 
         /// Clip time at a song time, with loops wrapped, one-shots held on their last frame and
@@ -40,6 +35,7 @@ public static class SilhouettePlanner
         public float ClipTime(float songTime)
         {
             float len = Mathf.Max(0.0001f, motion.Length);
+            if (motion.holdFrame >= 0f) return Mathf.Min(motion.holdFrame, len);
             float t = clipIn + (songTime - start) * speed;
             if (loop) return Mathf.Repeat(t, len);
             if (motion.reverseAfterImpact && t > motion.impact) t = Mathf.Max(0f, 2f * motion.impact - t);
@@ -47,290 +43,190 @@ public static class SilhouettePlanner
         }
     }
 
-    public struct Stretch
-    {
-        public float start, end;
-        public SilhouetteMotion dance;
-        public bool quiet;       // intro/finale: walls do not interrupt
-    }
+    public enum GestureKind { Punch, PunchHold, Kick, KickHold, Dodge }
 
-    /// What the planner needs to know about the obstacle camera: see CueSpawner.ObstacleTiming.
-    public delegate void ObstacleTimingFn(BeatmapCue cue, out float commit, out float release, out float settled, out int cameraSide);
-
-    private struct Action
+    public struct Gesture
     {
+        public GestureKind kind;
+        public int side;         // -1 screen left, +1 screen right
+        public bool outer;       // an outer lane: the wider reach / the wide stance
+        public float start;      // weight starts rising
+        public float impact;     // weight is 1: the touch, the reach, the camera fully committed
+        public float holdEnd;    // weight leaves 1
+        public float end;        // weight is back to 0
+        public bool glide;       // ease both ways (a dodge, to match the camera's Glide)
         public int note;
-        public BeatmapCue cue;
-        public float impact;     // song time the move must peak
-        public float release;    // until when it holds
-        public float settled;    // obstacles: the camera is home
-        public int side;         // obstacles: -1 left, +1 right
+
+        public float Weight(float t)
+        {
+            if (t <= start || t >= end) return 0f;
+            if (t < impact)
+            {
+                float x = (t - start) / Mathf.Max(1e-4f, impact - start);
+                // Punches and steps decelerate INTO the touch - the hand arrives, it is not thrown.
+                return glide ? Smooth(x) : 1f - (1f - x) * (1f - x);
+            }
+            if (t <= holdEnd) return 1f;
+            return 1f - Smooth((t - holdEnd) / Mathf.Max(1e-4f, end - holdEnd));
+        }
+
+        private static float Smooth(float x)
+        {
+            x = Mathf.Clamp01(x);
+            return x * x * (3f - 2f * x);
+        }
     }
+
+    /// See CueSpawner.ObstacleTiming.
+    public delegate void ObstacleTimingFn(BeatmapCue cue, out float begin, out float commit, out float release, out float settled, out int cameraSide);
 
     // Where the plan begins: before the music (SongClock reports negative time until the audio
     // starts). Finite on purpose - a loop's clip time is solved from it.
     private const float SongStart = -30f;
 
-    private static bool IsObstacle(CueType t) => t == CueType.Dodge || t == CueType.Curb || t == CueType.Duck;
-
-    public static List<Segment> Plan(SilhouetteMotionSet set, BeatmapSequencer chart, float bpm, float songEnd,
-                                     string seedText, ObstacleTimingFn obstacleTiming, out List<Stretch> stretches)
+    public static void Plan(SilhouetteMotionSet set, BeatmapSequencer chart, float bpm, int laneCount, string seedText,
+                            ObstacleTimingFn obstacleTiming, out List<Segment> segments, out List<Gesture> gestures)
     {
-        var segments = new List<Segment>();
-        stretches = new List<Stretch>();
+        segments = new List<Segment>();
+        gestures = new List<Gesture>();
         float beat = 60f / (bpm >= 20f ? bpm : 120f);
-        float bar = beat * 4f;
         var rng = new System.Random(StableHash(seedText));
-        var picker = new Picker(rng);
+        SilhouetteMotion lastCurb = null;
 
-        // --- where the notes are, and the stretches between them ---
-        var actions = new List<Action>();
-        float firstNote = float.PositiveInfinity, lastNoteEnd = float.NegativeInfinity;
-        var noteSpans = new List<Vector2>();
-        for (int i = 0; i < chart.Count; i++)
+        var idle = FirstValid(set.idle);
+        float xfade = set.crossfadeBeats * beat;
+        float rise = Mathf.Min(set.riseSeconds, set.riseBeats * beat);
+        float fall = set.fallBeats * beat;
+        float freeFrom = SongStart;     // the last clip move has let go of the body from here
+        float returnFade = xfade;
+        float busyUntil = float.NegativeInfinity;
+
+        var order = new List<int>();
+        for (int i = 0; i < chart.Count; i++) order.Add(i);
+        order.Sort((a, b) => chart[a].time.CompareTo(chart[b].time));
+
+        foreach (int i in order)
         {
             var c = chart[i];
-            var a = new Action { note = i, cue = c, impact = c.time, release = c.time + c.duration, settled = c.time + c.duration };
-            if (IsObstacle(c.type))
+            int side = c.lane < laneCount * 0.5f ? -1 : 1;
+            bool outer = c.lane == 0 || c.lane == laneCount - 1;
+            switch (c.type)
             {
-                obstacleTiming(c, out a.impact, out a.release, out a.settled, out a.side);
-            }
-            else
-            {
-                firstNote = Mathf.Min(firstNote, c.time);
-                lastNoteEnd = Mathf.Max(lastNoteEnd, c.time + c.duration);
-                noteSpans.Add(new Vector2(c.time, c.time + c.duration));
-            }
-            actions.Add(a);
-        }
-        actions.Sort((x, y) => x.impact.CompareTo(y.impact));
-
-        // Dance stretches: intro, breakdowns (a gap between notes of breakdownBars or more), finale.
-        // A breakdown's dance starts a beat after the last note and gives way to the stance a bar
-        // before the next, so a set always opens from the fighting stance.
-        if (float.IsPositiveInfinity(firstNote)) { firstNote = songEnd; lastNoteEnd = songEnd; }
-        stretches.Add(new Stretch { start = SongStart, end = firstNote - bar, quiet = true });
-        for (int i = 1; i < noteSpans.Count; i++)
-        {
-            float prevEnd = 0f;
-            for (int k = 0; k < i; k++) prevEnd = Mathf.Max(prevEnd, noteSpans[k].y);
-            float gap = noteSpans[i].x - prevEnd;
-            if (gap >= set.breakdownBars * bar)
-                stretches.Add(new Stretch { start = prevEnd + beat, end = noteSpans[i].x - bar, quiet = false });
-        }
-        stretches.Add(new Stretch { start = lastNoteEnd + beat, end = float.PositiveInfinity, quiet = true });
-        for (int i = 0; i < stretches.Count; i++)
-        {
-            var s = stretches[i];
-            s.dance = picker.Next(set.dance, "dance");
-            stretches[i] = s;
-        }
-
-        // Walls inside the intro/finale belong to the dance.
-        var dance = stretches;
-        actions.RemoveAll(a => a.cue.type == CueType.Dodge && QuietAt(dance, a.impact));
-
-        // --- lay the segments out ---
-        var idle = picker.Next(set.idle, "idle");
-        float xfade = set.crossfadeBeats * beat;
-        float freeFrom = SongStart;                // the previous move is done with the body from here
-        float returnFade = xfade;                  // how the background fades back in after it
-        float busyUntil = float.NegativeInfinity;  // no wind-up may start before this
-
-        for (int ai = 0; ai < actions.Count; ai++)
-        {
-            var a = actions[ai];
-            var type = a.cue.type;
-            bool hold = type == CueType.PunchHold || type == CueType.KickHold;
-
-            SilhouetteMotion motion =
-                type == CueType.Punch ? picker.Next(set.punch, "punch", true)
-              : type == CueType.Kick ? picker.Next(set.kick, "kick", true)
-              : type == CueType.PunchHold ? picker.Next(set.punchHold, "punchHold")
-              : type == CueType.KickHold ? picker.Next(set.kickHold, "kickHold")
-              : type == CueType.Dodge ? picker.Next(a.side < 0 ? set.dodgeLeft : set.dodgeRight, a.side < 0 ? "dodgeL" : "dodgeR")
-              : type == CueType.Duck ? (set.duckDown.Valid ? set.duckDown : null)
-              : picker.Next(set.curb, "curb");
-            if (motion == null || !motion.Valid) continue;
-
-            // Room for the wind-up: after a one-shot, from its impact (the follow-through is
-            // what the next wind-up crossfades out of); after a hold or an obstacle, from the
-            // moment it lets go.
-            float room = float.IsNegativeInfinity(busyUntil) ? 10f : Mathf.Max(0f, a.impact - busyUntil);
-
-            Segment seg;
-            if (hold)
-            {
-                float fade = Mathf.Min(xfade, Mathf.Max(0.05f, room * 0.8f));
-                seg = new Segment { motion = motion, start = a.impact - fade, fade = fade, clipIn = 0f, speed = 1f, loop = true, impactAt = float.NaN };
-            }
-            else seg = WindUp(motion, a.impact, room, set.maxSpeedUp, xfade);
-            seg.note = IsObstacle(type) ? -1 : a.note;
-            seg.label = type + " " + motion.clip.name;
-
-            // Background from where the last move let go until this one begins.
-            AddBackground(segments, stretches, idle, freeFrom, seg.start, returnFade, xfade);
-            segments.Add(seg);
-            busyUntil = a.impact;
-
-            if (hold)
-            {
-                freeFrom = a.release;
-                busyUntil = a.release;
-                returnFade = xfade;
-            }
-            else if (type == CueType.Duck)
-            {
-                // Down to the bottom with the camera, stay there while the barrier passes, and
-                // come up as the camera does.
-                if (set.duckUp.Valid)
+                case CueType.Punch:
+                case CueType.Kick:
+                case CueType.PunchHold:
+                case CueType.KickHold:
                 {
-                    float rise = Mathf.Max(0.1f, a.settled - a.release);
-                    float speed = Mathf.Clamp(set.duckUp.impact / rise, 0.5f, set.maxSpeedUp);
-                    var up = new Segment { motion = set.duckUp, start = a.release, fade = Mathf.Min(0.12f, rise * 0.3f), clipIn = 0f, speed = speed, loop = false, note = -1, label = "Duck " + set.duckUp.clip.name };
-                    up.impactAt = up.start + set.duckUp.impact / speed;
-                    segments.Add(up);
-                    freeFrom = up.start + set.duckUp.Length / speed - xfade;
-                    busyUntil = up.impactAt;
+                    bool kick = c.type == CueType.Kick || c.type == CueType.KickHold;
+                    bool hold = c.type == CueType.PunchHold || c.type == CueType.KickHold;
+                    float holdEnd = hold ? c.time + c.duration : kick ? c.time + set.plantBeats * beat : c.time;
+                    gestures.Add(new Gesture
+                    {
+                        kind = c.type == CueType.Punch ? GestureKind.Punch : c.type == CueType.Kick ? GestureKind.Kick
+                             : c.type == CueType.PunchHold ? GestureKind.PunchHold : GestureKind.KickHold,
+                        side = side, outer = outer,
+                        start = c.time - rise, impact = c.time, holdEnd = holdEnd, end = holdEnd + fall, note = i,
+                    });
+                    break;
                 }
-                else freeFrom = busyUntil = a.release;
-                returnFade = xfade;
-            }
-            else if (IsObstacle(type))
-            {
-                // Held at the far side of the step / the landing until the camera starts back,
-                // then eased home over exactly the camera's own recovery.
-                float clipDone = seg.start + (motion.Length - seg.clipIn) / seg.speed;
-                freeFrom = Mathf.Max(a.release, type == CueType.Curb ? clipDone - xfade : a.release);
-                if (type == CueType.Dodge) busyUntil = a.release;
-                returnFade = type == CueType.Curb ? xfade : Mathf.Max(xfade, a.settled - a.release);
-            }
-            else
-            {
-                // A one-shot keeps playing its follow-through until the next wind-up takes over,
-                // or until the clip is over, whichever is first.
-                float clipDone = seg.impactAt + (motion.reverseAfterImpact ? motion.impact : motion.Length - motion.impact) / seg.speed;
-                freeFrom = clipDone - xfade;
-                returnFade = xfade;
+                case CueType.Dodge:
+                {
+                    obstacleTiming(c, out float begin, out float commit, out float release, out float settled, out int camSide);
+                    gestures.Add(new Gesture
+                    {
+                        kind = GestureKind.Dodge, side = camSide, outer = true, glide = true,
+                        start = begin, impact = commit, holdEnd = release, end = settled, note = i,
+                    });
+                    break;
+                }
+                default:   // Curb (and the retired Jump, read as Curb) and Duck: clips
+                {
+                    obstacleTiming(c, out _, out float commit, out float release, out float settled, out _);
+                    bool duck = c.type == CueType.Duck;
+                    var motion = duck ? (set.duckDown.Valid ? set.duckDown : null) : Pick(set.curb, ref lastCurb, rng);
+                    if (motion == null) break;
+                    float room = float.IsNegativeInfinity(busyUntil) ? 10f : Mathf.Max(0f, commit - busyUntil);
+                    var seg = WindUp(motion, commit, room, set.maxSpeedUp, xfade);
+                    seg.note = i;
+                    seg.label = c.type + " " + motion.clip.name;
+                    AddIdle(segments, idle, freeFrom, seg.start, returnFade);
+                    segments.Add(seg);
+                    busyUntil = commit;
+                    returnFade = xfade;
+                    if (duck && set.duckUp.Valid)
+                    {
+                        // Down with the camera, stay while the barrier passes, up as the camera rises.
+                        float up = Mathf.Max(0.1f, settled - release);
+                        float speed = Mathf.Clamp(set.duckUp.impact / up, 0.5f, set.maxSpeedUp);
+                        var s = new Segment { motion = set.duckUp, start = release, fade = Mathf.Min(0.12f, up * 0.3f), speed = speed, note = i, label = "Duck " + set.duckUp.clip.name };
+                        s.impactAt = s.start + set.duckUp.impact / speed;
+                        segments.Add(s);
+                        freeFrom = s.start + set.duckUp.Length / speed - xfade;
+                        busyUntil = s.impactAt;
+                    }
+                    else
+                    {
+                        float clipDone = seg.start + (motion.Length - seg.clipIn) / seg.speed;
+                        freeFrom = Mathf.Max(release, clipDone - xfade);
+                    }
+                    break;
+                }
             }
         }
-        AddBackground(segments, stretches, idle, freeFrom, float.PositiveInfinity, returnFade, xfade);
-        if (segments.Count == 0 && idle != null)
-            segments.Add(new Segment { motion = idle, start = SongStart, fade = 0f, speed = 1f, loop = true, impactAt = float.NaN, note = -1, label = "Idle" });
-        return segments;
+        AddIdle(segments, idle, freeFrom, float.PositiveInfinity, returnFade);
     }
 
-    /// The wind-up rule. `room` is how much time the previous move leaves before the impact.
+    /// The first beat of the grid every note sits on, for the stance's bounce.
+    public static float BeatAnchor(BeatmapSequencer chart)
+    {
+        float a = float.PositiveInfinity;
+        for (int i = 0; i < chart.Count; i++) a = Mathf.Min(a, chart[i].time);
+        return float.IsPositiveInfinity(a) ? 0f : a;
+    }
+
+    /// The wind-up rule: sped up to fit the room before the impact, and past maxSpeed cut.
     private static Segment WindUp(SilhouetteMotion m, float impactTime, float room, float maxSpeed, float xfade)
     {
-        float w = m.impact;                                  // wind-up at normal speed
+        float w = m.impact;
         float real = Mathf.Min(w, Mathf.Max(0.12f, room * 0.85f));
         float speed = 1f, clipIn = 0f;
         if (real < w)
         {
             speed = Mathf.Min(maxSpeed, w / real);
-            clipIn = w - real * speed;                       // what speeding up could not absorb is cut
+            clipIn = w - real * speed;
         }
-        float fade = Mathf.Min(xfade, real * 0.6f);
         return new Segment
         {
-            motion = m, start = impactTime - real, fade = fade, clipIn = clipIn, speed = speed,
+            motion = m, start = impactTime - real, fade = Mathf.Min(xfade, real * 0.6f), clipIn = clipIn, speed = speed,
             loop = false, impactAt = impactTime,
         };
     }
 
-    private static bool QuietAt(List<Stretch> stretches, float t)
+    private static void AddIdle(List<Segment> segs, SilhouetteMotion idle, float from, float to, float fade)
     {
-        foreach (var s in stretches) if (s.quiet && t >= s.start && t < s.end) return true;
-        return false;
+        if (idle == null || to - from <= 0.05f) return;
+        segs.Add(new Segment
+        {
+            motion = idle, start = from, fade = from <= SongStart ? 0f : fade, clipIn = Mathf.Repeat(from, idle.Length),
+            speed = 1f, loop = true, impactAt = float.NaN, note = -1, label = "Stance " + idle.clip.name,
+        });
     }
 
-    private static int StretchAt(List<Stretch> stretches, float t)
+    private static SilhouetteMotion FirstValid(List<SilhouetteMotion> list)
     {
-        for (int i = 0; i < stretches.Count; i++) if (t >= stretches[i].start && t < stretches[i].end) return i;
-        return -1;
+        if (list != null) foreach (var m in list) if (m != null && m.Valid) return m;
+        return null;
     }
 
-    /// Fills [from, to) with the background: the stretch's dance where there is one, the idle
-    /// elsewhere, switching at each stretch boundary. A dance resumes at the point it would have
-    /// reached had it never been interrupted, so it keeps its own flow through a jump or a step.
-    private static void AddBackground(List<Segment> segs, List<Stretch> stretches, SilhouetteMotion idle,
-                                      float from, float to, float firstFade, float xfade)
+    /// Never the same take twice running, otherwise at random - seeded by the track.
+    private static SilhouetteMotion Pick(List<SilhouetteMotion> list, ref SilhouetteMotion last, System.Random rng)
     {
-        float t = from;
-        float fade = firstFade;
-        bool first = true;
-        int guard = 0;
-        while (t < to && guard++ < 64)
-        {
-            int si = StretchAt(stretches, t);
-            float next = to;
-            SilhouetteMotion m;
-            float clipIn = 0f;
-            if (si >= 0 && stretches[si].dance != null && stretches[si].dance.Valid)
-            {
-                m = stretches[si].dance;
-                next = Mathf.Min(to, stretches[si].end);
-                // The intro's dance is anchored on the music's first sample, the others on their own start.
-                float anchor = stretches[si].start <= SongStart ? 0f : stretches[si].start;
-                clipIn = Mathf.Repeat(t - anchor, m.Length);
-            }
-            else
-            {
-                m = idle;
-                // Up to the next stretch that starts after t.
-                foreach (var s in stretches) if (s.start > t && s.start < next) next = s.start;
-            }
-            if (m != null && m.Valid && next - t > 0.05f)
-            {
-                segs.Add(new Segment
-                {
-                    motion = m, start = t, fade = t <= SongStart ? 0f : (first ? fade : xfade * 2f),
-                    clipIn = clipIn, speed = 1f, loop = true, impactAt = float.NaN, note = -1,
-                    label = (m == idle ? "Idle " : "Dance ") + m.clip.name,
-                });
-            }
-            first = false;
-            if (next <= t) break;
-            t = next;
-        }
-    }
-
-    /// Picks variations: never the same clip twice running within a kind, the other side to the
-    /// last one when `alternateSides` and there is a choice, otherwise at random from the rest.
-    private struct Picker
-    {
-        private readonly System.Random rng;
-        private readonly Dictionary<string, SilhouetteMotion> last;
-
-        public Picker(System.Random rng)
-        {
-            this.rng = rng;
-            last = new Dictionary<string, SilhouetteMotion>();
-        }
-
-        public SilhouetteMotion Next(List<SilhouetteMotion> list, string kind, bool alternateSides = false)
-        {
-            if (list == null) return null;
-            var pool = new List<SilhouetteMotion>();
-            foreach (var m in list) if (m != null && m.Valid) pool.Add(m);
-            if (pool.Count == 0) return null;
-            last.TryGetValue(kind, out var prev);
-
-            var fresh = pool.FindAll(m => m != prev);
-            if (fresh.Count == 0) fresh = pool;
-            if (alternateSides && prev != null && !string.IsNullOrEmpty(prev.side))
-            {
-                string prevLimb = Limb(prev.side);
-                var other = fresh.FindAll(m => Limb(m.side) != prevLimb);
-                if (other.Count > 0) fresh = other;
-            }
-            var pick = fresh[rng.Next(fresh.Count)];
-            last[kind] = pick;
-            return pick;
-        }
-
-        private static string Limb(string side) => string.IsNullOrEmpty(side) ? "" : side.Substring(0, 1);
+        var pool = new List<SilhouetteMotion>();
+        if (list != null) foreach (var m in list) if (m != null && m.Valid && m != last) pool.Add(m);
+        if (pool.Count == 0 && last != null && last.Valid) pool.Add(last);
+        if (pool.Count == 0) return null;
+        last = pool[rng.Next(pool.Count)];
+        return last;
     }
 
     /// FNV-1a: string.GetHashCode is not guaranteed to be the same across runs or runtimes.
