@@ -44,7 +44,11 @@ public class SilhouetteTrainer : MonoBehaviour
     [SerializeField] private float frameWidth = 3f;
     [SerializeField] private float frameCorner = 26f;
     [SerializeField, Range(0f, 1f)] private float frameGlow = 0.45f;
-    // false: the theme's secondary colour (the cyan of the default theme), true: its primary.
+    // The trainer keeps its own colour (cyan) whatever the tunnel's theme, so it reads against
+    // every palette; turn this on to follow the theme instead.
+    [SerializeField] private bool followThemeColor;
+    [SerializeField] private Color trainerColor = new Color(0f, 0.85f, 1f);
+    // With followThemeColor: false = the theme's secondary colour, true = its primary.
     [SerializeField] private bool usePrimaryColor;
     // true: the figure is drawn as its contour only - a line drawing, the glass visible inside.
     [SerializeField] private bool outlineOnly = true;
@@ -587,7 +591,7 @@ public class SilhouetteTrainer : MonoBehaviour
 
     private void ApplyTheme()
     {
-        Color c = hud != null ? (usePrimaryColor ? hud.PrimaryColor : hud.SecondaryColor) : new Color(0f, 0.85f, 1f);
+        Color c = followThemeColor && hud != null ? (usePrimaryColor ? hud.PrimaryColor : hud.SecondaryColor) : trainerColor;
         if (c == themeShown) return;
         themeShown = c;
         bodyMat.SetColor("_RimColor", c);

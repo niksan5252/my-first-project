@@ -512,6 +512,14 @@ public class CueSpawner : MonoBehaviour
     public Beatmap BeatmapMeta => beatmapMeta;
     public SongClock Clock => songClock;
     public AudioClip Music => musicSource != null ? musicSource.clip : null;
+
+    /// Swaps the track and its chart before the spawner is built (see RunProfileSelector). A null
+    /// clip or an empty name leaves that half as the scene has it.
+    public void SetTrack(AudioClip clip, string chartFileName)
+    {
+        if (clip != null && musicSource != null) musicSource.clip = clip;
+        if (!string.IsNullOrEmpty(chartFileName)) beatmapFileName = chartFileName;
+    }
     public BeatmapSequencer Sequencer => sequencer;
     private float spawnZ;
     private float spawnTimer;

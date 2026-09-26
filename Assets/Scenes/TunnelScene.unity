@@ -394,6 +394,8 @@ MonoBehaviour:
   frameWidth: 3
   frameCorner: 26
   frameGlow: 0.45
+  followThemeColor: 0
+  trainerColor: {r: 0, g: 0.85, b: 1, a: 1}
   usePrimaryColor: 0
   outlineOnly: 1
   contourWidth: 0.0045
@@ -1289,6 +1291,53 @@ CanvasGroup:
   m_Interactable: 1
   m_BlocksRaycasts: 1
   m_IgnoreParentGroups: 0
+--- !u!1 &1091949379
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1091949381}
+  - component: {fileID: 1091949380}
+  m_Layer: 0
+  m_Name: RunProfile
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1091949380
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1091949379}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 47cddb7974a22584eaf95d6471d70d3a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::RunProfileSelector
+  profile: {fileID: 11400000, guid: 5ec4173adbff60c48af74805341d9615, type: 2}
+  cueSpawner: {fileID: 350241776}
+  themeApplier: {fileID: 268705387}
+--- !u!4 &1091949381
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1091949379}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1975593717
 GameObject:
   m_ObjectHideFlags: 0
@@ -1613,3 +1662,4 @@ SceneRoots:
   - {fileID: 357218819}
   - {fileID: 306773552}
   - {fileID: 181401618}
+  - {fileID: 1091949381}

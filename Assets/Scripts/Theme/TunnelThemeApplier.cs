@@ -30,6 +30,13 @@ public class TunnelThemeApplier : MonoBehaviour
 
     private GameObject spawnedEnvironment;
 
+    /// Chooses the theme before Awake builds with it (see RunProfileSelector). After Awake, use
+    /// Apply to swap live.
+    public void SetTheme(TunnelTheme newTheme)
+    {
+        if (newTheme != null) theme = newTheme;
+    }
+
     private void Awake()
     {
         if (environmentAnchor == null) environmentAnchor = transform;
