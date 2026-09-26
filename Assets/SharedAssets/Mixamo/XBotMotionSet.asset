@@ -1,0 +1,147 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5bcef4662f0786344894dd1476cbfd02, type: 3}
+  m_Name: XBotMotionSet
+  m_EditorClassIdentifier: Assembly-CSharp::SilhouetteMotionSet
+  model: {fileID: 919132149155446097, guid: bd140c0806a61a94685567acf3287573, type: 3}
+  avatar: {fileID: 9000000, guid: bd140c0806a61a94685567acf3287573, type: 3}
+  punch:
+  - clip: {fileID: -203655887218126122, guid: 89a67cdc34f9c704eb0c9d9443254d9c, type: 3}
+    impact: 0.4
+    side: L hand
+    reverseAfterImpact: 0
+  - clip: {fileID: -203655887218126122, guid: 1531976230300264c8450eeae319ce4d, type: 3}
+    impact: 0.6333333
+    side: R hand
+    reverseAfterImpact: 0
+  - clip: {fileID: -203655887218126122, guid: fc93f7d216387ca47b5e5ac9504c15f9, type: 3}
+    impact: 0.4
+    side: L hand
+    reverseAfterImpact: 0
+  - clip: {fileID: -203655887218126122, guid: 6dbc2165aa8db824cb179c788134aa41, type: 3}
+    impact: 0.48333332
+    side: L hand
+    reverseAfterImpact: 0
+  - clip: {fileID: -203655887218126122, guid: bcdb55dff03824c449a92fa16e6bc0ba, type: 3}
+    impact: 0.33333334
+    side: R hand
+    reverseAfterImpact: 0
+  kick:
+  - clip: {fileID: -203655887218126122, guid: 1b413f57856c5ee46ac357e53833060b, type: 3}
+    impact: 1.0166667
+    side: L leg
+    reverseAfterImpact: 0
+  - clip: {fileID: -203655887218126122, guid: 5fbec3ebae3298941b7bc4987026bea0, type: 3}
+    impact: 0.5833333
+    side: R leg
+    reverseAfterImpact: 0
+  - clip: {fileID: -203655887218126122, guid: 8088c177312989849be8275e46229fc5, type: 3}
+    impact: 0.65
+    side: R leg
+    reverseAfterImpact: 0
+  - clip: {fileID: -203655887218126122, guid: bef9f59f64b46b944be69af8d2c573cf, type: 3}
+    impact: 1.1833333
+    side: L leg
+    reverseAfterImpact: 0
+  - clip: {fileID: -203655887218126122, guid: a2458ef801f2c434885f748c02d66d8b, type: 3}
+    impact: 0.8833333
+    side: L leg
+    reverseAfterImpact: 0
+  punchHold:
+  - clip: {fileID: -203655887218126122, guid: 8622a3035ab50aa469c993a9a01d4a5a, type: 3}
+    impact: 0
+    side: 
+    reverseAfterImpact: 0
+  kickHold:
+  - clip: {fileID: -203655887218126122, guid: 3d5a5a9cc7086a242a4087a5a593e706, type: 3}
+    impact: 0
+    side: 
+    reverseAfterImpact: 0
+  - clip: {fileID: -203655887218126122, guid: 5e126592571991b42bfa3c5be426fafa, type: 3}
+    impact: 0
+    side: 
+    reverseAfterImpact: 0
+  - clip: {fileID: -203655887218126122, guid: 93b5c5e379df25b46b42e70c8e2f6dd6, type: 3}
+    impact: 0
+    side: 
+    reverseAfterImpact: 0
+  - clip: {fileID: -203655887218126122, guid: 8dbdc72d1dad6ee46a8c9f4a41f98ce7, type: 3}
+    impact: 0
+    side: 
+    reverseAfterImpact: 0
+  - clip: {fileID: -203655887218126122, guid: 515f31a95e5182640a66d7339807936b, type: 3}
+    impact: 0
+    side: 
+    reverseAfterImpact: 0
+  curb:
+  - clip: {fileID: -203655887218126122, guid: 71ec7fa682e86e845835a73d53333cf5, type: 3}
+    impact: 1.0333333
+    side: apex
+    reverseAfterImpact: 0
+  - clip: {fileID: -203655887218126122, guid: e9cea2b2d9fc98e4e85eefe5cfc7ab1b, type: 3}
+    impact: 0.78333336
+    side: apex
+    reverseAfterImpact: 1
+  dodgeLeft:
+  - clip: {fileID: -203655887218126122, guid: bd140c0806a61a94685567acf3287573, type: 3}
+    impact: 0.68333334
+    side: -X
+    reverseAfterImpact: 0
+  dodgeRight:
+  - clip: {fileID: -203655887218126122, guid: 422a275b32ff8824b920376f04a74fa4, type: 3}
+    impact: 0.73333335
+    side: +X
+    reverseAfterImpact: 0
+  duckDown:
+    clip: {fileID: -203655887218126122, guid: 6625688499b932640b8be7315ab68eda, type: 3}
+    impact: 0.6
+    side: bottom
+    reverseAfterImpact: 0
+  duckUp:
+    clip: {fileID: -203655887218126122, guid: c961002e172d17e4f92bb0fb9cd976c2, type: 3}
+    impact: 0.46666667
+    side: top
+    reverseAfterImpact: 0
+  idle:
+  - clip: {fileID: -203655887218126122, guid: c6334890427124d488ed5d438923d35f, type: 3}
+    impact: 0
+    side: 
+    reverseAfterImpact: 0
+  - clip: {fileID: -203655887218126122, guid: 5f324e9dc4d249b4eb90c2449564337c, type: 3}
+    impact: 0
+    side: 
+    reverseAfterImpact: 0
+  dance:
+  - clip: {fileID: -203655887218126122, guid: ce57ef6ab0fa4e6448b3901b15d9af9c, type: 3}
+    impact: 0
+    side: 
+    reverseAfterImpact: 0
+  - clip: {fileID: -203655887218126122, guid: 2c498e36b188d5d4488bfd667fbb6696, type: 3}
+    impact: 0
+    side: 
+    reverseAfterImpact: 0
+  - clip: {fileID: -203655887218126122, guid: 5bbe3cb3527a20345a9d52bc3cb3988e, type: 3}
+    impact: 0
+    side: 
+    reverseAfterImpact: 0
+  - clip: {fileID: -203655887218126122, guid: a6ae77f2cb608f94eb4729ef66c1f344, type: 3}
+    impact: 0
+    side: 
+    reverseAfterImpact: 0
+  - clip: {fileID: -203655887218126122, guid: 8853794c82978ab42bf6d08970c47da3, type: 3}
+    impact: 0
+    side: 
+    reverseAfterImpact: 0
+  maxSpeedUp: 1.7
+  crossfadeBeats: 0.35
+  breakdownBars: 3
+  maxDrift: 0.6

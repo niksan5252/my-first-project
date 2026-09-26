@@ -22,17 +22,13 @@ public enum CueType { Kick, Punch, Jump, PunchHold, KickHold, Dodge, Curb, Duck 
 
 /// Spawns pooled cue markers across the tunnel's lanes at a height matching their type
 /// (Kick = floor, Punch = chest, Jump = a low hurdle bar), colors each cue instance
-/// magenta or cyan (~50/50), and fires the matching Animator trigger on the silhouette
-/// early enough that each clip's own impact frame lands exactly when the cue crosses the
-/// hit zone. At the hit zone itself (a later, separate moment from the animation trigger)
-/// the cue bursts into a small particle effect, its lane's floor pad flashes, and the
+/// magenta or cyan (~50/50). At the hit zone the cue bursts into a small particle effect, its lane's floor pad flashes, and the
 /// camera gets a brief shake.
 public class CueSpawner : MonoBehaviour
 {
     private const float MaxEmissionIntensity = 2.5f; // same hard ceiling as the tunnel rings
 
     [SerializeField] private NeonTunnelGenerator tunnel;
-    [SerializeField] private Animator silhouetteAnimator;
     [SerializeField] private Transform cameraTransform;
 
     // Random keeps the original behaviour — a note every spawnInterval, type and lane rolled on
@@ -242,17 +238,6 @@ public class CueSpawner : MonoBehaviour
     private Color obstacleBodyColor = new Color(0f, 0.85f, 1f);
     private Color obstacleChevronColor = new Color(1f, 0.05f, 0.65f);
 
-    [Header("Animation Sync")]
-    [SerializeField] private AnimationClip punchClip;
-    [SerializeField] private AnimationClip kickClip;
-    [SerializeField] private AnimationClip jumpClip;
-    [SerializeField] private float punchImpactFrameOffset = 0.3f;
-    [SerializeField] private float kickImpactFrameOffset = 0.22f;
-    [SerializeField] private float jumpImpactFrameOffset = 0.4f;
-    [SerializeField] private string punchTrigger = "Punch";
-    [SerializeField] private string kickTrigger = "Kick";
-    [SerializeField] private string jumpTrigger = "Jump";
-
     [Header("Hit-Zone Floor Pads")]
     // Theme-sourced (see Configure): idle = the theme's secondary color. Flash is NOT pure
     // white — with the stronger bloom pass, a pure-white flash at high emission blows out to a
@@ -432,9 +417,7 @@ public class CueSpawner : MonoBehaviour
         public Color color;
         public int lane;
         public bool inUse;
-        public bool triggered; // animation trigger fired (early, windup-compensated)
         public bool hit;       // cue actually crossed the hit zone (burst + pad flash + shake)
-        public float triggerTime;
 
         // When this note is due AT THE HIT ZONE, on whichever clock the current mode runs on.
         // It is the note's whole definition of itself: position, the animation cue and the hold
@@ -628,12 +611,6 @@ public class CueSpawner : MonoBehaviour
 
             slots[i].transform.localPosition = pos;
 
-            if (!slots[i].triggered && now >= slots[i].triggerTime)
-            {
-                slots[i].triggered = true;
-                FireAnimation(slots[i].type);
-            }
-
             if (IsHold(slots[i].type))
                 UpdateHold(i, now, pos);
             else if (!slots[i].hit && now >= slots[i].hitTime)
@@ -796,6 +773,22 @@ public class CueSpawner : MonoBehaviour
         float reachSeconds = hitZoneZ / speed;
         float passSeconds = (hitZoneZ + ObstacleZExtent(type)) / speed;
         obstacleCamera.Register(move, dueTime, reachSeconds, passSeconds);
+    }
+
+    /// When the camera reacts to one obstacle from the chart: fully committed, starting back, and
+    /// home again - the numbers RegisterObstaclePass books, worked out without booking them.
+    /// `cameraSide` is -1 when the camera moves left, +1 right, 0 for a hop or a duck.
+    public void ObstacleTiming(BeatmapCue cue, out float commit, out float release, out float settled, out int cameraSide)
+    {
+        int side = DodgeSideFromLane(cue.lane);
+        ObstacleMove move =
+            cue.type == CueType.Dodge ? (side > 0 ? ObstacleMove.DodgeLeft : ObstacleMove.DodgeRight)
+          : cue.type == CueType.Curb ? ObstacleMove.Hop
+          : ObstacleMove.Duck;
+        cameraSide = move == ObstacleMove.DodgeLeft ? -1 : move == ObstacleMove.DodgeRight ? 1 : 0;
+        float speed = Mathf.Max(0.01f, tunnel.ScrollSpeed);
+        obstacleCamera.Window(move, cue.time, hitZoneZ / speed, (hitZoneZ + ObstacleZExtent(cue.type)) / speed,
+                              out commit, out release, out settled);
     }
 
     /// Loads the chart; the music and the clock start a couple of frames later, see StartSongClock.
@@ -1109,11 +1102,9 @@ public class CueSpawner : MonoBehaviour
         if (obstacle) RegisterObstaclePass(type, side, dueTime);
 
         slots[slotIndex].inUse = true;
-        slots[slotIndex].triggered = false;
         slots[slotIndex].hit = false;
         slots[slotIndex].lane = lane;
         slots[slotIndex].color = color;
-        slots[slotIndex].triggerTime = dueTime - ImpactOffsetForType(type);
     }
 
     private static bool IsHold(CueType type) => type == CueType.KickHold || type == CueType.PunchHold;
@@ -1267,50 +1258,6 @@ public class CueSpawner : MonoBehaviour
             case CueType.PunchHold: return punchHoldHeight; // sustained punches fly high, out of the one-shot lane
             // Jump's posts and every obstacle's box are authored from their own floor-level root.
             default: return 0f;
-        }
-    }
-
-    // Clamped to the clip's own length so a misconfigured offset can never schedule the
-    // trigger before the cue has even spawned.
-    private float ImpactOffsetForType(CueType type)
-    {
-        // An obstacle drives the camera, not the silhouette, so there is no windup to compensate
-        // for and its trigger moment is simply its arrival.
-        if (IsObstacle(type)) return 0f;
-
-        switch (type)
-        {
-            case CueType.Kick:
-            case CueType.KickHold: return ClampImpact(kickImpactFrameOffset, kickClip);
-            case CueType.Punch:
-            case CueType.PunchHold: return ClampImpact(punchImpactFrameOffset, punchClip);
-            default: return ClampImpact(jumpImpactFrameOffset, jumpClip);
-        }
-    }
-
-    private float ClampImpact(float offset, AnimationClip clip)
-    {
-        float length = (clip != null) ? clip.length : offset;
-        return Mathf.Clamp(offset, 0f, length);
-    }
-
-    private void FireAnimation(CueType type)
-    {
-        // Guarded: the silhouette can be disabled/missing (it's parked for rework) without
-        // this ever throwing.
-        if (silhouetteAnimator == null) return;
-        if (!silhouetteAnimator.gameObject.activeInHierarchy) return;
-        // Dodge/Curb/Duck have no clip of their own, and falling through to the default below
-        // would fire Jump at every one of them.
-        if (IsObstacle(type)) return;
-
-        switch (type)
-        {
-            case CueType.Kick:
-            case CueType.KickHold: silhouetteAnimator.SetTrigger(kickTrigger); break;
-            case CueType.Punch:
-            case CueType.PunchHold: silhouetteAnimator.SetTrigger(punchTrigger); break;
-            default: silhouetteAnimator.SetTrigger(jumpTrigger); break;
         }
     }
 
