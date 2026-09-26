@@ -26,11 +26,6 @@ MonoBehaviour:
     side: apex
     reverseAfterImpact: 0
     holdFrame: -1
-  - clip: {fileID: -203655887218126122, guid: e9cea2b2d9fc98e4e85eefe5cfc7ab1b, type: 3}
-    impact: 0.78333336
-    side: apex
-    reverseAfterImpact: 1
-    holdFrame: -1
   duckDown:
     clip: {fileID: -203655887218126122, guid: 6625688499b932640b8be7315ab68eda, type: 3}
     impact: 0.6
@@ -55,17 +50,18 @@ MonoBehaviour:
   kickOutInner: 0.2
   kickForward: 0.12
   kickLift: 0.12
-  kickBodyFollow: 0.3
-  kickWideSink: 0.05
+  kickBodyFollowOuter: 0.1
+  tapInBeats: 0.45
+  tapStayBeats: 0.1
+  tapOutBeats: 0.4
   dodgeShift: 0.2
   dodgeLeadFoot: 0.34
   dodgeTrailFoot: 0.1
   dodgeLeanDegrees: 12
-  dodgeArmReach: 0.46
+  dodgeTurnDegrees: 30
   riseBeats: 0.6
   riseSeconds: 0.3
   fallBeats: 0.7
-  plantBeats: 0.25
   maxSpeedUp: 1.7
   crossfadeBeats: 0.35
   maxDrift: 0.6

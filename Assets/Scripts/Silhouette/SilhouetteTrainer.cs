@@ -46,6 +46,10 @@ public class SilhouetteTrainer : MonoBehaviour
     [SerializeField, Range(0f, 1f)] private float frameGlow = 0.45f;
     // false: the theme's secondary colour (the cyan of the default theme), true: its primary.
     [SerializeField] private bool usePrimaryColor;
+    // true: the figure is drawn as its contour only - a line drawing, the glass visible inside.
+    [SerializeField] private bool outlineOnly = true;
+    // Contour width as a fraction of the panel's height in pixels: ~3.5 px at 1440p, twice at 4K.
+    [SerializeField, Range(0.001f, 0.012f)] private float contourWidth = 0.0045f;
 
     [Header("Figure camera")]
     // 180: in front of the figure, looking back at it - the instructor faces the player. What the
@@ -331,7 +335,10 @@ public class SilhouetteTrainer : MonoBehaviour
         figureCamera.targetTexture = rt;
         figureCamera.aspect = w / (float)h;
         figureImage.texture = rt;
+        figureImage.enabled = !outlineOnly;
         figureGlow.texture = rt;
+        glowMat.SetFloat("_ContourPx", Mathf.Max(1.5f, h * contourWidth));
+        glowMat.SetFloat("_ClosePx", h * contourWidth);
     }
 
 
@@ -458,7 +465,7 @@ public class SilhouetteTrainer : MonoBehaviour
         float beats = (now - beatAnchor) / Mathf.Max(0.05f, secondsPerBeat);
         float dip = s.bounceDepth * (0.5f + 0.5f * Mathf.Cos(beats * 2f * Mathf.PI));
         Vector3 body = new Vector3(s.swayWidth * Mathf.Sin(beats * Mathf.PI), -dip, 0f) * stance;
-        float lean = 0f;
+        float lean = 0f, turn = 0f, tapping = 0f;
         var hand = new Limb[2];      // 0 = figure's left, 1 = right
         var foot = new Vector3[2];
         float[] footW = new float[2];
@@ -467,7 +474,9 @@ public class SilhouetteTrainer : MonoBehaviour
         {
             foreach (var g in gestures)
             {
-                float w = g.Weight(now);
+                // A gesture only shapes the stance: while a jump or a crouch owns the body the
+                // gesture gives way, or the tail of a wall's lean would twist the jump.
+                float w = g.Weight(now) * stance;
                 if (w <= 0f) continue;
                 int limb = g.side > 0 ? 0 : 1;           // the screen's right is the figure's left
                 float x = X(g.side);
@@ -492,11 +501,13 @@ public class SilhouetteTrainer : MonoBehaviour
                     case SilhouettePlanner.GestureKind.KickHold:
                     {
                         float out_ = g.outer ? s.kickOutOuter : s.kickOutInner;
-                        // Lifted on the way there and back, flat on the tile at the note.
+                        // Lifted on the way there and back, flat on the tile at the note. Only
+                        // this foot moves; the other stays pinned where the stance put it.
                         float lift = s.kickLift * 4f * w * (1f - w);
                         Vector3 step = new Vector3(x * out_ * w, lift, s.kickForward * w);
                         if (w > footW[limb]) { footW[limb] = w; foot[limb] = step; }
-                        body += new Vector3(x * out_ * s.kickBodyFollow * w, g.outer ? -s.kickWideSink * w : 0f, 0f);
+                        if (g.outer) body += new Vector3(x * out_ * s.kickBodyFollowOuter * w, 0f, 0f);
+                        tapping = Mathf.Max(tapping, w);
                         break;
                     }
                     case SilhouettePlanner.GestureKind.Dodge:
@@ -504,8 +515,9 @@ public class SilhouetteTrainer : MonoBehaviour
                         body += new Vector3(x * s.dodgeShift * w, -0.02f * w, 0f);
                         // Positive roll about +Z tips the top toward -X, i.e. toward the screen's right.
                         lean += s.dodgeLeanDegrees * g.side * w;
-                        Vector3 t = shoulder + new Vector3(x * s.dodgeArmReach, 0.03f, 0.06f);
-                        Take(ref hand[limb], w, t + new Vector3(x * s.dodgeShift, 0f, 0f), shoulder + new Vector3(x * 0.3f, -0.12f, -0.12f));
+                        // Positive yaw turns the figure's front toward +X; the turn is toward the
+                        // step, so toward x. The arms stay the stance's, relaxed at the sides.
+                        turn += s.dodgeTurnDegrees * x * w;
                         int other = 1 - limb;
                         Vector3 lead = new Vector3(x * s.dodgeLeadFoot * w, 0f, 0f), trail = new Vector3(x * s.dodgeTrailFoot * w, 0f, 0f);
                         if (w > footW[limb]) { footW[limb] = w; foot[limb] = lead; }
@@ -516,8 +528,13 @@ public class SilhouetteTrainer : MonoBehaviour
             }
         }
 
+        // While a foot taps, the knees stop giving on the beat and the sway stops: a dip on top of
+        // a tap is what made it read as a hop from foot to foot.
+        body.y += dip * stance * tapping;
+        body.x -= s.swayWidth * Mathf.Sin(beats * Mathf.PI) * stance * tapping;
         job.bodyOffset = body;
         job.leanDegrees = lean;
+        job.turnDegrees = turn;
         Vector3 W(Vector3 local) => stage.transform.TransformPoint(local);
         // The hand's target rides with the body (its bounce and its shift).
         job.lHandW = hand[0].w; job.lHand = W(hand[0].target + body); job.lElbow = W(hand[0].elbow + body);

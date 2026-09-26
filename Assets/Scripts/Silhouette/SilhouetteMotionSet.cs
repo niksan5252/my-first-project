@@ -68,31 +68,36 @@ public class SilhouetteMotionSet : ScriptableObject
     public float punchHoldRaise = 0.48f;
     public float punchHoldPulse = 0.04f;
 
-    [Header("Kick: a foot is set down on the tile")]
-    // Metres from where the foot stands: out to the side for an outer lane (a wide stance), a
-    // little for an inner one (almost under the body), forward, and how high it is lifted between.
+    [Header("Kick: a foot taps the tile")]
+    // One foot taps and comes back while the other stays planted - the next note taps with the
+    // other foot. Metres from where the tapping foot stands: out to the side for an outer lane,
+    // a little for an inner one (almost under the body), forward, and how high it is lifted.
     public float kickOutOuter = 0.42f;
     public float kickOutInner = 0.2f;
     public float kickForward = 0.12f;
     public float kickLift = 0.12f;
-    // How much of the step the body follows, and how far it sinks into a wide stance.
-    [Range(0f, 1f)] public float kickBodyFollow = 0.3f;
-    public float kickWideSink = 0.05f;
+    // The body barely moves: an outer tap shifts the weight a little toward it, an inner one not
+    // at all, and there is no sink - anything more reads as a hop from foot to foot.
+    [Range(0f, 1f)] public float kickBodyFollowOuter = 0.1f;
+    // The tap's own timing, in beats: down onto the tile by the note, a moment there, and back
+    // under the body before the next note (a note every beat is the common case).
+    [Range(0.1f, 1f)] public float tapInBeats = 0.45f;
+    [Range(0f, 0.5f)] public float tapStayBeats = 0.1f;
+    [Range(0.1f, 1f)] public float tapOutBeats = 0.4f;
 
-    [Header("Dodge: step and lean away from the wall, arm out")]
+    [Header("Dodge: turn, lean and step away from the wall")]
     public float dodgeShift = 0.2f;        // how far the body moves (m)
     public float dodgeLeadFoot = 0.34f;    // the foot on the side of the step
     public float dodgeTrailFoot = 0.1f;
     public float dodgeLeanDegrees = 12f;
-    public float dodgeArmReach = 0.46f;    // hand out from the shoulder, at shoulder height
+    public float dodgeTurnDegrees = 30f;   // shoulders and hips turned toward the step
 
     [Header("Timing")]
     // A gesture reaches its note in at most this many beats (and at most riseSeconds), and lets go
-    // over fallBeats. Kicks stay planted for plantBeats before the foot comes back.
+    // over fallBeats. (Kicks have their own tap timing above.)
     [Range(0.1f, 1f)] public float riseBeats = 0.6f;
     [Range(0.1f, 1f)] public float riseSeconds = 0.3f;
     [Range(0.1f, 2f)] public float fallBeats = 0.7f;
-    [Range(0f, 1f)] public float plantBeats = 0.25f;
     // Clips: how much a take may be sped up to fit, and the crossfade into it, in beats.
     [Range(1f, 3f)] public float maxSpeedUp = 1.7f;
     [Range(0.05f, 1f)] public float crossfadeBeats = 0.35f;

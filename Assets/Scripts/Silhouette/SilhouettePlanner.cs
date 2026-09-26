@@ -119,13 +119,17 @@ public static class SilhouettePlanner
                 {
                     bool kick = c.type == CueType.Kick || c.type == CueType.KickHold;
                     bool hold = c.type == CueType.PunchHold || c.type == CueType.KickHold;
-                    float holdEnd = hold ? c.time + c.duration : kick ? c.time + set.plantBeats * beat : c.time;
+                    // A tap is quicker than a reach: the foot has to be back under the body
+                    // before the next note, which is usually the other foot one beat later.
+                    float holdEnd = hold ? c.time + c.duration : kick ? c.time + set.tapStayBeats * beat : c.time;
+                    float inT = kick ? set.tapInBeats * beat : rise;
+                    float outT = kick ? set.tapOutBeats * beat : fall;
                     gestures.Add(new Gesture
                     {
                         kind = c.type == CueType.Punch ? GestureKind.Punch : c.type == CueType.Kick ? GestureKind.Kick
                              : c.type == CueType.PunchHold ? GestureKind.PunchHold : GestureKind.KickHold,
                         side = side, outer = outer,
-                        start = c.time - rise, impact = c.time, holdEnd = holdEnd, end = holdEnd + fall, note = i,
+                        start = c.time - inT, impact = c.time, holdEnd = holdEnd, end = holdEnd + outT, note = i,
                     });
                     break;
                 }

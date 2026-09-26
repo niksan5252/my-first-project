@@ -15,7 +15,10 @@ public static class SilhouetteMotionSetBuilder
 {
     public const string AssetPath = SilhouetteMixamoImport.Root + "/XBotMotionSet.asset";
 
-    private static readonly string[] Curb = { "Jump", "Jumping Up" };
+    // The straight jump up, facing the viewer, landing on its own. "Jumping Up" is left out: it
+    // turns half sideways in its crouch and takes off spread-eagled, which reads as flying away
+    // rather than hopping a kerb (checked by eye in the panel, not by the names).
+    private static readonly string[] Curb = { "Jump" };
     // The relaxed stance is a still pose: the last frame of the take that ends standing easy. The
     // "Idle" take itself is a low boxing stance, and so are the fight idles.
     private const string Stance = "Fight Idle To Standing Idle";

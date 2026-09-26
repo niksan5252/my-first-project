@@ -16,6 +16,7 @@ public struct SilhouettePoseJob : IAnimationJob
 {
     public Vector3 bodyOffset;
     public float leanDegrees;     // roll about the figure's forward axis
+    public float turnDegrees;     // yaw about the vertical: shoulders and hips turned together
     public Vector3 forward;       // the figure's forward, world space
 
     public float lHandW, rHandW;
@@ -35,7 +36,8 @@ public struct SilhouettePoseJob : IAnimationJob
         Vector3 lh = h.GetGoalPosition(AvatarIKGoal.LeftHand), rh = h.GetGoalPosition(AvatarIKGoal.RightHand);
 
         h.bodyPosition += bodyOffset;
-        if (leanDegrees != 0f) h.bodyRotation = Quaternion.AngleAxis(leanDegrees, forward) * h.bodyRotation;
+        if (leanDegrees != 0f || turnDegrees != 0f)
+            h.bodyRotation = Quaternion.AngleAxis(leanDegrees, forward) * Quaternion.AngleAxis(turnDegrees, Vector3.up) * h.bodyRotation;
 
         // A stepping foot is always driven, even while a clip owns the legs.
         Foot(ref h, AvatarIKGoal.LeftFoot, lf + lFootOffset, lfr, lFootOffset.sqrMagnitude > 1e-8f ? 1f : pin);
