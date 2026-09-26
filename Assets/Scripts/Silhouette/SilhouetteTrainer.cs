@@ -95,7 +95,8 @@ public class SilhouetteTrainer : MonoBehaviour
     private readonly Dictionary<AnimationClip, int> inputOf = new Dictionary<AnimationClip, int>();
     private readonly List<AnimationClipPlayable> inputs = new List<AnimationClipPlayable>();
     private float[] weights;
-    private int stanceInput = -1;
+    private int stanceInput = -1;                 // the first calm idle: the pose measured at start
+    private readonly List<int> stanceInputs = new List<int>();
 
     // The figure's own proportions, measured once from its stance, in stage space.
     private bool measured;
@@ -214,6 +215,7 @@ public class SilhouetteTrainer : MonoBehaviour
         var clips = new List<AnimationClip>();
         void Add(SilhouetteMotion m) { if (m != null && m.Valid && !clips.Contains(m.clip)) clips.Add(m.clip); }
         if (motionSet.idle != null) foreach (var m in motionSet.idle) Add(m);
+        if (motionSet.idleLively != null) foreach (var m in motionSet.idleLively) Add(m);
         if (motionSet.curb != null) foreach (var m in motionSet.curb) Add(m);
         Add(motionSet.duckDown); Add(motionSet.duckUp);
 
@@ -230,6 +232,9 @@ public class SilhouetteTrainer : MonoBehaviour
         }
         weights = new float[clips.Count];
         foreach (var m in motionSet.idle) if (m != null && m.Valid) { stanceInput = inputOf[m.clip]; break; }
+        void Stance(List<SilhouetteMotion> l) { if (l != null) foreach (var m in l) if (m != null && m.Valid && !stanceInputs.Contains(inputOf[m.clip])) stanceInputs.Add(inputOf[m.clip]); }
+        Stance(motionSet.idle);
+        Stance(motionSet.idleLively);
 
         poser = AnimationScriptPlayable.Create(graph, new SilhouettePoseJob { forward = Vector3.forward, pin = 1f }, 1);
         graph.Connect(mixer, 0, poser, 0);
@@ -452,7 +457,10 @@ public class SilhouetteTrainer : MonoBehaviour
             weights[i] += w;
         }
         PushWeights();
-        return stanceInput >= 0 ? weights[stanceInput] : 1f;
+        if (stanceInputs.Count == 0) return 1f;
+        float stance = 0f;
+        foreach (int i in stanceInputs) stance += weights[i];
+        return Mathf.Clamp01(stance);
     }
 
     private static float Smooth01(float x)
@@ -484,10 +492,11 @@ public class SilhouetteTrainer : MonoBehaviour
         var s = motionSet;
         var job = new SilhouettePoseJob { forward = stage.transform.forward, pin = stance };
 
-        // The stance's own life: knees give on every beat (lowest ON it), the body sways over two.
+        // The mocap stance is what keeps the body alive; on top of it the knees only give a little
+        // on every beat (lowest ON the beat), so the beat is felt without a mechanical rhythm.
         float beats = (now - beatAnchor) / Mathf.Max(0.05f, secondsPerBeat);
         float dip = s.bounceDepth * (0.5f + 0.5f * Mathf.Cos(beats * 2f * Mathf.PI));
-        Vector3 body = new Vector3(s.swayWidth * Mathf.Sin(beats * Mathf.PI), -dip, 0f) * stance;
+        Vector3 body = new Vector3(0f, -dip, 0f) * stance;
         float lean = 0f, turn = 0f, tapping = 0f;
         var hand = new Limb[2];      // 0 = figure's left, 1 = right
         var foot = new Vector3[2];
@@ -551,10 +560,9 @@ public class SilhouetteTrainer : MonoBehaviour
             }
         }
 
-        // While a foot taps, the knees stop giving on the beat and the sway stops: a dip on top of
-        // a tap is what made it read as a hop from foot to foot.
+        // While a foot taps, the knees stop giving on the beat: a dip on top of a tap is what made
+        // it read as a hop from foot to foot.
         body.y += dip * stance * tapping;
-        body.x -= s.swayWidth * Mathf.Sin(beats * Mathf.PI) * stance * tapping;
         job.bodyOffset = body;
         job.leanDegrees = lean;
         job.turnDegrees = turn;

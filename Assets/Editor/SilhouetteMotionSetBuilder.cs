@@ -23,9 +23,10 @@ public static class SilhouetteMotionSetBuilder
     // turns half sideways in its crouch and takes off spread-eagled, which reads as flying away
     // rather than hopping a kerb (checked by eye in the panel, not by the names).
     private static readonly string[] Curb = { "Jump" };
-    // The relaxed stance is a still pose: the last frame of the take that ends standing easy. The
-    // "Idle" take itself is a low boxing stance, and so are the fight idles.
-    private const string Stance = "Fight Idle To Standing Idle";
+    // The stance is motion capture: calm idles for the short rests, lively ones for the intro,
+    // breakdowns and finale. ("Idle" and the fight idles are low boxing stances, left out.)
+    private static readonly string[] Calm = { "Fitness Idle With Breathing", "Breathing Idle", "Weight Shift Idle" };
+    private static readonly string[] Lively = { "Happy Idle 1", "Happy Idle 2" };
 
     [MenuItem("Tunnel/Silhouette/Build Motion Set (X Bot)", priority = 42)]
     public static void Build() => Build(SilhouetteMixamoImport.SkinFile, AssetPath, null);
@@ -54,8 +55,8 @@ public static class SilhouetteMotionSetBuilder
         set.avatar = AssetDatabase.LoadAllAssetsAtPath(modelPath).OfType<Avatar>().FirstOrDefault();
 
         List<SilhouetteMotion> List(string[] names) => names.Select(n => Motion(byName, n)).Where(m => m != null).ToList();
-        set.idle = List(new[] { Stance });
-        foreach (var m in set.idle) m.holdFrame = m.Length;
+        set.idle = List(Calm);
+        set.idleLively = List(Lively);
         set.curb = List(Curb);
         set.duckDown = Motion(byName, "Standing To Crouched") ?? new SilhouetteMotion();
         set.duckUp = Motion(byName, "Crouched To Standing") ?? new SilhouetteMotion();

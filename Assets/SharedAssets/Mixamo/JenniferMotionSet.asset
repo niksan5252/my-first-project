@@ -15,11 +15,35 @@ MonoBehaviour:
   model: {fileID: 919132149155446097, guid: 89512b83b0b3cc241bbd9ea75f38a624, type: 3}
   avatar: {fileID: 9000000, guid: 89512b83b0b3cc241bbd9ea75f38a624, type: 3}
   idle:
-  - clip: {fileID: -203655887218126122, guid: aaf484ae4685fef41950f9f7fa2a7938, type: 3}
+  - clip: {fileID: -203655887218126122, guid: 7236f56dc6707ad4e9c4ef40e96d4781, type: 3}
     impact: 0
     side: 
     reverseAfterImpact: 0
-    holdFrame: 1.0500001
+    holdFrame: -1
+  - clip: {fileID: -203655887218126122, guid: 332b3b72d2eb2b14b98b52fc42486f05, type: 3}
+    impact: 0
+    side: 
+    reverseAfterImpact: 0
+    holdFrame: -1
+  - clip: {fileID: -203655887218126122, guid: 6d301869bb3e5224a9a4ac6e0cf3b561, type: 3}
+    impact: 0
+    side: 
+    reverseAfterImpact: 0
+    holdFrame: -1
+  idleLively:
+  - clip: {fileID: -203655887218126122, guid: 2a9199af1a2d04a479e8dbfc161e37f2, type: 3}
+    impact: 0
+    side: 
+    reverseAfterImpact: 0
+    holdFrame: -1
+  - clip: {fileID: -203655887218126122, guid: db57f434afc22ae4a936607b7b77a413, type: 3}
+    impact: 0
+    side: 
+    reverseAfterImpact: 0
+    holdFrame: -1
+  livelyGapBars: 3
+  stanceMinSeconds: 6
+  stanceFadeBeats: 1.5
   curb:
   - clip: {fileID: -203655887218126122, guid: 71ec7fa682e86e845835a73d53333cf5, type: 3}
     impact: 1.0333333
@@ -38,8 +62,7 @@ MonoBehaviour:
     side: top
     reverseAfterImpact: 0
     holdFrame: -1
-  bounceDepth: 0.035
-  swayWidth: 0.025
+  bounceDepth: 0.009
   punchOutOuter: 0.42
   punchOutInner: 0.3
   punchForward: 0.12

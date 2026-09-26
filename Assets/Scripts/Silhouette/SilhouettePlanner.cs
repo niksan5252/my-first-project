@@ -93,7 +93,7 @@ public static class SilhouettePlanner
         var rng = new System.Random(StableHash(seedText));
         SilhouetteMotion lastCurb = null;
 
-        var idle = FirstValid(set.idle);
+        var stance = new StanceTrack(set, chart, beat, rng);
         float xfade = set.crossfadeBeats * beat;
         float rise = Mathf.Min(set.riseSeconds, set.riseBeats * beat);
         float fall = set.fallBeats * beat;
@@ -153,7 +153,7 @@ public static class SilhouettePlanner
                     var seg = WindUp(motion, commit, room, set.maxSpeedUp, xfade);
                     seg.note = i;
                     seg.label = c.type + " " + motion.clip.name;
-                    AddIdle(segments, idle, freeFrom, seg.start, returnFade);
+                    stance.Fill(segments, freeFrom, seg.start, returnFade);
                     segments.Add(seg);
                     busyUntil = commit;
                     returnFade = xfade;
@@ -177,7 +177,7 @@ public static class SilhouettePlanner
                 }
             }
         }
-        AddIdle(segments, idle, freeFrom, float.PositiveInfinity, returnFade);
+        stance.Fill(segments, freeFrom, float.PositiveInfinity, returnFade);
     }
 
     /// The first beat of the grid every note sits on, for the stance's bounce.
@@ -206,20 +206,104 @@ public static class SilhouettePlanner
         };
     }
 
-    private static void AddIdle(List<Segment> segs, SilhouetteMotion idle, float from, float to, float fade)
+    /// The stance under the gestures: mocap idles laid end to end with crossfades. Lively ones
+    /// where there are no notes for a while (intro, breakdowns, finale), calm ones in between,
+    /// each held for at least stanceMinSeconds and one full cycle, never the same twice running.
+    /// The choice at any moment is fixed once for the whole track, so a jump or a crouch that
+    /// interrupts the stance comes back to the same idle, at the point it would have reached.
+    private sealed class StanceTrack
     {
-        if (idle == null || to - from <= 0.05f) return;
-        segs.Add(new Segment
-        {
-            motion = idle, start = from, fade = from <= SongStart ? 0f : fade, clipIn = Mathf.Repeat(from, idle.Length),
-            speed = 1f, loop = true, impactAt = float.NaN, note = -1, label = "Stance " + idle.clip.name,
-        });
-    }
+        private struct Piece { public float start, end; public SilhouetteMotion motion; }
+        private readonly List<Piece> pieces = new List<Piece>();
+        private readonly float fade;
 
-    private static SilhouetteMotion FirstValid(List<SilhouetteMotion> list)
-    {
-        if (list != null) foreach (var m in list) if (m != null && m.Valid) return m;
-        return null;
+        public StanceTrack(SilhouetteMotionSet set, BeatmapSequencer chart, float beat, System.Random rng)
+        {
+            fade = set.stanceFadeBeats * beat;
+            float bar = beat * 4f;
+
+            // Where the notes are (obstacles do not count: walls fill the quiet stretches).
+            var spans = new List<Vector2>();
+            for (int i = 0; i < chart.Count; i++)
+            {
+                var c = chart[i];
+                if (c.type == CueType.Dodge || c.type == CueType.Curb || c.type == CueType.Duck || c.type == CueType.Jump) continue;
+                spans.Add(new Vector2(c.time, c.time + c.duration));
+            }
+            spans.Sort((a, b) => a.x.CompareTo(b.x));
+            var lively = new List<Vector2>();
+            if (spans.Count == 0) lively.Add(new Vector2(SongStart, float.PositiveInfinity));
+            else
+            {
+                lively.Add(new Vector2(SongStart, spans[0].x - bar));
+                float end = spans[0].y;
+                for (int i = 1; i < spans.Count; i++)
+                {
+                    if (spans[i].x - end >= set.livelyGapBars * bar) lively.Add(new Vector2(end + beat, spans[i].x - bar));
+                    end = Mathf.Max(end, spans[i].y);
+                }
+                lively.Add(new Vector2(end + beat, float.PositiveInfinity));
+            }
+
+            var calm = Valid(set.idle);
+            var bright = Valid(set.idleLively);
+            if (bright.Count == 0) bright = calm;
+            if (calm.Count == 0) calm = bright;
+            if (calm.Count == 0) return;
+
+            // Walk the track: alternate calm and lively regions, pieces inside each.
+            SilhouetteMotion last = null;
+            float t = SongStart;
+            const float Horizon = 3600f;
+            int li = 0, guard = 0;
+            while (t < Horizon && guard++ < 10000)
+            {
+                while (li < lively.Count && lively[li].y <= t) li++;
+                bool inLively = li < lively.Count && t >= lively[li].x;
+                float regionEnd = inLively ? lively[li].y : (li < lively.Count ? lively[li].x : float.PositiveInfinity);
+                var pool = inLively ? bright : calm;
+                var m = Pick(pool, ref last, rng);
+                float len = Mathf.Max(set.stanceMinSeconds, m.Length);
+                float pieceEnd = Mathf.Min(t + len, regionEnd);
+                // A leftover shorter than a crossfade is merged rather than played as a flicker.
+                if (regionEnd - pieceEnd < fade * 2f) pieceEnd = regionEnd;
+                if (pieceEnd - t < fade) pieceEnd = Mathf.Min(regionEnd, t + fade);
+                pieces.Add(new Piece { start = t, end = pieceEnd, motion = m });
+                t = pieceEnd;
+            }
+        }
+
+        /// Adds the stance for [from, to): the pieces it overlaps, the first fading in over
+        /// `firstFade`, the rest over the stance crossfade.
+        public void Fill(List<Segment> segs, float from, float to, float firstFade)
+        {
+            if (to - from <= 0.05f) return;
+            bool first = true;
+            foreach (var p in pieces)
+            {
+                if (p.end <= from || p.start >= to) continue;
+                float s = Mathf.Max(from, p.start);
+                // The tail of a piece that a jump or crouch cut into, too short to fade in and
+                // out again: skip it and let the next piece take over.
+                if (p.end - s < fade && p.end < to) continue;
+                segs.Add(new Segment
+                {
+                    motion = p.motion, start = s,
+                    fade = s <= SongStart ? 0f : (first ? firstFade : fade),
+                    // Anchored on the piece's own start, so an interrupted idle resumes in phase.
+                    clipIn = Mathf.Repeat(s - p.start, p.motion.Length),
+                    speed = 1f, loop = true, impactAt = float.NaN, note = -1, label = "Stance " + p.motion.clip.name,
+                });
+                first = false;
+            }
+        }
+
+        private static List<SilhouetteMotion> Valid(List<SilhouetteMotion> list)
+        {
+            var r = new List<SilhouetteMotion>();
+            if (list != null) foreach (var m in list) if (m != null && m.Valid) r.Add(m);
+            return r;
+        }
     }
 
     /// Never the same take twice running, otherwise at random - seeded by the track.

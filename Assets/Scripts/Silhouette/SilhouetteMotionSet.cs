@@ -43,18 +43,27 @@ public class SilhouetteMotionSet : ScriptableObject
     public Avatar avatar;
 
     [Header("Clips")]
-    // The relaxed stance under everything: intro, rests, finale and every gesture. The first is
-    // used; a list so a different character can bring its own. A still pose (holdFrame) is fine:
-    // the beat bounce and the sway are what keep it alive.
+    // The stance under everything, as motion capture: calm idles for the short rests between
+    // notes (breathing, a weight shift), livelier ones for the intro, the breakdowns and the
+    // finale. They alternate with crossfades, never the same one twice running, in an order fixed
+    // by the track. A still pose (holdFrame) also works, the bounce then keeps it alive.
     public List<SilhouetteMotion> idle = new List<SilhouetteMotion>();
+    public List<SilhouetteMotion> idleLively = new List<SilhouetteMotion>();
+    // A gap between notes of at least this many bars counts as a breakdown and gets the lively
+    // idles, like the intro and the finale.
+    [Min(0.5f)] public float livelyGapBars = 3f;
+    // A stance plays at least this long (and at least one full cycle) before the next takes over.
+    [Min(1f)] public float stanceMinSeconds = 6f;
+    // Crossfade from one stance to the next, in beats.
+    [Range(0.1f, 4f)] public float stanceFadeBeats = 1.5f;
     public List<SilhouetteMotion> curb = new List<SilhouetteMotion>();       // jump over the kerb
     public SilhouetteMotion duckDown = new SilhouetteMotion();   // impact = the bottom of the crouch
     public SilhouetteMotion duckUp = new SilhouetteMotion();     // impact = standing again
 
-    [Header("Beat bounce (the stance's own movement)")]
-    // Knees give on every beat, lowest ON the beat; the body sways side to side over two beats.
-    [Range(0f, 0.1f)] public float bounceDepth = 0.035f;
-    [Range(0f, 0.1f)] public float swayWidth = 0.025f;
+    [Header("Beat bounce (a light layer over the mocap)")]
+    // Knees give a little on every beat, lowest ON the beat - just enough to feel the beat on top
+    // of the motion capture, which is what keeps the body alive.
+    [Range(0f, 0.1f)] public float bounceDepth = 0.009f;
 
     [Header("Punch: a hand reaches to the cube")]
     // Metres from the shoulder: out to the cube's side (outer lane / inner lane), forward, and
