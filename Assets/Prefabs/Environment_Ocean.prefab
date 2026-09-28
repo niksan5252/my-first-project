@@ -1,0 +1,79 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &2639502602409704134
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 5682621527467771492}
+  - component: {fileID: 5627172550418851792}
+  m_Layer: 0
+  m_Name: Environment_Ocean
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &5682621527467771492
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2639502602409704134}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &5627172550418851792
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2639502602409704134}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5f6d84f9b1bedba4cbeea7efb7ca9cea, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::OceanEnvironmentDecorator
+  seabedMaterial: {fileID: 2100000, guid: 33d16b06b889ffd46955ce4c348e45b6, type: 2}
+  glowShader: {fileID: 4800000, guid: 229111d1025b0ea4da235a1272af8445, type: 3}
+  rayMasks:
+  - {fileID: 2800000, guid: 856411e7068d74741827490d88eae156, type: 3}
+  - {fileID: 2800000, guid: cb588f93650ccad4b9bd2d75fece8a02, type: 3}
+  - {fileID: 2800000, guid: 68368284a53d5aa40a1b89bfbff240bf, type: 3}
+  - {fileID: 2800000, guid: 3a4d099a52c83b843a9661c927bd53af, type: 3}
+  tipMask: {fileID: 2800000, guid: ea96b91f4aeb3984ba30239904a4f64f, type: 3}
+  jellyShader: {fileID: 4800000, guid: 112094e4fe3335447aa98a62d98093a3, type: 3}
+  bubbleTexture: {fileID: 2800000, guid: 4f070098a061fbf4f8182a454a6ebb9e, type: 3}
+  waterAccent: {r: 0.25, g: 0.9, b: 0.85, a: 1}
+  jellyLavender: {r: 0.7, g: 0.55, b: 1, a: 1}
+  seabedSize: {x: 300, y: 360}
+  seabedY: -0.08
+  causticRate: 0.35
+  causticDropBoost: 6
+  causticDropBeats: 16
+  causticKick: 0.35
+  rayCount: 18
+  rayTop: 19
+  rayTilt: 16
+  rayBase: 0.22
+  rayFlash: 0.5
+  behindCamera: 12
+  reefX: {x: 7, y: 15}
+  reefSpacing: 7
+  silhouetteColor: {r: 0.004, g: 0.02, b: 0.04, a: 1}
+  jellyCount: 16
+  jellyDrift: 0.8
+  jellyPulse: 0.9
+  bubblesPerKick: 10
+  bubblesPerDropKick: 26
+  surfaceGlow: 0.55

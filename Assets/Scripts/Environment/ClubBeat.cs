@@ -25,6 +25,8 @@ public class ClubBeat : MonoBehaviour
     /// Beats since the most recent drop (notes returning after a quiet stretch), or +inf before
     /// the first one. For effects that play once per drop, such as a wave of light.
     public static float BeatsSinceDrop { get; private set; } = float.PositiveInfinity;
+    /// How many drops have happened before the latest one (0 during and before the first).
+    public static int DropsBefore { get; private set; }
 
     [SerializeField] private float lowEnergy = 0.4f;
     [SerializeField] private float dropBoost = 0.6f;
@@ -61,8 +63,9 @@ public class ClubBeat : MonoBehaviour
         Bar = Mathf.FloorToInt(beats / 4f);
         Energy = planned ? EnergyAt(t) : lowEnergy;
         BeatsSinceDrop = float.PositiveInfinity;
+        DropsBefore = 0;
         for (int i = drops.Count - 1; i >= 0; i--)
-            if (drops[i] <= t) { BeatsSinceDrop = (t - drops[i]) / beat; break; }
+            if (drops[i] <= t) { BeatsSinceDrop = (t - drops[i]) / beat; DropsBefore = i; break; }
 
         Shader.SetGlobalFloat(IdSong, t);
         Shader.SetGlobalFloat(IdPhase, BeatPhase);
