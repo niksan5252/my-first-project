@@ -137,6 +137,9 @@ the new defaults (intro 3, breakdowns 10, outro 0).
 On `rameses_offline.wav` (new defaults, the committed chart): 12 walls — intro 3, breakdowns 8,
 outro 1. It runs at 125 BPM: the kick is four-on-the-floor at ~480 ms, i.e. one note per beat is
 2.08 notes/s; the 83 BPM that tempo estimators also offer is the triplet clap pattern, not the pulse.
+On `second_wind.wav` (new defaults, the committed chart): 14 walls - intro 3, breakdowns 10,
+outro 1. The comb fits 126.984 BPM and the kick is four-on-the-floor at ~470 ms (IOIs 0.97-1.02
+beats), so one note per beat is 2.12 notes/s; the tempogram's 117 and beat_track's 129 are both off.
 
 ## What it does
 

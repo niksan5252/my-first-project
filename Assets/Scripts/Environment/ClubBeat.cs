@@ -22,6 +22,9 @@ public class ClubBeat : MonoBehaviour
     public static float SecondsPerBeat { get; private set; } = 0.5f;
     /// 1 on the beat, falling off quickly - the shape of a kick.
     public static float Pulse => Mathf.Pow(1f - BeatPhase, 3f);
+    /// Beats since the most recent drop (notes returning after a quiet stretch), or +inf before
+    /// the first one. For effects that play once per drop, such as a wave of light.
+    public static float BeatsSinceDrop { get; private set; } = float.PositiveInfinity;
 
     [SerializeField] private float lowEnergy = 0.4f;
     [SerializeField] private float dropBoost = 0.6f;
@@ -57,6 +60,9 @@ public class ClubBeat : MonoBehaviour
         BeatPhase = beats - BeatIndex;
         Bar = Mathf.FloorToInt(beats / 4f);
         Energy = planned ? EnergyAt(t) : lowEnergy;
+        BeatsSinceDrop = float.PositiveInfinity;
+        for (int i = drops.Count - 1; i >= 0; i--)
+            if (drops[i] <= t) { BeatsSinceDrop = (t - drops[i]) / beat; break; }
 
         Shader.SetGlobalFloat(IdSong, t);
         Shader.SetGlobalFloat(IdPhase, BeatPhase);

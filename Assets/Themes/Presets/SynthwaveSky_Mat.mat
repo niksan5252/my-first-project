@@ -1,0 +1,48 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: SynthwaveSky_Mat
+  m_Shader: {fileID: 4800000, guid: dc5ef5d1d1d012a49bb864e98dc09086, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs: []
+    m_Ints: []
+    m_Floats:
+    - _HorizonGlow: 0.55
+    - _SlitCount: 9
+    - _StarDensity: 0.004
+    - _StarIntensity: 1.1
+    - _StarTime: 0
+    - _SunElevation: -0.01
+    - _SunGlow: 0.5
+    - _SunIntensity: 0.95
+    - _SunRadius: 0.17
+    - _SunScroll: 0
+    m_Colors:
+    - _GlowColor: {r: 1, g: 0.35999998, b: 0.29999998, a: 1}
+    - _GroundColor: {r: 0.049999982, g: 0.015, b: 0.079999976, a: 1}
+    - _HorizonColor: {r: 0.24, g: 0.05, b: 0.22, a: 1}
+    - _MidColor: {r: 0.15999997, g: 0.04, b: 0.29999998, a: 1}
+    - _SunBottom: {r: 1, g: 0.17999998, b: 0.5, a: 1}
+    - _SunMid: {r: 1, g: 0.45, b: 0.15999997, a: 1}
+    - _SunTop: {r: 1, g: 0.86, b: 0.29999998, a: 1}
+    - _ZenithColor: {r: 0.03, g: 0.01, b: 0.089999996, a: 1}
+  m_BuildTextureStacks: []
+  m_AllowLocking: 1
