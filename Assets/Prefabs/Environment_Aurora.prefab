@@ -1,0 +1,66 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &7922985670065557961
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2362192359015829247}
+  - component: {fileID: 3437667341127879389}
+  m_Layer: 0
+  m_Name: Environment_Aurora
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2362192359015829247
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7922985670065557961}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &3437667341127879389
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7922985670065557961}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f451913dd5aa3494b90b28b55a025fb2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AuroraEnvironmentDecorator
+  snowMaterial: {fileID: 2100000, guid: e5d6c04883238874eb811b6ec752381e, type: 2}
+  crystalShader: {fileID: 4800000, guid: 8927d57e3f08a084984e621f00a9ddbf, type: 3}
+  snowflakeTexture: {fileID: 2800000, guid: ccadfc9c5ddf6004197c02319a03522a, type: 3}
+  auroraLow: {r: 0.15, g: 1, b: 0.55, a: 1}
+  auroraHigh: {r: 0.75, g: 0.3, b: 1, a: 1}
+  auroraDrift: 0.22
+  auroraSway: 0.35
+  auroraBaseGain: 0.6
+  auroraBeatGain: 0.22
+  crystalX: {x: 5.2, y: 13}
+  crystalSpacing: 6.5
+  iceBlue: {r: 0.55, g: 0.8, b: 1, a: 1}
+  crystalBase: 0.45
+  crystalKick: 0.6
+  behindCamera: 12
+  snowRate: 320
+  swirlCalm: 0.25
+  swirlDrop: 1.6
+  snowSize: {x: 320, y: 380}
+  snowY: -0.08

@@ -143,6 +143,8 @@ beats), so one note per beat is 2.12 notes/s; the tempogram's 117 and beat_track
 On `seanyy_ocean.wav`: 8 walls, all in breakdowns (the drums start with the track, so there is
 no intro stretch). 127.986 BPM from the comb; beat_track and the tempogram both say 129.2 (their
 bin), and the kick sits on the chart grid within 4 ms (median) in the recording.
+On `feelings_fade.wav`: 10 walls - intro 3, breakdowns 6, outro 1; 129.996 BPM from the comb
+(estimators: 129.2, their bin), kick four-on-the-floor (IOIs 0.975-1.013 of the median).
 
 ## What it does
 
