@@ -116,6 +116,12 @@ public static class AuroraThemeSetup
         p.track = AssetDatabase.LoadAssetAtPath<AudioClip>(Track);
         p.beatmapFileName = "feelings_fade.json";
         p.theme = theme;
+        // Notes from the start of the track, like Ocean: no intro bars, the first set kept whole,
+        // and a pre-roll so the first notes have time to fly in.
+        p.overrideIntro = true;
+        p.introBars = 0f;
+        p.introSkipsPartialSet = false;
+        p.preRoll = true;
         if (newProfile) AssetDatabase.CreateAsset(p, ProfilePath);
         EditorUtility.SetDirty(p);
         AssetDatabase.SaveAssets();
