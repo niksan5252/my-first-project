@@ -124,6 +124,12 @@ public static class OceanThemeSetup
         p.track = AssetDatabase.LoadAssetAtPath<AudioClip>(Track);
         p.beatmapFileName = "seanyy_ocean.json";
         p.theme = theme;
+        // The drums start with the track: notes from the first bar, the first set kept whole, and a
+        // pre-roll so the first notes (from 1.5 s) have time to fly in.
+        p.overrideIntro = true;
+        p.introBars = 0f;
+        p.introSkipsPartialSet = false;
+        p.preRoll = true;
         if (newProfile) AssetDatabase.CreateAsset(p, ProfilePath);
         EditorUtility.SetDirty(p);
         AssetDatabase.SaveAssets();

@@ -20,6 +20,8 @@ public class RunProfileSelector : MonoBehaviour
     {
         if (profile == null) return;
         if (cueSpawner != null) cueSpawner.SetTrack(profile.track, profile.beatmapFileName);
+        if (cueSpawner != null && profile.overrideIntro)
+            cueSpawner.SetIntro(profile.introBars, profile.introSkipsPartialSet, profile.preRoll);
         if (themeApplier != null && profile.theme != null) themeApplier.SetTheme(profile.theme);
         Debug.Log("[RunProfile] " + profile.name + ": track " + (profile.track != null ? profile.track.name : "-")
                 + ", chart " + profile.beatmapFileName + ", theme " + (profile.theme != null ? profile.theme.name : "-"), this);

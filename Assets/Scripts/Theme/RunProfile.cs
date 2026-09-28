@@ -11,4 +11,16 @@ public class RunProfile : ScriptableObject
     // File name under StreamingAssets/Beatmaps, as CueSpawner expects it.
     public string beatmapFileName;
     public TunnelTheme theme;
+
+    [Header("Intro (optional - off keeps CueSpawner's own settings)")]
+    // For a track whose drums start with the music: let the notes come from the very beginning.
+    public bool overrideIntro;
+    // Bars of music before the first note may arrive (CueSpawner's introBars).
+    [Min(0f)] public float introBars = 0f;
+    // Skip the rest of a workout set the intro ends inside (CueSpawner's introSkipsPartialSet).
+    public bool introSkipsPartialSet = false;
+    // Start the tunnel before the music - just long enough for the chart's first note to fly in
+    // from the spawn point - instead of dropping every note that would have to be born before the
+    // music starts. The music then starts so that the first note lands on its beat.
+    public bool preRoll = true;
 }

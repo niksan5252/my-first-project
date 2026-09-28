@@ -520,6 +520,22 @@ public class CueSpawner : MonoBehaviour
         if (clip != null && musicSource != null) musicSource.clip = clip;
         if (!string.IsNullOrEmpty(chartFileName)) beatmapFileName = chartFileName;
     }
+    /// A run profile's own intro (see RunProfile): bars before the first note, whether a set the
+    /// intro cuts into is skipped, and whether the tunnel pre-rolls so that notes due before one
+    /// flight can still fly in. Call before the chart loads.
+    public void SetIntro(float bars, bool skipPartialSet, bool preRoll)
+    {
+        introBars = Mathf.Max(0f, bars);
+        introSkipsPartialSet = skipPartialSet;
+        usePreRoll = preRoll;
+    }
+
+    // Set by SetIntro. With it the clock starts preRollSeconds before the music (negative song
+    // time), worked out in StartBeatmap from the first note that is kept.
+    private bool usePreRoll;
+    private float preRollSeconds;
+    public float PreRollSeconds => preRollSeconds;
+
     public BeatmapSequencer Sequencer => sequencer;
     private float spawnZ;
     private float spawnTimer;
@@ -824,9 +840,13 @@ public class CueSpawner : MonoBehaviour
         }
 
         int total = cues.Count;
-        float cutoff = IntroCutoff(introBars, beatmapMeta.bpm, FlightTime, beatmapMeta.sets, introSkipsPartialSet);
-        float wallFloor = IntroWallFloor(introWallBars, beatmapMeta.bpm, FlightTime);
+        // With a pre-roll a note no longer has to be born after the music starts, so the flight
+        // drops out of the intro rule; the pre-roll then covers whatever flight the first note needs.
+        float flightRule = usePreRoll ? 0f : FlightTime;
+        float cutoff = IntroCutoff(introBars, beatmapMeta.bpm, flightRule, beatmapMeta.sets, introSkipsPartialSet);
+        float wallFloor = IntroWallFloor(introWallBars, beatmapMeta.bpm, flightRule);
         cues = TrimIntro(cues, beatmapMeta, cutoff, wallFloor);
+        preRollSeconds = usePreRoll && cues.Count > 0 ? Mathf.Max(0f, FlightTime - cues[0].time) : 0f;
         EnsurePoolFor(cues);
 
         sequencer = new BeatmapSequencer(cues);
@@ -837,7 +857,8 @@ public class CueSpawner : MonoBehaviour
         clockStartFrames = ClockStartDelayFrames;
         Debug.Log("[CueSpawner] beatmap '" + beatmapFileName + "' loaded: " + cues.Count + " of " + total + " notes, bpm " + beatmapMeta.bpm
                 + ", intro " + introBars.ToString("0.##") + " bars, first note at " + (cues.Count > 0 ? cues[0].time : 0f).ToString("F2")
-                + "s (cutoff " + cutoff.ToString("F2") + "s, flight " + FlightTime.ToString("F2") + "s), offset "
+                + "s (cutoff " + cutoff.ToString("F2") + "s, flight " + FlightTime.ToString("F2") + "s, pre-roll "
+                + preRollSeconds.ToString("F2") + "s), offset "
                 + (beatmapMeta.audioOffset + beatmapUserOffset).ToString("F3") + "s", this);
     }
 
@@ -899,6 +920,9 @@ public class CueSpawner : MonoBehaviour
     {
         AudioSettings.GetDSPBufferSize(out int bufferLength, out _);
         float lead = ClockStartLeadBuffers * bufferLength / (float)Mathf.Max(1, AudioSettings.outputSampleRate);
+        // The pre-roll: the tunnel and the first notes are already moving when the music starts.
+        // Not when starting part-way into the track (SetStartTime), where it is not needed.
+        if (startAt <= 0f) lead += preRollSeconds;
         songClock.Begin(musicSource, lead, beatmapMeta.audioOffset, beatmapUserOffset, startAt);
         Debug.Log("[CueSpawner] song clock started on frame " + Time.frameCount + ", "
                 + Time.timeSinceLevelLoad.ToString("F2") + "s after load, lead " + (lead * 1000f).ToString("F1") + " ms, DSP buffer latency "
