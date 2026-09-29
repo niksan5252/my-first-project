@@ -187,6 +187,94 @@ public static class AutumnSetup
         Debug.Log("[AutumnSetup] built " + HarvestTheme);
     }
 
+    // --- Segment 3: rainy night city ---
+    // Magenta and mint: cold-warm neon that cuts through amber windows and blue rain.
+    public static readonly Color Magenta = new Color(1f, 0.2f, 0.8f);
+    public static readonly Color Mint = new Color(0.3f, 1f, 0.62f);
+    public static readonly Color RainNight = new Color(0.05f, 0.06f, 0.12f);
+    public static readonly Color WarmAmber = new Color(1f, 0.62f, 0.25f);
+    private const string Roads = "Assets/SharedAssets/Kits3D/kenney_city-kit-roads/Models/FBX format/";
+
+    [MenuItem("Tunnel/Themes/Build Autumn Rain City Theme", priority = 76)]
+    public static void BuildRainCity()
+    {
+        var sky = Sky("Assets/Themes/Presets/RainCitySky_Mat.mat");
+        sky.SetColor("_TopColor", new Color(0.02f, 0.025f, 0.06f));
+        sky.SetColor("_HorizonColor", new Color(0.1f, 0.1f, 0.2f));
+        sky.SetColor("_MoonColor", new Color(0.3f, 0.3f, 0.45f));
+        sky.SetColor("_MoonHalo", new Color(0.15f, 0.15f, 0.3f));
+        sky.SetFloat("_MoonSize", 0.03f);
+        sky.SetVector("_MoonDir", new Vector4(0f, 0.5f, 1f, 0f));
+        sky.SetColor("_CloudColor", new Color(0.09f, 0.09f, 0.16f));
+        sky.SetFloat("_Stars", 0f);
+        sky.SetColor("_FlashColor", new Color(0.7f, 0.75f, 1f));
+        EditorUtility.SetDirty(sky);
+
+        var ringGo = new GameObject("Ring_CityLights");
+        var ring = ringGo.AddComponent<RingArchCityLights>();
+        var rso = new SerializedObject(ring);
+        rso.FindProperty("bulbMask").objectReferenceValue = Tex(Particles + "light_01.png");
+        rso.FindProperty("plateMask").objectReferenceValue = Tex(Masks + "window_b_blur.png");
+        rso.FindProperty("glowShader").objectReferenceValue = Shader.Find("Tunnel/ClubGlow");
+        rso.ApplyModifiedPropertiesWithoutUndo();
+        var ringPrefab = PrefabUtility.SaveAsPrefabAsset(ringGo, "Assets/Prefabs/Ring_CityLights.prefab");
+        Object.DestroyImmediate(ringGo);
+
+        var envGo = new GameObject("Environment_RainCity");
+        var deco = envGo.AddComponent<RainCityEnvironmentDecorator>();
+        var so = new SerializedObject(deco);
+        CommonEnv(so);
+        Col(so, "groundColor", new Color(0.03f, 0.035f, 0.05f));
+        Col(so, "moonBlue", new Color(0.35f, 0.4f, 0.8f));
+        Col(so, "flameOrange", WarmAmber);
+        Col(so, "stoneTint", new Color(0.5f, 0.5f, 0.6f));
+        Int(so, "batCountOverride", 0);
+        Float(so, "lampLightIntensity", 3.2f);
+        Float(so, "lampLightRange", 8f);
+        Models(so, "streetLamps", Roads + "light-curved.fbx", Roads + "light-square.fbx");
+        // Mullioned panes, not plain rectangles: at this size a solid lit rectangle reads as a block.
+        Obj(so, "shopMask", Tex(Masks + "window_k.png"));
+        Obj(so, "lampConeMask", Tex(Masks + "cone_a_blur.png"));
+        Obj(so, "ringMask", Tex(Masks + "ring_a.png"));
+        Obj(so, "signMask", Tex(Masks + "circle_rings_b.png"));
+        var wm = so.FindProperty("windowMasks");
+        string[] names = { "window_c.png", "window_e.png", "window_i.png", "window_j.png", "window_k.png" };
+        wm.arraySize = names.Length;
+        for (int i = 0; i < names.Length; i++) wm.GetArrayElementAtIndex(i).objectReferenceValue = Tex(Masks + names[i]);
+        so.ApplyModifiedPropertiesWithoutUndo();
+        var env = PrefabUtility.SaveAsPrefabAsset(envGo, "Assets/Prefabs/Environment_RainCity.prefab");
+        Object.DestroyImmediate(envGo);
+
+        var theme = Theme(RainCityTheme);
+        theme.primaryColor = Magenta;
+        theme.secondaryColor = Mint;
+        theme.accentEmissionIntensity = 1.3f;
+        theme.ringArchPrefab = ringPrefab;
+        theme.floorMaterialOverride = null;
+        theme.floorColor = new Color(0.03f, 0.035f, 0.05f);
+        // Wet cobbles: smooth and a little metallic, so the lamps and windows shine in them.
+        theme.floorMetallic = 0.5f;
+        theme.floorSmoothness = 0.9f;
+        theme.floorGridLineColor = WarmAmber * 0.25f;
+        theme.floorGridGlintIntensity = 0.35f;
+        theme.laneLineColor = WarmAmber;
+        theme.laneLineEmissionIntensity = 0.5f;
+        theme.fogColor = RainNight;
+        theme.fogStartRatio = 0.1f;
+        theme.fogEndRatio = 0.8f;
+        theme.lightIntensity = 0.2f;
+        theme.lightColor = new Color(0.55f, 0.6f, 1f);
+        theme.skyboxMaterial = sky;
+        theme.cameraBackgroundColor = RainNight;
+        theme.ambientOverride = new Color(0f, 0f, 0f, 0f);
+        theme.environmentPrefab = env;
+        theme.postProcessingProfile = Volume("Assets/Settings/TunnelScene_PostProcessing_RainCity.asset");
+        theme.hudComboTextColor = Mint;
+        theme.hudBannerBorderColor = Magenta;
+        Save(theme, RainCityTheme);
+        Debug.Log("[AutumnSetup] built " + RainCityTheme);
+    }
+
     // --- The playlist ---
 
     [MenuItem("Tunnel/Playlist/Build Autumn Playlist", priority = 82)]

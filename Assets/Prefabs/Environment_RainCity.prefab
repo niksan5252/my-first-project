@@ -1,0 +1,102 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &6353726335542287800
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1925988507532018395}
+  - component: {fileID: 6899173566974081180}
+  m_Layer: 0
+  m_Name: Environment_RainCity
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1925988507532018395
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6353726335542287800}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &6899173566974081180
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6353726335542287800}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b7fb71dd7d8c1fb43b7dbd2c8acc68bc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::RainCityEnvironmentDecorator
+  glowShader: {fileID: 4800000, guid: 229111d1025b0ea4da235a1272af8445, type: 3}
+  flareMask: {fileID: 2800000, guid: ffe5f4c20c77e9c4999b43e88956ade1, type: 3}
+  flameTexture: {fileID: 2800000, guid: 4a8dbaab130c721489ede3279c0da37e, type: 3}
+  smokeTexture: {fileID: 2800000, guid: 3f7cb6b8f26dccd4497661407c825ae1, type: 3}
+  coneMask: {fileID: 0}
+  gravestones: []
+  crypts: []
+  trees: []
+  fences: []
+  ironFences: []
+  lamps: []
+  candles: []
+  pumpkins: []
+  details: []
+  moonBlue: {r: 0.35, g: 0.4, b: 0.8, a: 1}
+  flameOrange: {r: 1, g: 0.62, b: 0.25, a: 1}
+  poisonGreen: {r: 0.42, g: 1, b: 0.22, a: 1}
+  stoneTint: {r: 0.5, g: 0.5, b: 0.6, a: 1}
+  groundColor: {r: 0.03, g: 0.035, b: 0.05, a: 1}
+  batCountOverride: 0
+  segmentSpacing: 8
+  behindCamera: 16
+  fenceX: 5.3
+  graveX: {x: 6.3, y: 15}
+  cryptX: {x: 12, y: 19}
+  treeX: {x: 15, y: 30}
+  lampX: 5.9
+  propScale: 1.9
+  lampLightRange: 8
+  lampLightIntensity: 3.2
+  fogPerSegment: 3
+  batCount: 34
+  streetLamps:
+  - {fileID: 919132149155446097, guid: 3f74d150490e05c4cb4782b3d2dd61ca, type: 3}
+  - {fileID: 919132149155446097, guid: bc142d56fd5b87f42983c940cc28e5eb, type: 3}
+  windowMasks:
+  - {fileID: 2800000, guid: 8f0fa53b93f070f4e9141b0f033609ca, type: 3}
+  - {fileID: 2800000, guid: 9da33bda7049a2f4695e441a4c1c2b71, type: 3}
+  - {fileID: 2800000, guid: 9e65062ea4af8ea418a38bcc667e4df2, type: 3}
+  - {fileID: 2800000, guid: 306bf3a2b090f134880f7161cc52c483, type: 3}
+  - {fileID: 2800000, guid: c80213ec59a7f0a4f8b27d220dfd66db, type: 3}
+  shopMask: {fileID: 2800000, guid: c80213ec59a7f0a4f8b27d220dfd66db, type: 3}
+  lampConeMask: {fileID: 2800000, guid: 9ae373f4020fafa4da1b1a906ba78064, type: 3}
+  ringMask: {fileID: 2800000, guid: f791a10cf2dc66f42a59ea52253dc0f7, type: 3}
+  signMask: {fileID: 2800000, guid: a527ba5920a780e4bad4ba2c0c70b732, type: 3}
+  windowAmber: {r: 1, g: 0.66, b: 0.36, a: 1}
+  signColors:
+  - {r: 1, g: 0.25, b: 0.6, a: 1}
+  - {r: 0.25, g: 0.85, b: 1, a: 1}
+  - {r: 1, g: 0.7, b: 0.2, a: 1}
+  awningColors:
+  - {r: 0.55, g: 0.08, b: 0.1, a: 1}
+  - {r: 0.08, g: 0.3, b: 0.2, a: 1}
+  - {r: 0.12, g: 0.15, b: 0.4, a: 1}
+  facade: {r: 0.09, g: 0.1, b: 0.15, a: 1}
+  frontX: 7.8

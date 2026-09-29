@@ -161,6 +161,8 @@ public class TunnelThemeApplier : MonoBehaviour
             InitializeEnvironment();
         }
         if (old != null) Destroy(old);
+        // The floor and every smooth prop reflect the probe: re-take it under the new sky.
+        if (tunnelGenerator != null) tunnelGenerator.RenderReflectionProbe();
     }
 
     private void ApplyEnvironment()

@@ -144,7 +144,8 @@ public class PlaylistThemeBlender : MonoBehaviour
             float f = 0f;
             if (since > -0.35f && since < -0.28f) f = 0.35f;
             if (since >= 0f) f = Mathf.Exp(-since / 0.12f) + 0.6f * (since > 0.16f ? Mathf.Exp(-(since - 0.16f) / 0.1f) : 0f);
-            Color c = Color.Lerp(Color.white, to.secondaryColor, 0.25f);
+            // Lightning in the rain is cold; a thunder transition's flash takes the new palette.
+            Color c = look == PlaylistTransitionLook.Rain ? new Color(0.75f, 0.82f, 1f) : Color.Lerp(Color.white, to.secondaryColor, 0.25f);
             SetFlash(Mathf.Clamp01(f) * director.Playlist.thunderFlash * (look == PlaylistTransitionLook.Rain ? 0.4f : 1f), c);
         }
         else SetFlash(0f, Color.white);

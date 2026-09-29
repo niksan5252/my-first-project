@@ -263,6 +263,15 @@ public class NeonTunnelGenerator : MonoBehaviour
         BuildAirParticles();
     }
 
+    private ReflectionProbe reflectionProbe;
+
+    /// Re-takes the probe's snapshot - after a playlist has changed the sky and the scenery, or
+    /// every smooth surface would go on reflecting the first theme's sky.
+    public void RenderReflectionProbe()
+    {
+        if (reflectionProbe != null) reflectionProbe.RenderProbe();
+    }
+
     private void BuildReflectionProbe()
     {
         if (!buildReflectionProbe) return;
@@ -272,6 +281,7 @@ public class NeonTunnelGenerator : MonoBehaviour
         go.transform.localPosition = new Vector3(0f, 1.6f, reflectionProbeZ);
 
         var probe = go.AddComponent<ReflectionProbe>();
+        reflectionProbe = probe;
         probe.mode = UnityEngine.Rendering.ReflectionProbeMode.Baked;
         probe.size = new Vector3(reflectionProbeBoxSize, reflectionProbeBoxSize * 0.6f, reflectionProbeBoxSize);
         probe.center = Vector3.zero;

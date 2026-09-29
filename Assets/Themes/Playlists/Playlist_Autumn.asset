@@ -32,6 +32,15 @@ MonoBehaviour:
     transitionIn: 0
     transitionSeconds: 3.5
     transitionLook: 1
+  - label: RainyCity
+    track: {fileID: 8300000, guid: 9ae4483a4e8042e43851e2714c3cd68d, type: 3}
+    beatmapFileName: papa_khan_suffocate.json
+    theme: {fileID: 11400000, guid: c7a29f5bddabea541ad616176ddc9bec, type: 2}
+    clipStart: 0.5
+    clipEnd: 194.2
+    transitionIn: 0
+    transitionSeconds: 4
+    transitionLook: 2
   preRoll: 1
   noteMarginBeats: 1
   wallsInTransition: 0
