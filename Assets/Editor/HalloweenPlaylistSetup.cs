@@ -25,6 +25,7 @@ public static class HalloweenPlaylistSetup
     private const string GraveyardTheme = "Assets/Themes/Theme_HalloweenGraveyard.asset";
     private const string PhonkTheme = "Assets/Themes/Theme_Phonk.asset";
     private const string PumpkinTheme = "Assets/Themes/Theme_HalloweenPumpkin.asset";
+    private const string HauntedTheme = "Assets/Themes/Theme_HalloweenHaunted.asset";
     private const string OceanTheme = "Assets/Themes/Theme_Ocean.asset";
 
     [MenuItem("Tunnel/Playlist/Build Halloween Playlist", priority = 80)]
@@ -60,7 +61,17 @@ public static class HalloweenPlaylistSetup
                 clipEnd = 181.2f,
                 transitionIn = PlaylistTransition.Crossfade, transitionSeconds = 3.5f,
             },
+            // LOOK AT ME!: in on a thunderclap on its first bar line after the silent start
+            // (2.279 s), its first note a second after the clap; out 2.8 s after its last punch
+            // (175.29 s) - CONGRATULATIONS, then the finale's fade.
+            new PlaylistSegment
+            {
+                label = "HauntedHouse", track = Clip(Tracks[2]), beatmapFileName = "rxm_look_at_me.json",
+                theme = Theme(HauntedTheme), clipStart = 2.279f, clipEnd = 178.1f,
+                transitionIn = PlaylistTransition.Thunder, transitionSeconds = 3.5f,
+            },
         };
+        p.finalFadeSeconds = 2.5f;
         EditorUtility.SetDirty(p);
         AssetDatabase.SaveAssets();
         Use(PlaylistPath);

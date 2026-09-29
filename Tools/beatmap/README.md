@@ -554,3 +554,10 @@ New JSON: `PunchHigh` (one-shot), `CurbGap` / `CurbSplit` (obstacles, duration r
 
 `axollo_burn_it.wav`: 130.001 BPM from the comb (kick IOIs 0.46 s; beat_track and the tempogram
 give their 129.2 bin); a 29.5 s drumless intro, filled at every other beat.
+
+`rxm_look_at_me.wav` (phonk): **120 BPM** (comb 119.992). The comb converges to the same period
+seeded from 60, 120 or 240, so the octave is decided by what the chart asks of a person: 120 puts
+one note a beat at 2.0 notes/s (under the ~2.3 limit), 240 would ask for 4/s, 60 for a sluggish
+1/s. The phase checks out: 36% of the detected kicks land on its beats against 6% on the
+off-beat eighths; the claps at 0.25 s are its eighths. beat_track and the tempogram say 117.45
+(their bin). 321 events.

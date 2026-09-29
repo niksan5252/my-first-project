@@ -30,6 +30,14 @@ MonoBehaviour:
     clipEnd: 181.2
     transitionIn: 0
     transitionSeconds: 3.5
+  - label: HauntedHouse
+    track: {fileID: 8300000, guid: ce011f6a3f1b0d9488d08af2f443f7f1, type: 3}
+    beatmapFileName: rxm_look_at_me.json
+    theme: {fileID: 11400000, guid: 54f872d7132986240a0cea2386e84e0c, type: 2}
+    clipStart: 2.279
+    clipEnd: 178.1
+    transitionIn: 1
+    transitionSeconds: 3.5
   preRoll: 1
   noteMarginBeats: 1
   wallsInTransition: 0
@@ -38,5 +46,6 @@ MonoBehaviour:
   thunderVolume: 1
   thunderTrackStartVolume: 0.55
   thunderRiseSeconds: 0.8
+  finalFadeSeconds: 2.5
   trainerMotionSet: {fileID: 11400000, guid: d4829c6d27c558440a76870cfb0a1733, type: 2}
   trainerTextured: 1

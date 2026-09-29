@@ -1,0 +1,105 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &4421640862353761698
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 306634934646009170}
+  - component: {fileID: 7520037753752059234}
+  m_Layer: 0
+  m_Name: Environment_Haunted
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &306634934646009170
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4421640862353761698}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &7520037753752059234
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4421640862353761698}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cbb28720203356f45a409c0c790f488c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HauntedEnvironmentDecorator
+  glowShader: {fileID: 4800000, guid: 229111d1025b0ea4da235a1272af8445, type: 3}
+  flareMask: {fileID: 2800000, guid: ffe5f4c20c77e9c4999b43e88956ade1, type: 3}
+  flameTexture: {fileID: 2800000, guid: 4a8dbaab130c721489ede3279c0da37e, type: 3}
+  smokeTexture: {fileID: 2800000, guid: 3f7cb6b8f26dccd4497661407c825ae1, type: 3}
+  coneMask: {fileID: 0}
+  gravestones: []
+  crypts: []
+  trees: []
+  fences: []
+  ironFences: []
+  lamps:
+  - {fileID: 6473289392299665909, guid: f24c94125f67fd1428db4b54c387fbef, type: 3}
+  candles:
+  - {fileID: 524554896078425161, guid: 0e9693ac26dbb2a4db66ef31594e5778, type: 3}
+  - {fileID: 8264468213022692365, guid: 369456f238c2221498ccdf16df24b160, type: 3}
+  - {fileID: 7848657572127513549, guid: 97718a386a494f64f9bbea4b62581a79, type: 3}
+  pumpkins:
+  - {fileID: 7129618346194545963, guid: 2efd17ea6e088e4439727b6932594ef7, type: 3}
+  details:
+  - {fileID: 652458054135212028, guid: 643efefdca72cc04ca303b70299ac004, type: 3}
+  moonBlue: {r: 0.55, g: 0.2, b: 1, a: 1}
+  flameOrange: {r: 1, g: 0.55, b: 0.2, a: 1}
+  poisonGreen: {r: 0.35, g: 1, b: 0.45, a: 1}
+  stoneTint: {r: 0.55, g: 0.5, b: 0.65, a: 1}
+  segmentSpacing: 8
+  behindCamera: 16
+  fenceX: 5.3
+  graveX: {x: 6.3, y: 15}
+  cryptX: {x: 12, y: 19}
+  treeX: {x: 15, y: 30}
+  lampX: 5.9
+  propScale: 1.9
+  lampLightRange: 11
+  lampLightIntensity: 6
+  fogPerSegment: 3
+  batCount: 34
+  candelabrum: {fileID: 919132149155446097, guid: 1abd712562929b54c9313b497fb54fcc, type: 3}
+  pedestal: {fileID: 919132149155446097, guid: d4110325cd55f6843894d5181e1d8547, type: 3}
+  books:
+  - {fileID: 7412997524030076762, guid: 1885c34483df2264dbe998d6edbb1d3d, type: 3}
+  - {fileID: 8986969368549798088, guid: cac386581a232d24f873b482684674bd, type: 3}
+  - {fileID: 2668783078024579404, guid: df9d3a724209f5946aa73accb4fc07fd, type: 3}
+  coffins:
+  - {fileID: 4159993300826327241, guid: 5f7dbd80b21547d4b858ab33922e2740, type: 3}
+  - {fileID: 9095049772744688888, guid: d1b6b2051a4ad0e49a8b9e9a714211cf, type: 3}
+  - {fileID: 8923681436371134190, guid: f42d59c7e9b6d964ba7a15739531ada0, type: 3}
+  - {fileID: 919132149155446097, guid: fbc3cb00a24cf4a4f8caee3d5a50ef2e, type: 3}
+  cobwebs:
+  - {fileID: 4461171363186577333, guid: 8f60a221aa5e71a4c9894b7230d73312, type: 3}
+  - {fileID: 4054770165386181654, guid: 63706c2eb561a3b4cb2a4c43668e1b08, type: 3}
+  - {fileID: 8774521910229133247, guid: 495a6aebb3bf94d4aa176a6d699c6e32, type: 3}
+  ghostModel: {fileID: 919132149155446097, guid: dd3b00c7a5854bc4ba1287c6dcca2150, type: 3}
+  violet: {r: 0.55, g: 0.2, b: 1, a: 1}
+  ghostGreen: {r: 0.35, g: 1, b: 0.45, a: 1}
+  lightning: {r: 0.7, g: 0.8, b: 1, a: 1}
+  wallColor: {r: 0.045, g: 0.03, b: 0.065, a: 1}
+  wallX: 7.4
+  wallHeight: 9
+  ghostCount: 12
