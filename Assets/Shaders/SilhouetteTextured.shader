@@ -22,6 +22,8 @@ Shader "Tunnel/SilhouetteTextured"
         Pass
         {
             Name "Unlit"
+            // Both sides: parts of the character are mirrored copies whose winding is reversed.
+            Cull Off
             Tags { "LightMode" = "UniversalForward" }
             HLSLPROGRAM
             #pragma vertex vert

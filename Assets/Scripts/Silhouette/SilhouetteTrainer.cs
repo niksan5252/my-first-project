@@ -645,7 +645,7 @@ public class SilhouetteTrainer : MonoBehaviour
                         float lift = Mathf.Max(0f, y);
                         for (int f = 0; f < 2; f++)
                         {
-                            float fx = (f == 0 ? 1f : -1f) * s.chordFeetOut * spread;
+                            float fx = (f == 0 ? -1f : 1f) * s.chordFeetOut * spread;   // figure left is -X: feet apart, not crossed
                             footW[f] = 1f;
                             foot[f] = new Vector3(fx, lift, 0f);
                         }
