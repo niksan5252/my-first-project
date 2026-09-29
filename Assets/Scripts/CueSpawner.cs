@@ -18,7 +18,10 @@ using UnityEngine.Rendering;
 // AROUND, OVER or UNDER, and the camera itself is what performs that movement. They share the
 // pool, the clock and the spawn path with the notes, and differ only in what happens when they
 // reach the hit zone (see OnObstaclePassed) and in that they drive ObstacleCameraDirector.
-public enum CueType { Kick, Punch, Jump, PunchHold, KickHold, Dodge, Curb, Duck }
+//
+// PunchSweep came later and is therefore last: a sustained punch whose tail runs diagonally from
+// the vanishing point up and out to one side, so the raised fist is carried out along it.
+public enum CueType { Kick, Punch, Jump, PunchHold, KickHold, Dodge, Curb, Duck, PunchSweep }
 
 /// Spawns pooled cue markers across the tunnel's lanes at a height matching their type
 /// (Kick = floor, Punch = chest, Jump = a low hurdle bar), colors each cue instance
@@ -162,6 +165,16 @@ public class CueSpawner : MonoBehaviour
     // hold read as an ordinary one-shot Punch until it was nearly past. Standing proud of the
     // plate is what lets the beam be seen from straight on as well as from an outer lane.
     [SerializeField, Range(1f, 2f)] private float holdBeamPlateScale = 1.3f;
+
+    // PunchSweep: the head stands in its OUTER lane at the hold height, and the tail runs from it
+    // back down the road toward the middle and down, which on screen is a beam out of the
+    // vanishing point up to the side. The player's fist travels out along it as it is consumed
+    // from the far end. Where the far end sits, as a fraction of the head's x (0 = the centre
+    // line) and as a height.
+    [SerializeField, Range(0f, 1f)] private float sweepTailEndXRatio = 0.15f;
+    [SerializeField] private float sweepTailEndHeight = 1.25f;
+    // Its beam against the plate: thinner than a PunchHold's, because it is seen side-on.
+    [SerializeField, Range(0.3f, 1.5f)] private float sweepBeamPlateScale = 0.8f;
 
     // --- Obstacles ---------------------------------------------------------------------
     //
@@ -437,6 +450,10 @@ public class CueSpawner : MonoBehaviour
         public int holdCells;
         public float holdLength;
         public float holdDuration; // holdLength expressed in seconds, so the sweep is pure time
+        // Strip length per metre of road the note covers: 1 for a hold lying along the road, more
+        // for a PunchSweep, whose tail runs diagonally and is longer than its extent along Z.
+        public float holdStripScale;
+        public Transform holdTailPivot; // PunchSweep only: aims the tail at its far end
         public bool holding;
         public float holdProgress;   // 0..1 of the length already swept, pushed straight to the shader
         public bool holdFinishing;   // in the closing dissolve
@@ -456,7 +473,7 @@ public class CueSpawner : MonoBehaviour
 
     // What gets a pool, and therefore what can spawn. Jump is deliberately not here; see CueType.
     private static readonly CueType[] CueTypes = { CueType.Kick, CueType.Punch, CueType.PunchHold, CueType.KickHold,
-                                                   CueType.Dodge, CueType.Curb, CueType.Duck };
+                                                   CueType.Dodge, CueType.Curb, CueType.Duck, CueType.PunchSweep };
 
     // The border/tail color every cue's accent parts are blended toward — a deep ink-blue, so a
     // cyan cue gets a navy border and a magenta cue a dark plum one. Contrast, not bloom, is
@@ -512,6 +529,46 @@ public class CueSpawner : MonoBehaviour
     public Beatmap BeatmapMeta => beatmapMeta;
     public SongClock Clock => songClock;
     public AudioClip Music => musicSource != null ? musicSource.clip : null;
+    public AudioSource MusicSource => musicSource;
+
+    // --- Playlist hooks (PlaylistDirector). All optional; unset, the spawner plays one track from
+    // its own chart file exactly as before. ---
+    private Beatmap injectedMeta;
+    private List<BeatmapCue> injectedCues;
+    private System.Func<bool> externalAudioReady;
+    private System.Action<double, float> externalAudioStart;
+    private string trackNameOverride;
+    private float trackLengthOverride;
+
+    /// A chart built somewhere else - a playlist's segments laid end to end on one timeline -
+    /// used instead of reading beatmapFileName. Call before the spawner is built.
+    public void SetChart(Beatmap meta, List<BeatmapCue> cues)
+    {
+        injectedMeta = meta;
+        injectedCues = cues;
+        spawnMode = CueSpawnMode.Beatmap;
+    }
+
+    /// Hands the music to someone else. The song clock still starts here, but with no source of
+    /// its own: `start(startDsp, startAt)` is called the moment it does, and whoever registered it
+    /// schedules the audio against that. `ready` replaces the wait for the music to decode.
+    public void SetExternalAudio(System.Func<bool> ready, System.Action<double, float> start)
+    {
+        externalAudioReady = ready;
+        externalAudioStart = start;
+    }
+
+    /// What a recording is named after and how long it runs: the playlist's, when one plays.
+    public void SetTrackInfo(string name, float length)
+    {
+        trackNameOverride = name;
+        trackLengthOverride = length;
+    }
+    public string TrackName => !string.IsNullOrEmpty(trackNameOverride) ? trackNameOverride : (Music != null ? Music.name : null);
+    public float TrackLength => trackLengthOverride > 0f ? trackLengthOverride : (Music != null ? Music.length : 0f);
+
+    /// The tempo the obstacle moves are timed in, when a playlist moves on to a track of its own.
+    public void SetTempo(float bpm) => obstacleCamera.SetTempo(bpm);
 
     /// Swaps the track and its chart before the spawner is built (see RunProfileSelector). A null
     /// clip or an empty name leaves that half as the scene has it.
@@ -832,7 +889,14 @@ public class CueSpawner : MonoBehaviour
     /// path or a bad file should be loud in the console and still leave something on screen.
     public void StartBeatmap()
     {
-        if (!BeatmapReader.TryLoad(beatmapFileName, tunnel.LaneCount, out beatmapMeta, out var cues, out string error))
+        List<BeatmapCue> cues;
+        string error = null;
+        if (injectedCues != null)
+        {
+            beatmapMeta = injectedMeta;
+            cues = new List<BeatmapCue>(injectedCues);
+        }
+        else if (!BeatmapReader.TryLoad(beatmapFileName, tunnel.LaneCount, out beatmapMeta, out cues, out error))
         {
             Debug.LogError("[CueSpawner] beatmap load failed, falling back to random spawning: " + error, this);
             spawnMode = CueSpawnMode.Random;
@@ -879,12 +943,14 @@ public class CueSpawner : MonoBehaviour
     /// already be in the past by then.
     private bool MusicLoaded()
     {
+        if (externalAudioReady != null) return externalAudioReady();
         var clip = musicSource != null ? musicSource.clip : null;
         return clip == null || clip.loadState == AudioDataLoadState.Loaded || clip.loadState == AudioDataLoadState.Failed;
     }
 
     // Where in the track the song clock starts; 0 = the beginning. Set by SetStartTime.
     private float startAt;
+    public float StartAt => startAt;
 
     /// Starts the track `seconds` in instead of at its beginning - for a test recording of a
     /// track whose notes begin late. Notes due before that point are skipped (not spawned, not
@@ -910,7 +976,8 @@ public class CueSpawner : MonoBehaviour
             for (int i = 0; i < sequencer.Count; i++)
             {
                 var t = sequencer[i].type;
-                if (t == CueType.Kick || t == CueType.Punch || t == CueType.KickHold || t == CueType.PunchHold) return sequencer[i].time;
+                if (t == CueType.Kick || t == CueType.Punch || t == CueType.KickHold || t == CueType.PunchHold || t == CueType.PunchSweep)
+                    return sequencer[i].time;
             }
             return -1f;
         }
@@ -923,7 +990,8 @@ public class CueSpawner : MonoBehaviour
         // The pre-roll: the tunnel and the first notes are already moving when the music starts.
         // Not when starting part-way into the track (SetStartTime), where it is not needed.
         if (startAt <= 0f) lead += preRollSeconds;
-        songClock.Begin(musicSource, lead, beatmapMeta.audioOffset, beatmapUserOffset, startAt);
+        songClock.Begin(externalAudioStart != null ? null : musicSource, lead, beatmapMeta.audioOffset, beatmapUserOffset, startAt);
+        externalAudioStart?.Invoke(songClock.StartDsp, startAt);
         Debug.Log("[CueSpawner] song clock started on frame " + Time.frameCount + ", "
                 + Time.timeSinceLevelLoad.ToString("F2") + "s after load, lead " + (lead * 1000f).ToString("F1") + " ms, DSP buffer latency "
                 + (songClock.BufferLatency * 1000f).ToString("F1") + " ms, offset " + ((beatmapMeta.audioOffset + beatmapUserOffset) * 1000f).ToString("F1") + " ms", this);
@@ -1157,7 +1225,7 @@ public class CueSpawner : MonoBehaviour
 
         // Length is resolved before the colour is applied, because ApplyCueColor is also what
         // wipes the spent tint left on this pooled object by its previous use.
-        SetupHoldInstance(slotIndex, type, duration);
+        SetupHoldInstance(slotIndex, type, duration, lane);
         if (type == CueType.Dodge) AimDodgeChevrons(slotIndex, side);
         ApplyCueColor(slots[slotIndex], color);
 
@@ -1175,12 +1243,12 @@ public class CueSpawner : MonoBehaviour
         slots[slotIndex].color = color;
     }
 
-    private static bool IsHold(CueType type) => type == CueType.KickHold || type == CueType.PunchHold;
+    private static bool IsHold(CueType type) => type == CueType.KickHold || type == CueType.PunchHold || type == CueType.PunchSweep;
 
     /// The distance at which this cue resolves. One number for almost everything, and a second
     /// for the punches; see punchHitZoneZ.
     private float HitZoneZFor(CueType type) =>
-        (type == CueType.Punch || type == CueType.PunchHold) ? punchHitZoneZ : hitZoneZ;
+        (type == CueType.Punch || type == CueType.PunchHold || type == CueType.PunchSweep) ? punchHitZoneZ : hitZoneZ;
 
     private static bool IsObstacle(CueType type) =>
         type == CueType.Dodge || type == CueType.Curb || type == CueType.Duck;
@@ -1195,7 +1263,7 @@ public class CueSpawner : MonoBehaviour
     /// Picks this instance's length and turns on exactly that many of the pooled cells. A
     /// non-hold slot is left completely alone, which is what keeps Kick/Punch/Jump on precisely
     /// the code path they had before holds existed.
-    private void SetupHoldInstance(int slotIndex, CueType type, float durationSeconds)
+    private void SetupHoldInstance(int slotIndex, CueType type, float durationSeconds, int lane)
     {
         if (!IsHold(type) || slots[slotIndex].holdStrip == null) return;
 
@@ -1203,6 +1271,17 @@ public class CueSpawner : MonoBehaviour
         // has to last as long as the sustained sound does, whatever the scroll speed happens to be.
         float duration = Mathf.Max(0.01f, durationSeconds);
         float length = duration * tunnel.ScrollSpeed;
+
+        // A sweep's tail is aimed from the head to its far end - toward the middle of the road
+        // and down - so it is longer than the road it covers by the diagonal's factor.
+        slots[slotIndex].holdStripScale = 1f;
+        if (type == CueType.PunchSweep && slots[slotIndex].holdTailPivot != null)
+        {
+            float headX = tunnel.GetLaneCenterX(lane);
+            Vector3 toFar = new Vector3(-headX * (1f - sweepTailEndXRatio), sweepTailEndHeight - punchHoldHeight, length);
+            slots[slotIndex].holdTailPivot.localRotation = Quaternion.LookRotation(toFar.normalized, Vector3.up);
+            slots[slotIndex].holdStripScale = toFar.magnitude / Mathf.Max(0.01f, length);
+        }
 
         // The length lives entirely in the transform: one mesh, stretched. Nothing is hidden or
         // rebuilt, so there is no join anywhere along it for the player to see.
@@ -1240,7 +1319,7 @@ public class CueSpawner : MonoBehaviour
         var strip = slots[slotIndex].holdStrip;
         if (strip == null) return;
 
-        length = Mathf.Max(0.0001f, length);
+        length = Mathf.Max(0.0001f, length * Mathf.Max(0.0001f, slots[slotIndex].holdStripScale));
         var scale = strip.localScale;
         strip.localScale = new Vector3(scale.x, scale.y, length);
         var lp = strip.localPosition;
@@ -1262,6 +1341,8 @@ public class CueSpawner : MonoBehaviour
             holdStripZStart = visual.stripZStart,
             holdHeadRenderers = visual.head,
             holdIcon = visual.icon,
+            holdTailPivot = visual.tailPivot,
+            holdStripScale = 1f,
             fillRenderers = visual.fill,
             chevronRenderers = visual.chevron,
             chevronRoots = visual.chevronRoots,
@@ -1323,7 +1404,8 @@ public class CueSpawner : MonoBehaviour
             case CueType.Kick:
             case CueType.KickHold: return kickHeight; // a hold lies on the floor exactly like the kick it sustains
             case CueType.Punch: return punchHeight;
-            case CueType.PunchHold: return punchHoldHeight; // sustained punches fly high, out of the one-shot lane
+            case CueType.PunchHold:
+            case CueType.PunchSweep: return punchHoldHeight; // sustained punches fly high, out of the one-shot lane
             // Jump's posts and every obstacle's box are authored from their own floor-level root.
             default: return 0f;
         }
@@ -1893,6 +1975,7 @@ public class CueSpawner : MonoBehaviour
         public MeshRenderer[] fill;    // obstacle only: the translucent body
         public MeshRenderer[] chevron; // obstacle only: the contrasting direction marks
         public Transform[] chevronRoots; // obstacle only: re-aimed per instance (a Dodge wall)
+        public Transform tailPivot;    // PunchSweep only: the strip's parent, aimed per instance
     }
 
     private CueVisual CreateCueVisual(CueType type)
@@ -1968,6 +2051,39 @@ public class CueSpawner : MonoBehaviour
                     stripZStart = stripZ,
                     head = new[] { plate, frame },
                     icon = icon,
+                };
+            }
+            case CueType.PunchSweep:
+            {
+                // PunchHold's head - plate, border, fist - with the beam hung off a pivot instead
+                // of trailing straight back, so each instance can aim it at its own far end.
+                var root = new GameObject("Cue_PunchSweep");
+                root.transform.SetParent(transform, false);
+
+                float plateZ = -(frameThickness * 0.5f + plateThickness * 0.5f - plateThickness * 0.55f);
+                var frame = CreateChevronPart(root.transform, "Frame", punchFrameMesh, Vector3.zero, cueHoldMat);
+                var plate = CreateChevronPart(root.transform, "Plate", punchPlateMesh, new Vector3(0f, 0f, plateZ), cueHoldMat);
+
+                var pivot = new GameObject("TailPivot").transform;
+                pivot.SetParent(root.transform, false);
+                pivot.localPosition = new Vector3(0f, 0f, frameThickness * 0.5f);
+                float beamScale = Mathf.Max(0.1f, sweepBeamPlateScale);
+                var (strip, stripRenderer, stripZ) = BuildHoldStrip(
+                    pivot, punchPlateWidth * beamScale, punchPlateHeight * beamScale, 0f);
+
+                var icon = AttachIcon(root.transform, punchIconQuad, fistIconMat, new Vector3(0f, 0f, plateZ - plateThickness * 0.5f - IconLift));
+
+                return new CueVisual
+                {
+                    root = root.transform,
+                    bright = new[] { plate, stripRenderer },
+                    frame = new[] { frame },
+                    strip = strip,
+                    stripRenderer = stripRenderer,
+                    stripZStart = stripZ,
+                    head = new[] { plate, frame },
+                    icon = icon,
+                    tailPivot = pivot,
                 };
             }
             case CueType.KickHold:

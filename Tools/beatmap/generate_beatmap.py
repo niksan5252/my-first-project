@@ -54,7 +54,18 @@ GENERATOR = "Tools/beatmap/generate_beatmap.py (librosa)"
 KICK, PUNCH, JUMP = "Kick", "Punch", "Jump"
 
 HOLD_TYPE_OF = {KICK: "KickHold", PUNCH: "PunchHold"}   # Jump is never sustained
-HOLD_TYPES = set(HOLD_TYPE_OF.values())
+# The sweep: a sustained punch whose tail runs from the vanishing point up and out to one side,
+# and the player's raised fist travels out along it. A hold in every sense the format cares
+# about (it carries a duration), but NOT the sustained form of any one-shot, so it is outside
+# HOLD_TYPE_OF - a sweep trimmed to nothing degrades to a plain Punch.
+SWEEP = "PunchSweep"
+HOLD_TYPES = set(HOLD_TYPE_OF.values()) | {SWEEP}
+
+# A chord is a SET exercise, never a JSON type: every note of a Chord set is written out as two
+# Kicks on the inner lanes at the same moment (a jump landing on both feet), and every
+# --chord-punch-every'th of them also gets a Punch on top (the fist thrown on the landing).
+# `expand_chords` does the translation after lanes are settled, so nothing above it needs to know.
+CHORD = "Chord"
 
 # The three obstacles. Unlike the note types these are not something to strike at the hit zone -
 # they are pieces of road furniture to get around, over or under, and in the game the camera
@@ -630,7 +641,7 @@ def measure_hold(energy: np.ndarray, start_frame: int, limit_frame: int, cfg,
 # Set boundaries are placed on BARS, not on round numbers of seconds, because a change of
 # movement that lands mid-bar reads as a mistake even to someone who cannot name what is wrong.
 
-ALL_EXERCISES = (PUNCH, KICK, "PunchHold", "KickHold", DODGE, CURB, DUCK)
+ALL_EXERCISES = (PUNCH, KICK, "PunchHold", "KickHold", SWEEP, CHORD, DODGE, CURB, DUCK)
 
 # Named set orders. A pattern is a list of (exercise, how many sets in a row), cycled until the
 # track runs out. This is the one place the shape of the workout lives: changing the routine
@@ -671,6 +682,14 @@ SET_PATTERNS: Dict[str, List[Tuple[str, int]]] = {
     "circuit_obstacles": [(PUNCH, 1), (KICK, 1), (DODGE, 1), (PUNCH, 1), ("KickHold", 1),
                           (KICK, 1), (CURB, 1), (PUNCH, 1), ("PunchHold", 1),
                           (KICK, 1), (DUCK, 1), (PUNCH, 1), (CURB, 1), (KICK, 1), ("PunchHold", 1)],
+    # Cardio for the Halloween playlist, run with --set-bars 2 on the grid detector: short blocks
+    # that change every two bars, a note on every beat, the two-foot jump chords and the arm
+    # sweeps folded in, one barrier to duck under about every sixteen sets and a wall set about
+    # as often. Arms and legs still alternate block by block, so every change is a switch of limb
+    # rather than of everything at once.
+    "intense": [(PUNCH, 1), (KICK, 1), (CHORD, 1), (PUNCH, 1), (SWEEP, 1), (KICK, 1), (DUCK, 1),
+                (PUNCH, 1), (CHORD, 1), (KICK, 1), ("PunchHold", 1), (PUNCH, 1), (SWEEP, 1),
+                (KICK, 1), (CHORD, 1), (DODGE, 1), (PUNCH, 1), ("KickHold", 1)],
 }
 
 # How close together notes of each exercise may be, in BEATS rather than seconds, so a routine
@@ -682,6 +701,9 @@ SET_PATTERNS: Dict[str, List[Tuple[str, int]]] = {
 # person could act on, and a Jump set would ask for four jumps a second.
 DEFAULT_SPACING_BEATS: Dict[str, float] = {
     PUNCH: 0.5, KICK: 0.5, "PunchHold": 2.0, "KickHold": 2.0,
+    # A jump every other beat is the most a person keeps up for a whole block; a sweep needs the
+    # arm back at the centre before the next one, so it too takes every other beat.
+    CHORD: 2.0, SWEEP: 2.0,
     # Obstacles are spaced far wider than any note, and the number is not a taste judgement: the
     # camera performs the movement and has to be back at centre before the next one starts. The
     # longest reaction is the dodge, whose lead-in, hold and return together run 1.59 s - so at
@@ -696,6 +718,10 @@ DEFAULT_SPACING_BEATS: Dict[str, float] = {
 # the alternation reads as left limb / right limb rather than as a position on the road.
 DEFAULT_LANE_PAIRS: Dict[str, Tuple[int, int]] = {
     PUNCH: (1, 2), KICK: (1, 2), "PunchHold": (1, 2), "KickHold": (1, 2),
+    # A sweep's lane is the side its tail runs out to, so it takes the outer pair: left arm out
+    # to the left, then right arm out to the right. A chord's lane is rewritten by expand_chords;
+    # the pair here is where its optional Punch goes.
+    SWEEP: (0, 3), CHORD: (1, 2),
     # Dodge reads its lane as a side, so it takes the OUTER pair: the walls then alternate left
     # and right within a set and the player is moved both ways rather than leaning one way all
     # block. Curb and Duck span the whole road and ignore their lane entirely; they keep the
@@ -876,7 +902,9 @@ def apply_workout(events: List[Event], sets: List[WorkoutSet], beat: float,
         if not inside:
             continue
 
-        floor = spacing.get(block.exercise, 0.5) * beat
+        # --spacing-tolerance forgives a floor missed by rounding: on the grid detector two
+        # notes exactly N beats apart can come out a hair under N beats of the fitted period.
+        floor = (spacing.get(block.exercise, 0.5) - cfg.spacing_tolerance) * beat
         last = -1e9
         chosen: List[Event] = []
         for ev in inside:
@@ -909,8 +937,12 @@ def size_workout_holds(events: List[Event], sets: List[WorkoutSet], cfg) -> None
             continue
         members = sorted(by_set.get(block.index, []), key=lambda e: e.time)
         for position, ev in enumerate(members):
-            limit = members[position + 1].time if position + 1 < len(members) else block.end
-            ev.duration = min(cfg.hold_max, max(0.0, limit - ev.time - cfg.hold_gap))
+            last_end = block.rest_end if block.exercise == SWEEP else block.end
+            limit = members[position + 1].time if position + 1 < len(members) else last_end
+            # A sweep leaves its arm out at the side, and the next one starts from the centre:
+            # it stops --sweep-gap-beats early so there is time to bring the arm back.
+            gap = cfg.sweep_gap_beats * cfg.beat if block.exercise == SWEEP else cfg.hold_gap
+            ev.duration = min(cfg.hold_max, max(0.0, limit - ev.time - gap))
             if round(ev.duration, 3) <= 0.0:
                 ev.duration = 0.0
                 ev.type = KICK if block.exercise == HOLD_TYPE_OF[KICK] else PUNCH
@@ -932,6 +964,43 @@ def assign_workout_lanes(events: List[Event], sets: List[WorkoutSet],
         members = sorted(by_set.get(block.index, []), key=lambda e: e.time)
         for position, ev in enumerate(members):
             ev.lane = min(lane_count - 1, max(0, pair[position % 2]))
+
+
+def expand_chords(events: List[Event], sets: List[WorkoutSet], punch_every: int,
+                  punch_lanes: Tuple[int, int], lane_count: int) -> List[Event]:
+    """Write every Chord note out as two Kicks on the inner lanes, plus a Punch on some.
+
+    The whole chord rule lives here: which lanes the feet land in (the two inner ones - a jump
+    onto both feet, straight ahead), and how often a fist goes with it (every `punch_every`'th
+    chord of a set, 0 = never), alternating between the two lanes of `punch_lanes` so the arm
+    changes too. Returns a new, time-sorted list; set note counts are updated to match.
+    """
+    inner = (max(0, lane_count // 2 - 1), min(lane_count - 1, lane_count // 2))
+    out: List[Event] = []
+    per_set: Dict[int, int] = {}
+    for ev in events:
+        if ev.type != CHORD:
+            out.append(ev)
+            continue
+        n = per_set.get(ev.set_index, 0)
+        per_set[ev.set_index] = n + 1
+        for lane in inner:
+            out.append(Event(time=ev.time, type=KICK, intensity=ev.intensity, lane=lane,
+                             frame=ev.frame, bands=ev.bands, acoustic=ev.acoustic,
+                             set_index=ev.set_index))
+        if punch_every > 0 and n % punch_every == punch_every - 1:
+            lane = punch_lanes[(n // punch_every) % 2]
+            out.append(Event(time=ev.time, type=PUNCH, intensity=ev.intensity, lane=lane,
+                             frame=ev.frame, bands=ev.bands, acoustic=ev.acoustic,
+                             set_index=ev.set_index))
+    counts: Dict[int, int] = {}
+    for ev in out:
+        counts[ev.set_index] = counts.get(ev.set_index, 0) + 1
+    for block in sets:
+        if block.exercise == CHORD:
+            block.notes = counts.get(block.index, 0)
+    out.sort(key=lambda e: e.time)
+    return out
 
 
 def retire_jump(events: List[Event]) -> None:
@@ -1275,12 +1344,14 @@ def analyse(path: Path, cfg) -> Tuple[List[Event], float, float, int, List[Worko
                 f"the track is too short for even one {cfg.set_bars}-bar set - lower --set-bars"
             )
 
+        cfg.beat = beat
         events = apply_workout(events, sets, beat, spacing, cfg)
         retire_jump(events)
         events = space_obstacles(events, cfg.obstacle_gap * beat)
         size_workout_holds(events, sets, cfg)
         assign_workout_lanes(events, sets, pairs, cfg.lanes)
         resolve_hold_overlaps(events, cfg.lanes, cfg.hold_gap)
+        events = expand_chords(events, sets, cfg.chord_punch_every, pairs[CHORD], cfg.lanes)
         if cfg.fill_gaps_dodge:
             cfg.gap_walls = fill_gaps_with_dodges(events, bar_lines, beat, track_end, cfg)
             events = sorted(events + cfg.gap_walls, key=lambda e: e.time)
@@ -1588,6 +1659,15 @@ def build_parser() -> argparse.ArgumentParser:
     g.add_argument("--lane-pairs", default=None,
                    help="the two lanes each exercise alternates between, e.g. 'Punch:0-3'; "
                         "default is 1-2 for everything, and 0-3 for Dodge, whose lane is a side")
+    g.add_argument("--spacing-tolerance", type=float, default=0.0,
+                   help="beats by which a note may fall short of its --spacing floor and still be "
+                        "kept; 0.05 lets grid notes exactly N beats apart through")
+    g.add_argument("--chord-punch-every", type=int, default=2,
+                   help="in a Chord set, every Nth two-foot jump also gets a Punch on top "
+                        "(0 = never)")
+    g.add_argument("--sweep-gap-beats", type=float, default=0.5,
+                   help="a PunchSweep ends this many beats before the next note of its set, so "
+                        "the arm is back at the centre for the next sweep")
     g.add_argument("--obstacle-gap", type=float, default=8.0,
                    help="minimum gap between ANY two obstacles, IN BEATS, across set boundaries "
                         "as well as inside a set. The camera performs the movement and has to be "

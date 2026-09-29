@@ -492,3 +492,33 @@ fire an end-of-set banner a second after the previous one. `events` is never tou
 Re-generating instead is the wrong move for a finished chart: the set plan depends on the exact
 `--pattern` and `--set-bars` the map was made with, and any difference silently rewrites every
 note in it.
+
+## Intense charts - chords and sweeps (the Halloween playlist)
+
+Two exercises that are not JSON types of their own - or not only:
+
+* **`Chord`** (set exercise only). Every note of a Chord set is written as **two `Kick`s on the
+  inner lanes at the same moment** - a jump landing on both feet - and every
+  `--chord-punch-every`'th one (default 2) also gets a **`Punch`** on top, alternating between the
+  pair's lanes (`--lane-pairs Chord:1-2`). Spacing 2 beats: a jump every other beat. `expand_chords`
+  is the whole rule. The trainer recognises two kicks on one moment and plays a two-foot hop that
+  lands on the note (the punch is thrown on the landing).
+* **`PunchSweep`** - a new JSON type, a hold: a raised fist carried out to the side along a tail
+  that runs from the vanishing point up and out (`CueSpawner`, lane 0 = left, lane 3 = right;
+  default pair `0-3`). It stops `--sweep-gap-beats` (0.5) before the next note of its set so the arm
+  can come back to the middle; the last one of a set may run into the set's rest.
+
+`--pattern intense` folds both in with short blocks, one Duck set about every eighteen sets and a
+Dodge set as often. `--spacing-tolerance 0.05` lets grid notes exactly N beats apart pass their
+N-beat floor (without it rounding of the fitted period drops every other one). The committed
+`neoni_haunted_house.json`:
+
+```powershell
+.venv\Scripts\python generate_beatmap.py ..\..\Assets\Audio\Tracks\neoni_haunted_house.wav `
+    --detector grid --pattern intense --set-bars 2 --spacing-tolerance 0.05 --fill-gaps-dodge --show-sets
+```
+
+105.000 BPM from the comb (kick IOIs peak at 0.56-0.58 s; beat_track and the tempogram say 103.4,
+their bin). Drums play from the first bar, so notes start at 0.07 s; the playlist's pre-roll lets
+them fly in. 193 events: Kick 85 (36 of them in 18 two-foot chords), Punch 72 (9 on chords),
+PunchSweep 14, KickHold 8, PunchHold 4, Duck 2 (27.5 s, 112.1 s), Dodge 8 (2 in Dodge sets, 6 gap walls).

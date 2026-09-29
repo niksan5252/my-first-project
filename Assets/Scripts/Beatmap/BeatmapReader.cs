@@ -125,7 +125,7 @@ public static class BeatmapReader
             // duration check below already refuses one that carries a sustain, and their lane -
             // a side for Dodge, ignored by Curb and Duck - is validated by exactly the same
             // range test as a note's, which is the point of carrying the direction in it.
-            bool wantsHold = type == CueType.KickHold || type == CueType.PunchHold;
+            bool wantsHold = type == CueType.KickHold || type == CueType.PunchHold || type == CueType.PunchSweep;
             if (wantsHold && !(e.duration > 0f))
             {
                 error = Where(i) + type + " needs a duration greater than 0";
