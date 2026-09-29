@@ -42,6 +42,16 @@ public class SilhouetteMotionSet : ScriptableObject
     // Optional override; the model's own Animator avatar is used when this is empty.
     public Avatar avatar;
 
+    // How much of the panel's height the character's own height takes, as the trainer's
+    // frameHeights (view height = height x this). 0 keeps the trainer's. A cartoon figure with a big
+    // head and short limbs needs less room above it than a realistic one.
+    [Min(0f)] public float frameHeights = 0f;
+    [Min(0f)] public float frameCenter = 0f;
+    // Every distance below is in metres for a figure of about 1.75 m. A character of another size
+    // scales them all by this - reaches, steps, the dodge's shift and the hop's height - so the
+    // moves keep their proportions on it (the 3.2 m cartoon skeleton uses ~1.7).
+    [Min(0.1f)] public float gestureScale = 1f;
+
     [Header("Clips")]
     // The stance under everything, as motion capture: calm idles for the short rests between
     // notes (breathing, a weight shift), livelier ones for the intro, the breakdowns and the
@@ -100,6 +110,22 @@ public class SilhouetteMotionSet : ScriptableObject
     public float dodgeTrailFoot = 0.1f;
     public float dodgeLeanDegrees = 12f;
     public float dodgeTurnDegrees = 30f;   // shoulders and hips turned toward the step
+
+    [Header("Sweep: the raised fist carried out along a PunchSweep's tail")]
+    // Metres from the shoulder where the hand is at the note (high, near the middle) and where it
+    // has arrived when the note ends (out to the side, a little lower).
+    public Vector3 sweepFrom = new Vector3(0.12f, 0.5f, 0.12f);
+    public Vector3 sweepTo = new Vector3(0.6f, 0.32f, 0.08f);
+
+    [Header("Chord: a hop that lands on both feet on the note")]
+    // The body rises and falls over chordAirBeats, touching down exactly on the note, then gives
+    // at the knees by chordDip and comes back up over chordLandBeats.
+    public float chordJumpHeight = 0.2f;
+    [Range(0.2f, 1.5f)] public float chordAirBeats = 0.6f;
+    [Range(0.2f, 1.5f)] public float chordLandBeats = 0.5f;
+    public float chordDip = 0.07f;
+    // How far each foot lands out from where it stands - a slightly wider stance on the landing.
+    public float chordFeetOut = 0.08f;
 
     [Header("Timing")]
     // A gesture reaches its note in at most this many beats (and at most riseSeconds), and lets go

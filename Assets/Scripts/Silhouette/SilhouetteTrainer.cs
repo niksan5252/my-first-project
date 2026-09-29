@@ -73,6 +73,14 @@ public class SilhouetteTrainer : MonoBehaviour
     [SerializeField] private float frameHeights = 1.7f;
     [SerializeField] private float frameCenter = 0.66f;
 
+    [Header("Textured character (a playlist's own trainer)")]
+    [SerializeField] private Shader texturedShader;
+    // The panel's backdrop in textured mode: the segment's two colours from the sides into a dark
+    // middle, like a stage lit from both wings; its strength at the edges.
+    [SerializeField, Range(0f, 1f)] private float backdropStrength = 0.55f;
+    // The soft light around the character's edge, from the figure's alpha (SilhouetteGlow).
+    [SerializeField, Range(0f, 2f)] private float texturedHalo = 1.1f;
+
     [Header("Diagnostics")]
     // The first N notes log planned vs observed impact time, once, and write it to
     // Screenshots/silhouette_sync.txt. 0 turns it off.
@@ -91,6 +99,13 @@ public class SilhouetteTrainer : MonoBehaviour
     private RectTransform panel;
     private Canvas canvas;
     private Material bodyMat, glowMat;
+    // Textured mode: the character keeps its own texture and gets a rim light in the segment's
+    // colour; the panel behind it is lit in the same colours. Set by UseMotionSet.
+    private bool textured;
+    private readonly List<Material> texturedMats = new List<Material>();
+    private RawImage backdrop;
+    private Texture2D backdropTex;
+    private Color backdropShownA = Color.clear, backdropShownB = Color.clear;
     private Color themeShown = Color.clear;
 
     private PlayableGraph graph;
@@ -130,6 +145,21 @@ public class SilhouetteTrainer : MonoBehaviour
     /// Asks for a screenshot on the first frame at or after `songTime`. For the visual checks.
     public static void CaptureAt(float songTime, string path) => captures.Add(new KeyValuePair<float, string>(songTime, path));
 
+    /// Swaps the character before the trainer is built - a playlist bringing its own. `asTextured`
+    /// draws it as itself, textured, with a rim light and a backdrop in the theme's colours, rather
+    /// than as a neon contour.
+    public void UseMotionSet(SilhouetteMotionSet set, bool asTextured)
+    {
+        if (built || set == null) return;
+        motionSet = set;
+        textured = asTextured;
+        if (textured)
+        {
+            outlineOnly = false;
+            followThemeColor = true;
+        }
+    }
+
     private float Now => cueSpawner != null && cueSpawner.Clock.IsRunning ? cueSpawner.Clock.SongTime : -1000f + Time.time;
 
     private void Start()
@@ -151,6 +181,8 @@ public class SilhouetteTrainer : MonoBehaviour
         if (canvas != null) Destroy(canvas.gameObject);
         if (bodyMat != null) Destroy(bodyMat);
         if (glowMat != null) Destroy(glowMat);
+        foreach (var m in texturedMats) if (m != null) Destroy(m);
+        if (backdropTex != null) Destroy(backdropTex);
     }
 
     // --- building ---
@@ -171,10 +203,11 @@ public class SilhouetteTrainer : MonoBehaviour
         SetLayer(model, layer);
 
         bodyMat = new Material(bodyShader != null ? bodyShader : Shader.Find("Tunnel/SilhouetteBody"));
+        var texShader = texturedShader != null ? texturedShader : Shader.Find("Tunnel/SilhouetteTextured");
         foreach (var r in model.GetComponentsInChildren<Renderer>(true))
         {
             var mats = new Material[r.sharedMaterials.Length];
-            for (int i = 0; i < mats.Length; i++) mats[i] = bodyMat;
+            for (int i = 0; i < mats.Length; i++) mats[i] = textured ? TexturedFrom(r.sharedMaterials[i], texShader) : bodyMat;
             r.sharedMaterials = mats;
             r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
             r.receiveShadows = false;
@@ -202,6 +235,22 @@ public class SilhouetteTrainer : MonoBehaviour
         // The tunnel camera must never see the stage, whatever it is pointed at.
         if (Camera.main != null) Camera.main.cullingMask &= ~(1 << layer);
         built = true;
+    }
+
+    /// The character's own material, re-made on the textured shader: its texture and tint kept.
+    private Material TexturedFrom(Material source, Shader shader)
+    {
+        var m = new Material(shader);
+        if (source != null)
+        {
+            Texture tex = source.HasProperty("_BaseMap") ? source.GetTexture("_BaseMap") : null;
+            if (tex == null && source.HasProperty("_MainTex")) tex = source.GetTexture("_MainTex");
+            if (tex != null) m.SetTexture("_BaseMap", tex);
+            if (source.HasProperty("_BaseColor")) m.SetColor("_BaseColor", source.GetColor("_BaseColor"));
+            else if (source.HasProperty("_Color")) m.SetColor("_BaseColor", source.GetColor("_Color"));
+        }
+        texturedMats.Add(m);
+        return m;
     }
 
     private static void SetLayer(GameObject go, int layer)
@@ -293,7 +342,18 @@ public class SilhouetteTrainer : MonoBehaviour
 
         float halo = 40f;
         frameHalo = PanelImage("FrameGlow", SilhouettePanelSprites.Glow(frameCorner, halo), Color.clear, -halo);
-        PanelImage("Glass", SilhouettePanelSprites.Fill(frameCorner), new Color(0.01f, 0.012f, 0.03f, glassAlpha), 0f);
+        var glass = PanelImage("Glass", SilhouettePanelSprites.Fill(frameCorner), new Color(0.01f, 0.012f, 0.03f, glassAlpha), 0f);
+        if (textured)
+        {
+            // The backdrop: a texture recoloured whenever the theme's colours move (ApplyTheme),
+            // masked to the panel's chamfered shape by the glass under it.
+            backdropTex = new Texture2D(64, 32, TextureFormat.RGBA32, false) { wrapMode = TextureWrapMode.Clamp, filterMode = FilterMode.Bilinear };
+            backdrop = PanelRaw("Backdrop", null);
+            backdrop.texture = backdropTex;
+            var mask = glass.gameObject.AddComponent<Mask>();
+            mask.showMaskGraphic = true;
+            backdrop.rectTransform.SetParent(glass.rectTransform, false);
+        }
 
         glowMat = new Material(glowShader != null ? glowShader : Shader.Find("Tunnel/SilhouetteGlow"));
         figureGlow = PanelRaw("FigureGlow", glowMat);
@@ -352,6 +412,11 @@ public class SilhouetteTrainer : MonoBehaviour
         figureImage.texture = rt;
         figureImage.enabled = !outlineOnly;
         figureGlow.texture = rt;
+        if (textured)
+        {
+            glowMat.SetFloat("_Outline", 0f);
+            glowMat.SetFloat("_Halo", texturedHalo);
+        }
         glowMat.SetFloat("_ContourPx", Mathf.Max(1.5f, h * contourWidth));
         glowMat.SetFloat("_ClosePx", h * contourWidth);
     }
@@ -419,8 +484,8 @@ public class SilhouetteTrainer : MonoBehaviour
             top = Mathf.Max(top, r.bounds.max.y);
         if (float.IsNegativeInfinity(top)) return;
         float height = top - stage.transform.position.y;
-        viewHeight = height * frameHeights;
-        viewCenterY = height * frameCenter;
+        viewHeight = height * (motionSet.frameHeights > 0f ? motionSet.frameHeights : frameHeights);
+        viewCenterY = height * (motionSet.frameCenter > 0f ? motionSet.frameCenter : frameCenter);
         figureCamera.orthographicSize = viewHeight * 0.5f;
         var rot = figureCamera.transform.localRotation;
         figureCamera.transform.localPosition = new Vector3(0f, viewCenterY, viewAheadZ) - rot * Vector3.forward * 10f;
@@ -546,6 +611,47 @@ public class SilhouetteTrainer : MonoBehaviour
                         tapping = Mathf.Max(tapping, w);
                         break;
                     }
+                    case SilhouettePlanner.GestureKind.Sweep:
+                    {
+                        // Along the tail from its start to its end over the note's length.
+                        float span = Mathf.Max(0.01f, g.holdEnd - g.impact);
+                        float k = Smooth01((now - g.impact) / span);
+                        Vector3 from = new Vector3(x * s.sweepFrom.x, s.sweepFrom.y, s.sweepFrom.z);
+                        Vector3 to = new Vector3(x * s.sweepTo.x, s.sweepTo.y, s.sweepTo.z);
+                        Vector3 t = shoulder + Vector3.Lerp(from, to, k);
+                        Vector3 elbow = shoulder + new Vector3(x * Mathf.Lerp(0.25f, 0.4f, k), 0.02f, -0.12f);
+                        Take(ref hand[limb], w, t, elbow);
+                        break;
+                    }
+                    case SilhouettePlanner.GestureKind.ChordJump:
+                    {
+                        // Its own shape rather than the weight: up and down in the air before the
+                        // note, landing ON it, then a give at the knees that recovers.
+                        float air = (now - g.start) / Mathf.Max(0.01f, g.impact - g.start);
+                        float y = 0f, spread = 0f;
+                        if (air >= 0f && air < 1f)
+                        {
+                            y = s.chordJumpHeight * Mathf.Sin(air * Mathf.PI);
+                            spread = Smooth01(air);
+                        }
+                        else if (now >= g.impact && now < g.end)
+                        {
+                            float land = (now - g.impact) / Mathf.Max(0.01f, g.end - g.impact);
+                            y = -s.chordDip * Mathf.Sin(Mathf.Min(1f, land * 2f) * Mathf.PI * 0.5f) * (1f - Smooth01(land));
+                            spread = 1f - Smooth01(land);
+                        }
+                        body += new Vector3(0f, y, 0f) * stance;
+                        // Both feet leave the ground with the body and land a little apart.
+                        float lift = Mathf.Max(0f, y);
+                        for (int f = 0; f < 2; f++)
+                        {
+                            float fx = (f == 0 ? 1f : -1f) * s.chordFeetOut * spread;
+                            footW[f] = 1f;
+                            foot[f] = new Vector3(fx, lift, 0f);
+                        }
+                        tapping = 1f;
+                        break;
+                    }
                     case SilhouettePlanner.GestureKind.Dodge:
                     {
                         body += new Vector3(x * s.dodgeShift * w, -0.02f * w, 0f);
@@ -567,6 +673,20 @@ public class SilhouetteTrainer : MonoBehaviour
         // While a foot taps, the knees stop giving on the beat: a dip on top of a tap is what made
         // it read as a hop from foot to foot.
         body.y += dip * stance * tapping;
+        // The moves in the character's own proportions: offsets from the shoulders, the feet and
+        // the body scaled together.
+        float scale = s.gestureScale;
+        if (!Mathf.Approximately(scale, 1f))
+        {
+            body *= scale;
+            for (int f = 0; f < 2; f++) foot[f] *= scale;
+            for (int h = 0; h < 2; h++)
+            {
+                Vector3 sh = h == 0 ? lShoulder : rShoulder;
+                hand[h].target = sh + (hand[h].target - sh) * scale;
+                hand[h].elbow = sh + (hand[h].elbow - sh) * scale;
+            }
+        }
         job.bodyOffset = body;
         job.leanDegrees = lean;
         job.turnDegrees = turn;
@@ -592,13 +712,38 @@ public class SilhouetteTrainer : MonoBehaviour
     private void ApplyTheme()
     {
         Color c = followThemeColor && hud != null ? (usePrimaryColor ? hud.PrimaryColor : hud.SecondaryColor) : trainerColor;
+        if (textured && hud != null) PaintBackdrop(hud.PrimaryColor, hud.SecondaryColor);
         if (c == themeShown) return;
         themeShown = c;
         bodyMat.SetColor("_RimColor", c);
+        foreach (var m in texturedMats) m.SetColor("_RimColor", c);
         glowMat.SetColor("_GlowColor", c);
         frameEdge.color = c;
         var h = c; h.a = frameGlow;
         frameHalo.color = h;
+    }
+
+    /// The backdrop's pixels: `a` from the left, `b` from the right, dark in the middle, a little
+    /// brighter toward the floor, like light spilling in from both wings.
+    private void PaintBackdrop(Color a, Color b)
+    {
+        if (backdropTex == null || (a == backdropShownA && b == backdropShownB)) return;
+        backdropShownA = a;
+        backdropShownB = b;
+        int w = backdropTex.width, h = backdropTex.height;
+        var px = new Color32[w * h];
+        for (int y = 0; y < h; y++)
+            for (int x = 0; x < w; x++)
+            {
+                float u = (x + 0.5f) / w, v = (y + 0.5f) / h;
+                float left = Mathf.Pow(1f - u, 2.2f), right = Mathf.Pow(u, 2.2f);
+                float lift = 0.75f + 0.25f * (1f - v);
+                Color c = (a * left + b * right) * backdropStrength * lift;
+                c.a = 1f;
+                px[y * w + x] = c;
+            }
+        backdropTex.SetPixels32(px);
+        backdropTex.Apply(false);
     }
 
     // --- diagnostics ---

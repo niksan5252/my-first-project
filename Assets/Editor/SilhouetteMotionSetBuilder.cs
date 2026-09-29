@@ -28,6 +28,15 @@ public static class SilhouetteMotionSetBuilder
     private static readonly string[] Calm = { "Fitness Idle With Breathing", "Breathing Idle", "Weight Shift Idle" };
     private static readonly string[] Lively = { "Happy Idle 1", "Happy Idle 2" };
 
+    // Third preset: PolyOne's Cartoon Skeleton, for the Halloween playlist. Its FBX imports as a
+    // valid Humanoid (26 bones mapped automatically), so the same Mixamo takes and IK gestures
+    // retarget onto it; the prefab is used for its textured material.
+    public const string SkeletonModel = "Assets/PolyOne/Cartoon Skeleton/Prefabs/Free Pack - Cartoon Skeleton (Rigged).prefab";
+    public const string SkeletonAssetPath = SilhouetteMixamoImport.Root + "/CartoonSkeletonMotionSet.asset";
+
+    [MenuItem("Tunnel/Silhouette/Build Motion Set (Cartoon Skeleton)", priority = 44)]
+    public static void BuildSkeleton() => Build(SkeletonModel, SkeletonAssetPath, JenniferAssetPath);
+
     [MenuItem("Tunnel/Silhouette/Build Motion Set (X Bot)", priority = 42)]
     public static void Build() => Build(SilhouetteMixamoImport.SkinFile, AssetPath, null);
 
@@ -53,6 +62,7 @@ public static class SilhouetteMotionSetBuilder
 
         set.model = AssetDatabase.LoadAssetAtPath<GameObject>(modelPath);
         set.avatar = AssetDatabase.LoadAllAssetsAtPath(modelPath).OfType<Avatar>().FirstOrDefault();
+        if (set.avatar == null && set.model != null && set.model.TryGetComponent<Animator>(out var animator)) set.avatar = animator.avatar;
 
         List<SilhouetteMotion> List(string[] names) => names.Select(n => Motion(byName, n)).Where(m => m != null).ToList();
         set.idle = List(Calm);

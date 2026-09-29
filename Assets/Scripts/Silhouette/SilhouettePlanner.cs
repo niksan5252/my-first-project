@@ -43,7 +43,10 @@ public static class SilhouettePlanner
         }
     }
 
-    public enum GestureKind { Punch, PunchHold, Kick, KickHold, Dodge }
+    // Sweep: the raised fist carried out to the side along a PunchSweep's tail. ChordJump: a hop
+    // that lands on both feet exactly on a chord of two kicks (a punch in the chord is its own
+    // Punch gesture, thrown on the landing).
+    public enum GestureKind { Punch, PunchHold, Kick, KickHold, Dodge, Sweep, ChordJump }
 
     public struct Gesture
     {
@@ -105,13 +108,44 @@ public static class SilhouettePlanner
         for (int i = 0; i < chart.Count; i++) order.Add(i);
         order.Sort((a, b) => chart[a].time.CompareTo(chart[b].time));
 
+        var chordDone = new HashSet<int>();
         foreach (int i in order)
         {
             var c = chart[i];
             int side = c.lane < laneCount * 0.5f ? -1 : 1;
             bool outer = c.lane == 0 || c.lane == laneCount - 1;
+
+            // Two kicks on the same moment are a chord: one jump onto both feet, not two taps.
+            if (c.type == CueType.Kick)
+            {
+                if (chordDone.Contains(i)) continue;
+                int partner = ChordPartner(chart, order, i);
+                if (partner >= 0)
+                {
+                    chordDone.Add(partner);
+                    gestures.Add(new Gesture
+                    {
+                        kind = GestureKind.ChordJump, side = 0, outer = false,
+                        start = c.time - set.chordAirBeats * beat, impact = c.time, holdEnd = c.time,
+                        end = c.time + set.chordLandBeats * beat, note = i,
+                    });
+                    continue;
+                }
+            }
+
             switch (c.type)
             {
+                case CueType.PunchSweep:
+                {
+                    // Up to the start of the tail by the note, out along it for the note's length.
+                    gestures.Add(new Gesture
+                    {
+                        kind = GestureKind.Sweep, side = side, outer = true,
+                        start = c.time - rise, impact = c.time, holdEnd = c.time + c.duration,
+                        end = c.time + c.duration + fall, note = i,
+                    });
+                    break;
+                }
                 case CueType.Punch:
                 case CueType.Kick:
                 case CueType.PunchHold:
@@ -178,6 +212,20 @@ public static class SilhouettePlanner
             }
         }
         stance.Fill(segments, freeFrom, float.PositiveInfinity, returnFade);
+    }
+
+    /// The other Kick of a chord on note i, or -1: a Kick at the same moment, in a different lane.
+    private static int ChordPartner(BeatmapSequencer chart, List<int> order, int i)
+    {
+        var c = chart[i];
+        foreach (int j in order)
+        {
+            if (j == i) continue;
+            var o = chart[j];
+            if (o.time > c.time + 0.002f) break;
+            if (o.type == CueType.Kick && o.lane != c.lane && Mathf.Abs(o.time - c.time) <= 0.002f) return j;
+        }
+        return -1;
     }
 
     /// The first beat of the grid every note sits on, for the stance's bounce.
