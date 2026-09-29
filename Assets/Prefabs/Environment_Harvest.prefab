@@ -1,0 +1,100 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &5414267236227291731
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2077937917806682719}
+  - component: {fileID: 3595729272285135701}
+  m_Layer: 0
+  m_Name: Environment_Harvest
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2077937917806682719
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5414267236227291731}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &3595729272285135701
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5414267236227291731}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1ff2b834c5301d245ade74ee2a03d06f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HarvestEnvironmentDecorator
+  glowShader: {fileID: 4800000, guid: 229111d1025b0ea4da235a1272af8445, type: 3}
+  flareMask: {fileID: 2800000, guid: ffe5f4c20c77e9c4999b43e88956ade1, type: 3}
+  flameTexture: {fileID: 2800000, guid: 4a8dbaab130c721489ede3279c0da37e, type: 3}
+  smokeTexture: {fileID: 2800000, guid: 3f7cb6b8f26dccd4497661407c825ae1, type: 3}
+  coneMask: {fileID: 0}
+  gravestones: []
+  crypts: []
+  trees: []
+  fences: []
+  ironFences: []
+  lamps: []
+  candles: []
+  pumpkins:
+  - {fileID: 919132149155446097, guid: 2015db632942b324088018e0d2b455b3, type: 3}
+  details: []
+  moonBlue: {r: 1, g: 0.6, b: 0.45, a: 1}
+  flameOrange: {r: 1, g: 0.5, b: 0.2, a: 1}
+  poisonGreen: {r: 0.42, g: 1, b: 0.22, a: 1}
+  stoneTint: {r: 1, g: 0.9, b: 0.85, a: 1}
+  groundColor: {r: 0.22, g: 0.12, b: 0.05, a: 1}
+  batCountOverride: 0
+  segmentSpacing: 8
+  behindCamera: 16
+  fenceX: 5.3
+  graveX: {x: 6.3, y: 15}
+  cryptX: {x: 12, y: 19}
+  treeX: {x: 15, y: 30}
+  lampX: 5.9
+  propScale: 1.9
+  lampLightRange: 11
+  lampLightIntensity: 5
+  fogPerSegment: 3
+  batCount: 34
+  wheat:
+  - {fileID: 919132149155446097, guid: 7c2a5c16064375b439d8d35099105e7e, type: 3}
+  - {fileID: 919132149155446097, guid: 231bd7e6154032e459ea68f6e772967f, type: 3}
+  corn:
+  - {fileID: 919132149155446097, guid: 458c5c92888af5146a67adc580cc3ed4, type: 3}
+  - {fileID: 919132149155446097, guid: 820fce4954787d448b41945d81a7a71e, type: 3}
+  pumpkinCrops:
+  - {fileID: 919132149155446097, guid: 2015db632942b324088018e0d2b455b3, type: 3}
+  - {fileID: 4655076214908982717, guid: 81a373bf062c567419256ed415c47f4b, type: 3}
+  - {fileID: 8277209953243396805, guid: 36694657a5f6ed44ca298dd8501b1122, type: 3}
+  haystacks:
+  - {fileID: 919132149155446097, guid: e8505d790f830874ba2658e36a65bb81, type: 3}
+  - {fileID: 919132149155446097, guid: 289626745b10af8498137160073dc495, type: 3}
+  fence: {fileID: 919132149155446097, guid: 19ececa5ab76c6f40abe7cbbb73d48da, type: 3}
+  lanternColors:
+  - {r: 1, g: 0.45, b: 0.55, a: 1}
+  - {r: 1, g: 0.55, b: 0.15, a: 1}
+  - {r: 1, g: 0.82, b: 0.3, a: 1}
+  cropGold: {r: 1, g: 0.75, b: 0.3, a: 1}
+  birdsBeforeEnd: 18
+  birdCount: 46

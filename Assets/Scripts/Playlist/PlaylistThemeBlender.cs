@@ -245,17 +245,17 @@ public class PlaylistThemeBlender : MonoBehaviour
         {
             leafTex = LeafTexture();
             leafMat = ParticleMaterial(leafTex, false);
-            gustLeaves = MakeParticles("Gust Leaves", cam.transform, leafMat, 1200);
+            gustLeaves = MakeParticles("Gust Leaves", cam.transform, leafMat, 4000);
             var sh = gustLeaves.shape;
             sh.shapeType = ParticleSystemShapeType.Cone;
-            sh.angle = 28f;
-            sh.radius = 3f;
-            gustLeaves.transform.localPosition = new Vector3(0f, 0f, 38f);
+            sh.angle = 34f;
+            sh.radius = 4f;
+            gustLeaves.transform.localPosition = new Vector3(0f, 0.5f, 30f);
             gustLeaves.transform.localRotation = Quaternion.Euler(0f, 180f, 0f);   // toward the camera
             var main = gustLeaves.main;
             main.startSpeed = new ParticleSystem.MinMaxCurve(22f, 34f);
             main.startLifetime = new ParticleSystem.MinMaxCurve(1.1f, 1.8f);
-            main.startSize = new ParticleSystem.MinMaxCurve(0.35f, 1.1f);
+            main.startSize = new ParticleSystem.MinMaxCurve(0.6f, 1.9f);
             main.startRotation = new ParticleSystem.MinMaxCurve(0f, Mathf.PI * 2f);
             main.simulationSpace = ParticleSystemSimulationSpace.Local;
             var vel = gustLeaves.velocityOverLifetime;
@@ -271,13 +271,18 @@ public class PlaylistThemeBlender : MonoBehaviour
         if (gustFor != s.index)
         {
             gustFor = s.index;
+            // Leaves are leaves: gold, amber, crimson and brown, whatever the cubes' colours are.
             var main = gustLeaves.main;
-            main.startColor = new ParticleSystem.MinMaxGradient(Color.Lerp(from.primaryColor, from.secondaryColor, 0.3f), to.primaryColor);
+            var g = new Gradient();
+            g.SetKeys(new[] { new GradientColorKey(new Color(1f, 0.75f, 0.15f), 0f), new GradientColorKey(new Color(1f, 0.45f, 0.08f), 0.35f),
+                              new GradientColorKey(new Color(0.75f, 0.12f, 0.06f), 0.7f), new GradientColorKey(new Color(0.45f, 0.25f, 0.1f), 1f) },
+                      new[] { new GradientAlphaKey(1f, 0f), new GradientAlphaKey(1f, 1f) });
+            main.startColor = new ParticleSystem.MinMaxGradient(g) { mode = ParticleSystemGradientMode.RandomColor };
         }
         // Emission follows a bell over the transition, peaking at its middle.
         float x = (now - s.inStart) / Mathf.Max(0.01f, s.inEnd - s.inStart);
         float bell = Mathf.Clamp01(1f - Mathf.Abs(x - 0.5f) * 2.2f);
-        int n = Mathf.RoundToInt(bell * bell * 900f * Time.deltaTime * 60f / 60f);
+        int n = Mathf.RoundToInt(bell * Mathf.Sqrt(bell) * 2600f * Time.deltaTime);
         if (n > 0) gustLeaves.Emit(n);
     }
 

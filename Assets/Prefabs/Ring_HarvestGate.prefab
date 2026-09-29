@@ -1,0 +1,56 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &4107608036823828396
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 8442308511719694237}
+  - component: {fileID: 379404444260977847}
+  m_Layer: 0
+  m_Name: Ring_HarvestGate
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &8442308511719694237
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4107608036823828396}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &379404444260977847
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4107608036823828396}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ace20bd8592922844b7bb0ab2a9441fa, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::RingArchPumpkinGate
+  pumpkinModel: {fileID: 919132149155446097, guid: 2015db632942b324088018e0d2b455b3, type: 3}
+  garlandModel: {fileID: 141645319705763572, guid: 995e3c8df9e740948b260bfa99b6c405, type: 3}
+  glowMask: {fileID: 2800000, guid: ffe5f4c20c77e9c4999b43e88956ade1, type: 3}
+  glowShader: {fileID: 4800000, guid: 229111d1025b0ea4da235a1272af8445, type: 3}
+  postX: 4.4
+  beamY: 5.4
+  wood: {r: 0.38, g: 0.24, b: 0.13, a: 1}
+  accent: {r: 1, g: 0.5, b: 0.08, a: 1}
+  pumpkinGlow: {r: 1, g: 0.55, b: 0.3, a: 1}
+  emissionIntensity: 1.1

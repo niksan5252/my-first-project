@@ -23,6 +23,15 @@ MonoBehaviour:
     transitionIn: 0
     transitionSeconds: 3.5
     transitionLook: 0
+  - label: HarvestSunset
+    track: {fileID: 8300000, guid: 3bf44362a09618c4cbe68cc1a250056a, type: 3}
+    beatmapFileName: hester_brighter_days.json
+    theme: {fileID: 11400000, guid: 250f87425c03c1e48a1e7f9db86b83c2, type: 2}
+    clipStart: 0
+    clipEnd: 301
+    transitionIn: 0
+    transitionSeconds: 3.5
+    transitionLook: 1
   preRoll: 1
   noteMarginBeats: 1
   wallsInTransition: 0

@@ -104,6 +104,89 @@ public static class AutumnSetup
         Debug.Log("[AutumnSetup] built " + ForestTheme);
     }
 
+    // --- Segment 2: sunset over the harvest ---
+    // Royal blue and lime: the two that stand out of orange, pink and gold.
+    public static readonly Color RoyalBlue = new Color(0.25f, 0.5f, 1f);
+    public static readonly Color Lime = new Color(0.62f, 1f, 0.2f);
+    public static readonly Color SunsetOrange = new Color(1f, 0.5f, 0.2f);
+    public static readonly Color SunsetHaze = new Color(0.34f, 0.15f, 0.14f);
+
+    [MenuItem("Tunnel/Themes/Build Autumn Harvest Theme", priority = 75)]
+    public static void BuildHarvest()
+    {
+        var sky = Sky("Assets/Themes/Presets/HarvestSky_Mat.mat");
+        sky.SetColor("_TopColor", new Color(0.2f, 0.12f, 0.32f));
+        sky.SetColor("_HorizonColor", new Color(0.95f, 0.45f, 0.32f));
+        // The huge sun sitting on the horizon (GraveyardSky's disc).
+        sky.SetColor("_MoonColor", new Color(1f, 0.6f, 0.28f));
+        sky.SetColor("_MoonHalo", new Color(1f, 0.38f, 0.3f));
+        sky.SetFloat("_MoonSize", 0.3f);
+        sky.SetVector("_MoonDir", new Vector4(0f, 0.08f, 1f, 0f));
+        sky.SetColor("_CloudColor", new Color(0.75f, 0.35f, 0.4f));
+        sky.SetFloat("_Stars", 0f);
+        EditorUtility.SetDirty(sky);
+
+        var ringGo = new GameObject("Ring_HarvestGate");
+        var ring = ringGo.AddComponent<RingArchPumpkinGate>();
+        var rso = new SerializedObject(ring);
+        rso.FindProperty("pumpkinModel").objectReferenceValue = Model(Nature + "crop_pumpkin.fbx");
+        rso.FindProperty("garlandModel").objectReferenceValue = Model(GraveyardThemeSetup.Poly + "Lanterns_On_String_5m.prefab");
+        rso.FindProperty("glowMask").objectReferenceValue = Tex(Particles + "light_01.png");
+        rso.FindProperty("glowShader").objectReferenceValue = Shader.Find("Tunnel/ClubGlow");
+        rso.FindProperty("wood").colorValue = new Color(0.38f, 0.24f, 0.13f);
+        rso.FindProperty("pumpkinGlow").colorValue = new Color(1f, 0.55f, 0.3f);
+        rso.ApplyModifiedPropertiesWithoutUndo();
+        var ringPrefab = PrefabUtility.SaveAsPrefabAsset(ringGo, "Assets/Prefabs/Ring_HarvestGate.prefab");
+        Object.DestroyImmediate(ringGo);
+
+        var envGo = new GameObject("Environment_Harvest");
+        var deco = envGo.AddComponent<HarvestEnvironmentDecorator>();
+        var so = new SerializedObject(deco);
+        CommonEnv(so);
+        Col(so, "groundColor", new Color(0.22f, 0.12f, 0.05f));
+        Col(so, "moonBlue", new Color(1f, 0.6f, 0.45f));
+        Col(so, "flameOrange", SunsetOrange);
+        Col(so, "stoneTint", new Color(1f, 0.9f, 0.85f));
+        Int(so, "batCountOverride", 0);
+        Models(so, "wheat", "crops_wheatStageB", "crops_wheatStageA");
+        Models(so, "corn", "crops_cornStageD", "crops_cornStageC");
+        Models(so, "pumpkinCrops", "crop_pumpkin", GraveyardThemeSetup.Poly + "Pumpkin_Carved_Lit_A.prefab", GraveyardThemeSetup.Poly + "Pumpkin_A.prefab");
+        Models(so, "pumpkins", "crop_pumpkin");
+        Models(so, "haystacks", GraveyardThemeSetup.Kenney + "hay-bale.fbx", GraveyardThemeSetup.Kenney + "hay-bale-bundled.fbx");
+        Obj(so, "fence", Model(Nature + "fence_simple.fbx"));
+        so.ApplyModifiedPropertiesWithoutUndo();
+        var env = PrefabUtility.SaveAsPrefabAsset(envGo, "Assets/Prefabs/Environment_Harvest.prefab");
+        Object.DestroyImmediate(envGo);
+
+        var theme = Theme(HarvestTheme);
+        theme.primaryColor = RoyalBlue;
+        theme.secondaryColor = Lime;
+        theme.accentEmissionIntensity = 1.25f;
+        theme.ringArchPrefab = ringPrefab;
+        theme.floorMaterialOverride = null;
+        theme.floorColor = new Color(0.08f, 0.045f, 0.035f);
+        theme.floorMetallic = 0.1f;
+        theme.floorSmoothness = 0.3f;
+        theme.floorGridLineColor = SunsetOrange * 0.3f;
+        theme.floorGridGlintIntensity = 0.3f;
+        theme.laneLineColor = new Color(1f, 0.55f, 0.6f);
+        theme.laneLineEmissionIntensity = 0.5f;
+        theme.fogColor = SunsetHaze;
+        theme.fogStartRatio = 0.15f;
+        theme.fogEndRatio = 0.9f;
+        theme.lightIntensity = 0.55f;
+        theme.lightColor = new Color(1f, 0.62f, 0.4f);
+        theme.skyboxMaterial = sky;
+        theme.cameraBackgroundColor = SunsetHaze;
+        theme.ambientOverride = new Color(0.36f, 0.22f, 0.22f, 1f);
+        theme.environmentPrefab = env;
+        theme.postProcessingProfile = Volume("Assets/Settings/TunnelScene_PostProcessing_Harvest.asset");
+        theme.hudComboTextColor = Lime;
+        theme.hudBannerBorderColor = RoyalBlue;
+        Save(theme, HarvestTheme);
+        Debug.Log("[AutumnSetup] built " + HarvestTheme);
+    }
+
     // --- The playlist ---
 
     [MenuItem("Tunnel/Playlist/Build Autumn Playlist", priority = 82)]
