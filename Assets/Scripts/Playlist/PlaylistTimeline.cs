@@ -110,7 +110,11 @@ public sealed class PlaylistTimeline
             var span = spans[i];
             var meta = charts[i].meta;
             float margin = playlist.noteMarginBeats * span.secondsPerBeat;
-            float from = span.HasTransitionIn ? span.inEnd + margin : float.NegativeInfinity;
+            // After a crossfade the new track's notes wait for the end of the change; after a
+            // thunderclap the new track starts ON the clap, and so may its notes, a beat later.
+            float from = !span.HasTransitionIn ? float.NegativeInfinity
+                       : span.segment.transitionIn == PlaylistTransition.Thunder ? span.inMiddle + margin
+                       : span.inEnd + margin;
             var next = i + 1 < spans.Count ? spans[i + 1] : null;
             float until = next != null ? next.inStart - margin : span.audioEnd;
             float shift = span.Offset + meta.audioOffset;

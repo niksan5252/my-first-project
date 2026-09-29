@@ -76,6 +76,9 @@ public class CenterWords : MonoBehaviour
 
         float now = Now;
         if (showing) { Animate(now); return; }
+        // A run started part-way through (a test recording, SetStartTime) must not fire every word
+        // it skipped one after another: a word more than a bar late is dropped.
+        while (next < plan.Count && now > plan[next].time + SecondsPerBeat * 4f) next++;
         if (next >= plan.Count || now < plan[next].time) return;
 
         // Due. If the corner banner is up, move to the next bar line rather than talking over it.

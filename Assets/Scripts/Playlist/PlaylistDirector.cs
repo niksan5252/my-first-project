@@ -69,6 +69,10 @@ public class PlaylistDirector : MonoBehaviour
         if (trainer != null && list.trainerMotionSet != null) trainer.UseMotionSet(list.trainerMotionSet, list.trainerTextured);
 
         BuildAudio();
+        // The beat every environment pulses to lives here, for the whole run. Left to the
+        // environments, each would find the previous one's ClubBeat when it is built, add none of
+        // its own, and be left with nothing once the previous environment is destroyed at the swap.
+        if (GetComponent<ClubBeat>() == null) gameObject.AddComponent<ClubBeat>();
         ClubBeat.TempoAt = TempoAt;
 
         blender = gameObject.AddComponent<PlaylistThemeBlender>();
@@ -222,6 +226,8 @@ public class PlaylistDirector : MonoBehaviour
                 v *= Mathf.Lerp(playlist.thunderTrackStartVolume, 1f,
                                 Mathf.Clamp01((t - span.audioStart) / Mathf.Max(0.01f, playlist.thunderRiseSeconds)));
         }
+        if (k + 1 == timeline.spans.Count && playlist.finalFadeSeconds > 0f)
+            v *= Mathf.Clamp01((span.audioEnd - t) / playlist.finalFadeSeconds);
         if (k + 1 < timeline.spans.Count)
         {
             var next = timeline.spans[k + 1];

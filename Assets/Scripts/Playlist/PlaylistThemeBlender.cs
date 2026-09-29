@@ -30,7 +30,7 @@ public class PlaylistThemeBlender : MonoBehaviour
     private Material veilMat;
     private Image flash;
     private int done = 0;               // transitions finished (index of the last segment reached)
-    private int ringsQueuedFor = 0, preparedFor = 0, gateFor = 0, swappedFor = 0;
+    private int ringsQueuedFor = 0, preparedFor = 0, gateFor = 0, swappedFor = 0, cuesFor = 0;
     private GameObject prepared;
     private Transform gate;
     private float gateBaseScale = 1f;
@@ -77,6 +77,15 @@ public class PlaylistThemeBlender : MonoBehaviour
             {
                 gateFor = k;
                 BuildGate(next);
+            }
+            // Cubes spawned from here on belong to the new segment - the first of its notes is
+            // born one flight before it arrives, which after a thunderclap is still before the
+            // transition - so they take its colours from then on (the old segment's last one was
+            // born earlier still).
+            if (cuesFor < k && now >= FirstNoteOf(k) - applier.Spawner.FlightTime - 0.05f)
+            {
+                cuesFor = k;
+                applier.Spawner.Configure(next);
             }
             if (preparedFor < k && now >= span.inStart - PrepareLead && now < span.inMiddle)
             {
@@ -204,6 +213,13 @@ public class PlaylistThemeBlender : MonoBehaviour
         if (tunnel != null) tunnel.ApplyRoadPalette(theme);
         if (blendVolume != null) blendVolume.weight = 0f;
         if (gate != null) { Destroy(gate.gameObject); gate = null; }
+    }
+
+    private float FirstNoteOf(int k)
+    {
+        var span = director.Timeline.spans[k];
+        foreach (var c in director.Timeline.Cues) if (c.time >= span.audioStart) return c.time;
+        return span.inStart;
     }
 
     // --- the gate ---

@@ -75,6 +75,11 @@ public class RunPlaylist : ScriptableObject
     [Range(0f, 1f)] public float thunderTrackStartVolume = 0.55f;
     [Min(0f)] public float thunderRiseSeconds = 0.8f;
 
+    [Header("Finale")]
+    // The last track fades out over its last seconds, so the video ends on a calm tail rather than
+    // a cut. Set the last segment's clipEnd a few seconds after its last note.
+    [Min(0f)] public float finalFadeSeconds = 2.5f;
+
     [Header("Trainer")]
     // The character that shows the moves in this playlist, instead of the scene's own. Null keeps
     // the scene's (Jennifer).
