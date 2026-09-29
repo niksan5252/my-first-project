@@ -113,7 +113,22 @@ public class CenterWords : MonoBehaviour
         barAnchor = anchor;
         barSeconds = bar;
 
-        var moments = PlanMoments(times, ends, meta.sets, bar, set);
+        // A playlist: every track gets its own words, planned on its own bars (its tempo, its grid).
+        List<Moment> moments;
+        var playlist = PlaylistDirector.Active != null ? PlaylistDirector.Active.Timeline : null;
+        if (playlist == null) moments = PlanMoments(times, ends, meta.sets, bar, set);
+        else
+        {
+            moments = new List<Moment>();
+            foreach (var span in playlist.spans)
+            {
+                var t = new List<float>(); var e = new List<float>();
+                for (int i = 0; i < times.Count; i++)
+                    if (times[i] >= span.audioStart && times[i] < span.audioEnd) { t.Add(times[i]); e.Add(ends[i]); }
+                var setsIn = meta.sets == null ? null : System.Array.FindAll(meta.sets, st => st.start >= span.audioStart && st.start < span.audioEnd);
+                moments.AddRange(PlanMoments(t, e, setsIn, span.secondsPerBeat * 4f, set));
+            }
+        }
         var words = DrawWords(moments.Count);
         var log = new StringBuilder("[CenterWords] ").Append(moments.Count).Append(" words planned:");
         for (int i = 0; i < moments.Count; i++)
@@ -132,8 +147,17 @@ public class CenterWords : MonoBehaviour
 
     private float NextBarLine(float t)
     {
-        float k = Mathf.Ceil((t - barAnchor) / barSeconds);
-        return barAnchor + k * barSeconds;
+        float anchor = barAnchor, seconds = barSeconds;
+        // In a playlist the bar lines are those of the track playing at t.
+        var playlist = PlaylistDirector.Active != null ? PlaylistDirector.Active.Timeline : null;
+        if (playlist != null)
+        {
+            var span = playlist.spans[playlist.SegmentAt(t)];
+            anchor = span.gridAnchor;
+            seconds = span.secondsPerBeat * 4f;
+        }
+        float k = Mathf.Ceil((t - anchor) / seconds);
+        return anchor + k * seconds;
     }
 
     /// Where the words go. The rule, in full: collect the strong moments of the chart - the drums

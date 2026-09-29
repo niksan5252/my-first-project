@@ -473,6 +473,7 @@ public class CueSpawner : MonoBehaviour
         public Transform stretch;
         public float stretchBase;
         public GameObject[] laneBlocks; // balance kerbs: one block per lane, the free ones hidden
+        public bool longBody;           // a long wall: its glass is dimmed like a kerb's
         public bool holding;
         public float holdProgress;   // 0..1 of the length already swept, pushed straight to the shader
         public bool holdFinishing;   // in the closing dissolve
@@ -1250,6 +1251,7 @@ public class CueSpawner : MonoBehaviour
         SetupHoldInstance(slotIndex, type, duration, lane);
         if (type == CueType.Dodge) AimDodgeChevrons(slotIndex, side);
         if (obstacle) SetupObstacleInstance(slotIndex, type, lane, extent);
+        slots[slotIndex].longBody = type == CueType.Dodge && extent > dodgeWallLength + 0.1f;
         ApplyCueColor(slots[slotIndex], color);
 
         // How far this instance reaches back along the road, which is the one thing the recycle
@@ -2574,6 +2576,8 @@ public class CueSpawner : MonoBehaviour
         // A balance kerb lies flat on the road right in front of the lens for seconds: at a wall's
         // brightness it floods the frame and hides the free lane that is the whole instruction.
         if (IsBalance(slot.type)) { fillEmission *= balanceFillScale; fillAlpha *= balanceFillScale; }
+        // A long wall runs beside the camera for bars: at full glass it floods half the frame.
+        else if (slot.longBody) { fillEmission *= 0.45f; fillAlpha *= 0.6f; }
         for (int i = 0; i < slot.fillRenderers.Length; i++)
         {
             var mr = slot.fillRenderers[i];

@@ -105,6 +105,13 @@ public static class TunnelRecording
     [MenuItem("Tunnel/Record Test (33 s from the first notes, 1440p)", priority = 5)]
     private static void RecordTestFromNotes() => Launch(TestSeconds, "1440p", false, true);
 
+    // For a playlist: the test starts this long before its first transition, so the 33 s show the
+    // end of one segment, the change of look and the start of the next.
+    private const float LeadBeforeTransition = 12f;
+
+    [MenuItem("Tunnel/Record Test (33 s across the playlist's first transition, 1440p)", priority = 6)]
+    private static void RecordTestTransition() => Launch(TestSeconds, "1440p", false, false, true);
+
     [MenuItem("Tunnel/Open Recordings Folder", priority = 20)]
     private static void OpenFolder()
     {
@@ -118,16 +125,17 @@ public static class TunnelRecording
     [MenuItem("Tunnel/Record Test (33 s, 1440p)", true)]
     [MenuItem("Tunnel/Record Test (33 s, 4K)", true)]
     [MenuItem("Tunnel/Record Test (33 s from the first notes, 1440p)", true)]
+    [MenuItem("Tunnel/Record Test (33 s across the playlist's first transition, 1440p)", true)]
     private static bool CanLaunch() => !EditorApplication.isPlayingOrWillChangePlaymode;
 
     /// For quality comparisons: any profile ("1440p", "1080p", "4K", "4Knative", "legacy1080p"), optionally with a
     /// lossless PNG of every frame next to the video to measure what the encoder loses.
     public static void LaunchDiagnostic(float seconds, string profile, bool png) => Launch(seconds, profile, png);
 
-    private static void Launch(float seconds, string profile, bool png, bool fromNotes = false)
+    private static void Launch(float seconds, string profile, bool png, bool fromNotes = false, bool atTransition = false)
     {
         SessionState.SetString(PendingKey, seconds.ToString(CultureInfo.InvariantCulture) + "|" + profile + "|" + (png ? "1" : "0")
-                                           + "|" + (fromNotes ? "1" : "0"));
+                                           + "|" + (fromNotes ? "1" : atTransition ? "2" : "0"));
         EditorApplication.EnterPlaymode();
     }
 
@@ -137,6 +145,18 @@ public static class TunnelRecording
         if (spawner == null) return;
         float first = spawner.FirstNoteTime;
         if (first > LeadBeforeNotes) spawner.SetStartTime(first - LeadBeforeNotes);
+    }
+
+    private static void StartBeforeTransition()
+    {
+        var spawner = UnityEngine.Object.FindAnyObjectByType<CueSpawner>();
+        var timeline = PlaylistDirector.Active != null ? PlaylistDirector.Active.Timeline : null;
+        if (spawner == null || timeline == null || timeline.spans.Count < 2)
+        {
+            Debug.LogWarning("[TunnelRecording] no playlist with a transition - recording from the start");
+            return;
+        }
+        spawner.SetStartTime(Mathf.Max(0f, timeline.spans[1].inStart - LeadBeforeTransition));
     }
 
     private static Profile Find(string label) =>
@@ -152,6 +172,7 @@ public static class TunnelRecording
             if (pending.Length == 0) return;
             var parts = pending.Split('|');
             if (parts.Length > 3 && parts[3] == "1") StartNearFirstNotes();
+            if (parts.Length > 3 && parts[3] == "2") StartBeforeTransition();
             Begin(float.Parse(parts[0], CultureInfo.InvariantCulture), Find(parts[1]), parts[2] == "1");
         }
         else if (change == PlayModeStateChange.ExitingPlayMode && controller != null)

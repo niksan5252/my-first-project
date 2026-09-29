@@ -459,9 +459,11 @@ public class NeonTunnelGenerator : MonoBehaviour
         for (int i = 0; i < renderers.Length; i++)
         {
             renderers[i].GetPropertyBlock(block);
-            result[i] = (!block.isEmpty && block.HasColor(EmissionColorId))
-                ? block.GetColor(EmissionColorId)
-                : renderers[i].sharedMaterial.GetColor(EmissionColorId);
+            var mat = renderers[i].sharedMaterial;
+            // A themed arch may carry additive light sprites (ClubGlow), which have no emission.
+            result[i] = (!block.isEmpty && block.HasColor(EmissionColorId)) ? block.GetColor(EmissionColorId)
+                      : mat != null && mat.HasProperty(EmissionColorId) ? mat.GetColor(EmissionColorId)
+                      : Color.black;
         }
         return result;
     }
@@ -505,6 +507,10 @@ public class NeonTunnelGenerator : MonoBehaviour
             var baseEmission = ringBaseEmission[i];
             for (int r = 0; r < renderers.Length; r++)
             {
+                // Light sprites on a themed arch have no emission to lift, and clearing their
+                // property block would wipe the colour and intensity the arch gives them.
+                var sm = renderers[r].sharedMaterial;
+                if (sm == null || !sm.HasProperty(EmissionColorId)) continue;
                 Color target = baseEmission[r] + ringFlashColors[i] * boost;
 
                 // Scale the whole color back to the ceiling rather than letting channels clip
