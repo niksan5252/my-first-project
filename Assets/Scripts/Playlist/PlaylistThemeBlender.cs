@@ -101,6 +101,7 @@ public class PlaylistThemeBlender : MonoBehaviour
         for (int k = 1; k < spans.Count; k++)
             if (now >= spans[k].inStart && now <= spans[k].inEnd) { active = k; break; }
 
+        StopRainAfter(now);
         if (active < 0)
         {
             SetVeil(0f, Color.black);
@@ -118,6 +119,8 @@ public class PlaylistThemeBlender : MonoBehaviour
         float p = Mathf.Clamp01((now - s.inStart) / Mathf.Max(0.01f, s.inEnd - s.inStart));
         float e = p * p * (3f - 2f * p);
         float veilAmount = Mathf.Pow(Mathf.Sin(p * Mathf.PI), 0.7f);
+        // A gust hides the swap behind its leaves, so the fog only half closes; rain darkens more.
+        if (s.segment.transitionLook == PlaylistTransitionLook.Gust) veilAmount *= 0.55f;
 
         if (swappedFor < active && now >= s.inMiddle) Swap(active);
 
@@ -131,7 +134,10 @@ public class PlaylistThemeBlender : MonoBehaviour
             blendVolume.weight = after ? 1f - e : e;
         }
 
-        if (s.segment.transitionIn == PlaylistTransition.Thunder)
+        var look = s.segment.transitionLook;
+        if (look == PlaylistTransitionLook.Gust) Gust(now, s, from, to);
+        if (look == PlaylistTransitionLook.Rain) Rain(now, s, p);
+        if (s.segment.transitionIn == PlaylistTransition.Thunder || look == PlaylistTransitionLook.Rain)
         {
             float since = now - s.inMiddle;
             // A pre-flicker, the strike, and a second stroke; each falls away fast.
@@ -139,7 +145,7 @@ public class PlaylistThemeBlender : MonoBehaviour
             if (since > -0.35f && since < -0.28f) f = 0.35f;
             if (since >= 0f) f = Mathf.Exp(-since / 0.12f) + 0.6f * (since > 0.16f ? Mathf.Exp(-(since - 0.16f) / 0.1f) : 0f);
             Color c = Color.Lerp(Color.white, to.secondaryColor, 0.25f);
-            SetFlash(Mathf.Clamp01(f) * director.Playlist.thunderFlash, c);
+            SetFlash(Mathf.Clamp01(f) * director.Playlist.thunderFlash * (look == PlaylistTransitionLook.Rain ? 0.4f : 1f), c);
         }
         else SetFlash(0f, Color.white);
     }
@@ -156,7 +162,7 @@ public class PlaylistThemeBlender : MonoBehaviour
         RenderSettings.fogColor = fog;
         RenderSettings.fogStartDistance = Mathf.Lerp(fogStart, veilEnd * 0.2f, veilAmount);
         RenderSettings.fogEndDistance = Mathf.Lerp(fogEnd, veilEnd, veilAmount);
-        RenderSettings.ambientLight = fog * 0.3f;
+        RenderSettings.ambientLight = Color.Lerp(a.AmbientColor, b.AmbientColor, e);
         if (applier.TargetCamera != null) applier.TargetCamera.backgroundColor = Color.Lerp(a.cameraBackgroundColor, b.cameraBackgroundColor, e);
         SetVeil(veilAmount, fog);
 
@@ -208,7 +214,7 @@ public class PlaylistThemeBlender : MonoBehaviour
         RenderSettings.fogColor = theme.fogColor;
         RenderSettings.fogStartDistance = length * theme.fogStartRatio;
         RenderSettings.fogEndDistance = length * theme.fogEndRatio;
-        RenderSettings.ambientLight = theme.fogColor * 0.3f;
+        RenderSettings.ambientLight = theme.AmbientColor;
         if (applier.Hud != null) applier.Hud.ApplyTheme(theme);
         if (tunnel != null) tunnel.ApplyRoadPalette(theme);
         if (blendVolume != null) blendVolume.weight = 0f;
@@ -220,6 +226,173 @@ public class PlaylistThemeBlender : MonoBehaviour
         var span = director.Timeline.spans[k];
         foreach (var c in director.Timeline.Cues) if (c.time >= span.audioStart) return c.time;
         return span.inStart;
+    }
+
+    // --- transition looks ---
+
+    private ParticleSystem gustLeaves, rainStreaks;
+    private Material leafMat, rainMat;
+    private Texture2D leafTex;
+    private int gustFor, rainFor;
+
+    /// The gust: leaves in both segments' colours burst out of the distance, swirl, and fly at the
+    /// camera, thickest at the transition's middle, where they cover most of the frame.
+    private void Gust(float now, PlaylistTimeline.Span s, TunnelTheme from, TunnelTheme to)
+    {
+        var cam = applier.TargetCamera;
+        if (cam == null) return;
+        if (gustLeaves == null)
+        {
+            leafTex = LeafTexture();
+            leafMat = ParticleMaterial(leafTex, false);
+            gustLeaves = MakeParticles("Gust Leaves", cam.transform, leafMat, 1200);
+            var sh = gustLeaves.shape;
+            sh.shapeType = ParticleSystemShapeType.Cone;
+            sh.angle = 28f;
+            sh.radius = 3f;
+            gustLeaves.transform.localPosition = new Vector3(0f, 0f, 38f);
+            gustLeaves.transform.localRotation = Quaternion.Euler(0f, 180f, 0f);   // toward the camera
+            var main = gustLeaves.main;
+            main.startSpeed = new ParticleSystem.MinMaxCurve(22f, 34f);
+            main.startLifetime = new ParticleSystem.MinMaxCurve(1.1f, 1.8f);
+            main.startSize = new ParticleSystem.MinMaxCurve(0.35f, 1.1f);
+            main.startRotation = new ParticleSystem.MinMaxCurve(0f, Mathf.PI * 2f);
+            main.simulationSpace = ParticleSystemSimulationSpace.Local;
+            var vel = gustLeaves.velocityOverLifetime;
+            vel.enabled = true;
+            vel.space = ParticleSystemSimulationSpace.Local;
+            vel.orbitalZ = new ParticleSystem.MinMaxCurve(1.2f, 2.4f);   // the vortex
+            vel.radial = new ParticleSystem.MinMaxCurve(0.5f, 2.5f);
+            vel.x = vel.y = vel.z = new ParticleSystem.MinMaxCurve(0f);
+            var rot = gustLeaves.rotationOverLifetime;
+            rot.enabled = true;
+            rot.z = new ParticleSystem.MinMaxCurve(-6f, 6f);
+        }
+        if (gustFor != s.index)
+        {
+            gustFor = s.index;
+            var main = gustLeaves.main;
+            main.startColor = new ParticleSystem.MinMaxGradient(Color.Lerp(from.primaryColor, from.secondaryColor, 0.3f), to.primaryColor);
+        }
+        // Emission follows a bell over the transition, peaking at its middle.
+        float x = (now - s.inStart) / Mathf.Max(0.01f, s.inEnd - s.inStart);
+        float bell = Mathf.Clamp01(1f - Mathf.Abs(x - 0.5f) * 2.2f);
+        int n = Mathf.RoundToInt(bell * bell * 900f * Time.deltaTime * 60f / 60f);
+        if (n > 0) gustLeaves.Emit(n);
+    }
+
+    /// The rain: streaks falling past the camera, starting as the transition starts and reaching
+    /// full strength at its middle; they run on a few seconds into the new segment, whose own rain
+    /// takes over. The sky's sun (GraveyardSky's disc) sinks below the horizon meanwhile.
+    private void Rain(float now, PlaylistTimeline.Span s, float p)
+    {
+        var cam = applier.TargetCamera;
+        if (cam == null) return;
+        if (rainStreaks == null)
+        {
+            rainMat = ParticleMaterial(null, true);
+            rainStreaks = MakeParticles("Transition Rain", cam.transform, rainMat, 3000);
+            rainStreaks.transform.localPosition = new Vector3(0f, 6f, 12f);
+            var sh = rainStreaks.shape;
+            sh.shapeType = ParticleSystemShapeType.Box;
+            sh.scale = new Vector3(26f, 0.1f, 30f);
+            var main = rainStreaks.main;
+            main.startSpeed = new ParticleSystem.MinMaxCurve(0f);
+            main.startLifetime = 0.7f;
+            main.startSize = new ParticleSystem.MinMaxCurve(0.03f, 0.05f);
+            main.gravityModifier = 3.5f;
+            main.simulationSpace = ParticleSystemSimulationSpace.World;
+            main.startColor = new Color(0.65f, 0.75f, 1f, 0.45f);
+            var r = rainStreaks.GetComponent<ParticleSystemRenderer>();
+            r.renderMode = ParticleSystemRenderMode.Stretch;
+            r.velocityScale = 0.05f;
+            r.lengthScale = 3f;
+            var em = rainStreaks.emission;
+            em.enabled = true;
+        }
+        var rate = rainStreaks.emission;
+        rate.rateOverTime = Mathf.Lerp(0f, 2500f, Mathf.Clamp01(p * 2f));
+        if (!rainStreaks.isPlaying) rainStreaks.Play();
+        rainFor = s.index;
+        // The sun sinks: GraveyardSky's disc slides below the horizon over the first half.
+        var sky = RenderSettings.skybox;
+        if (sky != null && sky.HasProperty("_MoonDir") && swappedFor < s.index)
+        {
+            if (sunStart == Vector4.zero) sunStart = sky.GetVector("_MoonDir");
+            var d = sunStart;
+            d.y = Mathf.Lerp(sunStart.y, -0.25f, Mathf.Clamp01(p * 2f));
+            sky.SetVector("_MoonDir", d);
+        }
+    }
+    private Vector4 sunStart;
+
+    private void StopRainAfter(float now)
+    {
+        if (rainStreaks == null) return;
+        var spans = director.Timeline.spans;
+        if (rainFor <= 0 || rainFor >= spans.Count) return;
+        float after = now - spans[rainFor].inEnd;
+        if (after > 0f)
+        {
+            var em = rainStreaks.emission;
+            em.rateOverTime = Mathf.Lerp(2500f, 0f, Mathf.Clamp01(after / 3f));
+        }
+    }
+
+    private static ParticleSystem MakeParticles(string name, Transform parent, Material mat, int max)
+    {
+        var go = new GameObject(name);
+        go.transform.SetParent(parent, false);
+        var ps = go.AddComponent<ParticleSystem>();
+        ps.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+        var main = ps.main;
+        main.loop = true;
+        main.playOnAwake = false;
+        main.maxParticles = max;
+        var em = ps.emission;
+        em.rateOverTime = 0f;
+        var r = go.GetComponent<ParticleSystemRenderer>();
+        r.sharedMaterial = mat;
+        r.shadowCastingMode = ShadowCastingMode.Off;
+        ps.Play();
+        return ps;
+    }
+
+    private static Material ParticleMaterial(Texture2D tex, bool additive)
+    {
+        var m = new Material(Shader.Find("Universal Render Pipeline/Particles/Unlit"));
+        if (tex != null) m.SetTexture("_BaseMap", tex);
+        m.SetFloat("_Surface", 1f);
+        m.SetFloat("_Blend", additive ? 2f : 0f);
+        m.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+        if (additive) m.EnableKeyword("_BLENDMODE_ADD");
+        m.SetFloat("_SrcBlend", (float)(additive ? BlendMode.One : BlendMode.SrcAlpha));
+        m.SetFloat("_DstBlend", (float)(additive ? BlendMode.One : BlendMode.OneMinusSrcAlpha));
+        m.SetFloat("_ZWrite", 0f);
+        m.renderQueue = (int)RenderQueue.Transparent;
+        return m;
+    }
+
+    /// A leaf, drawn in code: a pointed oval with a midrib, alpha only (tinted per particle).
+    public static Texture2D LeafTexture()
+    {
+        const int n = 64;
+        var tex = new Texture2D(n, n, TextureFormat.RGBA32, false) { wrapMode = TextureWrapMode.Clamp };
+        var px = new Color32[n * n];
+        for (int y = 0; y < n; y++)
+            for (int x = 0; x < n; x++)
+            {
+                float u = (x + 0.5f) / n * 2f - 1f, v = (y + 0.5f) / n * 2f - 1f;
+                float w = 0.62f * Mathf.Sqrt(Mathf.Max(0f, 1f - v * v)) * (1f - 0.35f * Mathf.Abs(Mathf.Sin(v * 9f)) * 0.3f);
+                bool leaf = Mathf.Abs(u) < w && v > -0.95f;
+                bool stem = Mathf.Abs(u) < 0.04f && v < -0.8f && v > -1f;
+                float shade = leaf ? (Mathf.Abs(u) < 0.035f ? 0.55f : 0.85f + 0.15f * v) : stem ? 0.5f : 0f;
+                byte c = (byte)Mathf.RoundToInt(shade * 255f);
+                px[y * n + x] = new Color32(c, c, c, (byte)(leaf || stem ? 255 : 0));
+            }
+        tex.SetPixels32(px);
+        tex.Apply(false, true);
+        return tex;
     }
 
     // --- the gate ---

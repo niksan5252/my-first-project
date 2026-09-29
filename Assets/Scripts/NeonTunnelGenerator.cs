@@ -107,6 +107,7 @@ public class NeonTunnelGenerator : MonoBehaviour
     private Color fogColor = new Color(0.05f, 0f, 0.1f);
     private float fogStartRatio = 0.35f;
     private float fogEndRatio = 0.95f;
+    private Color ambientColor = new Color(0.015f, 0f, 0.03f);
 
     // Theme-sourced (see Configure). Air particle appearance/tuning; disabled when the theme
     // provides no preset (or the preset itself is disabled).
@@ -187,6 +188,7 @@ public class NeonTunnelGenerator : MonoBehaviour
         fogColor = theme.fogColor;
         fogStartRatio = theme.fogStartRatio;
         fogEndRatio = theme.fogEndRatio;
+        ambientColor = theme.AmbientColor;
 
         airParticles = theme.airParticles;
         buildAirParticles = theme.airParticles != null && theme.airParticles.enabled;
@@ -716,7 +718,7 @@ public class NeonTunnelGenerator : MonoBehaviour
         // visible grey. A deep-space tunnel has no sun to bounce ambient light around, so pin
         // ambient to a near-black flat color matching the fog instead of the default skybox probe.
         RenderSettings.ambientMode = AmbientMode.Flat;
-        RenderSettings.ambientLight = fogColor * 0.3f;
+        RenderSettings.ambientLight = ambientColor;
     }
 
 

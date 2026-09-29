@@ -1,0 +1,114 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &675511198686069916
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 8725994697839172823}
+  - component: {fileID: 8224154170514011609}
+  m_Layer: 0
+  m_Name: Environment_Forest
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &8725994697839172823
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 675511198686069916}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &8224154170514011609
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 675511198686069916}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6f937eb3880b7924a983ee387a28e80e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ForestEnvironmentDecorator
+  glowShader: {fileID: 4800000, guid: 229111d1025b0ea4da235a1272af8445, type: 3}
+  flareMask: {fileID: 2800000, guid: ffe5f4c20c77e9c4999b43e88956ade1, type: 3}
+  flameTexture: {fileID: 2800000, guid: 4a8dbaab130c721489ede3279c0da37e, type: 3}
+  smokeTexture: {fileID: 2800000, guid: 3f7cb6b8f26dccd4497661407c825ae1, type: 3}
+  coneMask: {fileID: 0}
+  gravestones: []
+  crypts: []
+  trees: []
+  fences: []
+  ironFences: []
+  lamps: []
+  candles: []
+  pumpkins: []
+  details: []
+  moonBlue: {r: 0.9, g: 0.7, b: 0.4, a: 1}
+  flameOrange: {r: 1, g: 0.6, b: 0.15, a: 1}
+  poisonGreen: {r: 0.42, g: 1, b: 0.22, a: 1}
+  stoneTint: {r: 1, g: 0.92, b: 0.85, a: 1}
+  groundColor: {r: 0.16, g: 0.07, b: 0.03, a: 1}
+  batCountOverride: 0
+  segmentSpacing: 8
+  behindCamera: 16
+  fenceX: 5.3
+  graveX: {x: 6.3, y: 15}
+  cryptX: {x: 12, y: 19}
+  treeX: {x: 15, y: 30}
+  lampX: 5.9
+  propScale: 1.9
+  lampLightRange: 11
+  lampLightIntensity: 5
+  fogPerSegment: 3
+  batCount: 34
+  treeModels:
+  - {fileID: 919132149155446097, guid: d970208d8dd34584087a70e50860e4b5, type: 3}
+  - {fileID: 919132149155446097, guid: e3b6dc71f44ffdb45bb33efecd3f6d7c, type: 3}
+  - {fileID: 919132149155446097, guid: e1b0fb894fa5aff4b9628077f70035bd, type: 3}
+  - {fileID: 919132149155446097, guid: 9cbfed84516bf20428614f27ccb3ea74, type: 3}
+  - {fileID: 919132149155446097, guid: da7041cce12d7734c823542727f13ac2, type: 3}
+  - {fileID: 919132149155446097, guid: 9f099b62accfc3948abb0f7d911d7d93, type: 3}
+  bushes:
+  - {fileID: 919132149155446097, guid: 390d90456e9335240931e2c23e1572ca, type: 3}
+  - {fileID: 919132149155446097, guid: fb99aea926940b049ae4c9e8c458566c, type: 3}
+  - {fileID: 919132149155446097, guid: 0e7a59e90193dbd479114c17c9e2ad70, type: 3}
+  - {fileID: 919132149155446097, guid: 789030acf6811e7489d301c8d10e03e7, type: 3}
+  groundProps:
+  - {fileID: 919132149155446097, guid: f600f8383a125c7458b41a014264f68b, type: 3}
+  - {fileID: 919132149155446097, guid: 45bfd65010143bc418b59ff79bb48ffe, type: 3}
+  - {fileID: 919132149155446097, guid: dd14420b04d314c4296cdf6210e56ed8, type: 3}
+  - {fileID: 919132149155446097, guid: 19dcb811d4cf5e648a6cca1e47994acf, type: 3}
+  - {fileID: 919132149155446097, guid: 68fc3e4bd709f1f4caa5317c59050c0e, type: 3}
+  - {fileID: 919132149155446097, guid: da01bd4daeb9ca643aeb2734cd84f16a, type: 3}
+  - {fileID: 919132149155446097, guid: 1e968ccd08fa78e4394ad7b89b32bbc0, type: 3}
+  - {fileID: 919132149155446097, guid: 53ab21cf66a46d946905582514a2f4a6, type: 3}
+  mushrooms:
+  - {fileID: 919132149155446097, guid: b510ac43746e5e54caafb38f603db5c4, type: 3}
+  - {fileID: 919132149155446097, guid: f409b14e0ffaa4042842290e1c754a8b, type: 3}
+  - {fileID: 919132149155446097, guid: e030217d254ad8341abb3ffa1bbb3114, type: 3}
+  rayMasks:
+  - {fileID: 2800000, guid: 856411e7068d74741827490d88eae156, type: 3}
+  - {fileID: 2800000, guid: cb588f93650ccad4b9bd2d75fece8a02, type: 3}
+  - {fileID: 2800000, guid: 68368284a53d5aa40a1b89bfbff240bf, type: 3}
+  leafColors:
+  - {r: 1, g: 0.72, b: 0.12, a: 1}
+  - {r: 1, g: 0.45, b: 0.08, a: 1}
+  - {r: 0.78, g: 0.13, b: 0.08, a: 1}
+  - {r: 0.95, g: 0.6, b: 0.15, a: 1}
+  sunlight: {r: 1, g: 0.78, b: 0.4, a: 1}
+  leafGlow: 0.35

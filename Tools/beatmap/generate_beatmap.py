@@ -1045,6 +1045,16 @@ INTENSE_V2_NORMAL = [KICK, HIGH_LOW, SIDE_JUMP, PUNCH, WALL_RUN, SHIFT, CHORD, "
                      HIGH_LOW, JACK, DUCK, KICK, CROSS, PUNCH, BALANCE, SIDE_JUMP, "PunchHold",
                      SHIFT, DODGE, CHORD]
 INTENSE_V2_HEAVY = [CROSS, JACK, SIDE_JUMP, CHORD]
+# --v2-rotation arms: the same routine with the arms given more of the work (video 4 asked for
+# about 60/40 legs/arms, where the default comes out near 75/25): more Punch, HighLow and PunchHold
+# sets, fewer Kick-only ones, and HighLow in the heavy rotation after drops.
+INTENSE_V2_ROTATIONS = {
+    "default": (INTENSE_V2_NORMAL, INTENSE_V2_HEAVY),
+    "arms": ([PUNCH, KICK, HIGH_LOW, SIDE_JUMP, PUNCH, WALL_RUN, HIGH_LOW, SHIFT, "PunchHold",
+              CHORD, PUNCH, JACK, DUCK, HIGH_LOW, CROSS, PUNCH, BALANCE, "KickHold", HIGH_LOW,
+              SIDE_JUMP, "PunchHold", DODGE],
+             [CROSS, HIGH_LOW, JACK, PUNCH, SIDE_JUMP, CHORD]),
+}
 INTENSE_V2_BARS = {WALL_RUN: 4, CROSS: 2, BALANCE: 2, DUCK: 2, DODGE: 2}
 INTENSE_V2_HEAVY_BARS = 8        # bars after a drop that take the heavy rotation
 OBSTACLE_SETS = {WALL_RUN, BALANCE, DUCK, DODGE, CURB}
@@ -1062,12 +1072,14 @@ def drops_from_bar_map(bar_map: List[str]) -> List[int]:
     return drops
 
 
-def choose_set_exercise(bar: int, drops: List[int], history: List[str], cursor: dict) -> str:
+def choose_set_exercise(bar: int, drops: List[int], history: List[str], cursor: dict,
+                        rotation_name: str = "default") -> str:
     """The next set's exercise. Heavy ones (the star, jacks, side jumps, chords) for the first
     bars after a drop, the normal rotation elsewhere; never the same twice running, and never two
     obstacle sets back to back - the camera has to come home between them."""
     heavy = any(0 <= bar - d < INTENSE_V2_HEAVY_BARS for d in drops)
-    rotation, key = (INTENSE_V2_HEAVY, "heavy") if heavy else (INTENSE_V2_NORMAL, "normal")
+    normal_list, heavy_list = INTENSE_V2_ROTATIONS[rotation_name]
+    rotation, key = (heavy_list, "heavy") if heavy else (normal_list, "normal")
     for _ in range(len(rotation)):
         ex = rotation[cursor[key] % len(rotation)]
         cursor[key] += 1
@@ -1078,7 +1090,7 @@ def choose_set_exercise(bar: int, drops: List[int], history: List[str], cursor: 
 
 
 def plan_sets_v2(bar_lines: np.ndarray, bar_map: List[str], rest_beats: float, beat: float,
-                 track_end: float) -> List[WorkoutSet]:
+                 track_end: float, rotation_name: str = "default") -> List[WorkoutSet]:
     """Sets for the intense-v2 routine, laid bar line to bar line like plan_sets."""
     drops = drops_from_bar_map(bar_map)
     sets: List[WorkoutSet] = []
@@ -1086,7 +1098,7 @@ def plan_sets_v2(bar_lines: np.ndarray, bar_map: List[str], rest_beats: float, b
     cursor = {"heavy": 0, "normal": 0}
     bar = 0
     while True:
-        ex = choose_set_exercise(bar, drops, history, cursor)
+        ex = choose_set_exercise(bar, drops, history, cursor, rotation_name)
         bars = INTENSE_V2_BARS.get(ex, 2)
         if bar + bars >= len(bar_lines):
             break
@@ -1514,7 +1526,7 @@ def analyse(path: Path, cfg) -> Tuple[List[Event], float, float, int, List[Worko
         set_bars_for = parse_mapping(cfg.set_bars_for, {}, "--set-bars-for",
                                      lambda raw, name, chunk: _positive_int(raw, name, chunk))
         if cfg.pattern == "intense-v2":
-            sets = plan_sets_v2(bar_lines, cfg.bar_map, cfg.rest_beats, beat, track_end)
+            sets = plan_sets_v2(bar_lines, cfg.bar_map, cfg.rest_beats, beat, track_end, cfg.v2_rotation)
         else:
             sets = plan_sets(bar_lines, pattern, cfg.set_bars, cfg.rest_beats, beat, track_end, set_bars_for)
         if not sets:
@@ -1842,6 +1854,8 @@ def build_parser() -> argparse.ArgumentParser:
     g.add_argument("--lane-pairs", default=None,
                    help="the two lanes each exercise alternates between, e.g. 'Punch:0-3'; "
                         "default is 1-2 for everything, and 0-3 for Dodge, whose lane is a side")
+    g.add_argument("--v2-rotation", choices=sorted(INTENSE_V2_ROTATIONS), default="default",
+                   help="intense-v2: which set rotation (arms = more punching, ~60/40 legs/arms)")
     g.add_argument("--sweeps", action="store_true",
                    help="keep PunchSweep sets (off by default: a sweep set becomes a PunchHold set)")
     g.add_argument("--grid-quiet-every", type=float, default=0.0,

@@ -12,6 +12,18 @@ public enum PlaylistTransition
     Thunder,
 }
 
+/// What a transition LOOKS like, independent of what the music does.
+public enum PlaylistTransitionLook
+{
+    // The fog closes in and a veil covers the distance while the look is swapped under it.
+    Veil,
+    // A gust of wind: a vortex of leaves blows at the camera and covers the frame for a moment.
+    Gust,
+    // Rain comes in: the sun sinks, the sky clouds over, a downpour starts and a soft lightning
+    // flash (and a distant rumble) lands on the transition's middle.
+    Rain,
+}
+
 /// One track of a playlist: its music, its chart, its look, and how it is entered.
 [Serializable]
 public class PlaylistSegment
@@ -30,6 +42,7 @@ public class PlaylistSegment
     // how long the change takes - music and picture both.
     public PlaylistTransition transitionIn = PlaylistTransition.Crossfade;
     [Range(2f, 6f)] public float transitionSeconds = 3.5f;
+    public PlaylistTransitionLook transitionLook = PlaylistTransitionLook.Veil;
 
     public float PlayedLength
     {
@@ -87,4 +100,7 @@ public class RunPlaylist : ScriptableObject
     // Draw it as a textured character with a soft rim light in the segment's colours, rather than
     // as a neon contour.
     public bool trainerTextured = true;
+    // Keep the scene's own trainer as it is (Jennifer's cyan contour) but light its panel - the
+    // backdrop and the frame's glow - in each segment's colours.
+    public bool trainerPanelInThemeColors;
 }

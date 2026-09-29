@@ -105,7 +105,7 @@ public class SilhouetteTrainer : MonoBehaviour
     private readonly List<Material> texturedMats = new List<Material>();
     private RawImage backdrop;
     private Texture2D backdropTex;
-    private Color backdropShownA = Color.clear, backdropShownB = Color.clear;
+    private Color backdropShownA = Color.clear, backdropShownB = Color.clear, frameShown = Color.clear;
     private Color themeShown = Color.clear;
 
     private PlayableGraph graph;
@@ -144,6 +144,15 @@ public class SilhouetteTrainer : MonoBehaviour
 
     /// Asks for a screenshot on the first frame at or after `songTime`. For the visual checks.
     public static void CaptureAt(float songTime, string path) => captures.Add(new KeyValuePair<float, string>(songTime, path));
+
+    /// Keeps the character and its contour colour, but lights the panel - its backdrop and the
+    /// frame's glow - in the theme's two colours, following them through a playlist.
+    public void UsePanelPalette()
+    {
+        if (built) return;
+        panelPalette = true;
+    }
+    private bool panelPalette;
 
     /// Swaps the character before the trainer is built - a playlist bringing its own. `asTextured`
     /// draws it as itself, textured, with a rim light and a backdrop in the theme's colours, rather
@@ -343,7 +352,7 @@ public class SilhouetteTrainer : MonoBehaviour
         float halo = 40f;
         frameHalo = PanelImage("FrameGlow", SilhouettePanelSprites.Glow(frameCorner, halo), Color.clear, -halo);
         var glass = PanelImage("Glass", SilhouettePanelSprites.Fill(frameCorner), new Color(0.01f, 0.012f, 0.03f, glassAlpha), 0f);
-        if (textured)
+        if (textured || panelPalette)
         {
             // The backdrop: a texture recoloured whenever the theme's colours move (ApplyTheme),
             // masked to the panel's chamfered shape by the glass under it.
@@ -756,15 +765,30 @@ public class SilhouetteTrainer : MonoBehaviour
     private void ApplyTheme()
     {
         Color c = followThemeColor && hud != null ? (usePrimaryColor ? hud.PrimaryColor : hud.SecondaryColor) : trainerColor;
-        if (textured && hud != null) PaintBackdrop(hud.PrimaryColor, hud.SecondaryColor);
+        if ((textured || panelPalette) && hud != null) PaintBackdrop(hud.PrimaryColor, hud.SecondaryColor);
+        if (panelPalette && hud != null)
+        {
+            // The frame glows in the theme; the figure keeps its own colour (trainerColor).
+            var fc = Color.Lerp(hud.PrimaryColor, hud.SecondaryColor, 0.5f);
+            if (fc != frameShown)
+            {
+                frameShown = fc;
+                frameEdge.color = fc;
+                var hh = fc; hh.a = frameGlow;
+                frameHalo.color = hh;
+            }
+        }
         if (c == themeShown) return;
         themeShown = c;
         bodyMat.SetColor("_RimColor", c);
         foreach (var m in texturedMats) m.SetColor("_RimColor", c);
         glowMat.SetColor("_GlowColor", c);
-        frameEdge.color = c;
-        var h = c; h.a = frameGlow;
-        frameHalo.color = h;
+        if (!panelPalette)
+        {
+            frameEdge.color = c;
+            var h = c; h.a = frameGlow;
+            frameHalo.color = h;
+        }
     }
 
     /// The backdrop's pixels: `a` from the left, `b` from the right, dark in the middle, a little

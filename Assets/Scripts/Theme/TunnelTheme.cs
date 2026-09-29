@@ -36,6 +36,10 @@ public class TunnelTheme : ScriptableObject
     public Color fogColor = new Color(0.05f, 0f, 0.1f);
     [Range(0.05f, 0.9f)] public float fogStartRatio = 0.35f;
     [Range(0.1f, 1f)] public float fogEndRatio = 0.95f;
+    // The flat ambient light. Alpha 0 (the default) keeps the night rule - the fog's colour x 0.3,
+    // near black; a daylight theme sets its own so shaded sides of props are not black.
+    public Color ambientOverride = new Color(0f, 0f, 0f, 0f);
+    public Color AmbientColor => ambientOverride.a > 0f ? (Color)(Vector4)ambientOverride * 1f : fogColor * 0.3f;
 
     [Header("Directional Light")]
     // Scene has no Light by default (a deliberate, load-bearing choice for the pure-emission

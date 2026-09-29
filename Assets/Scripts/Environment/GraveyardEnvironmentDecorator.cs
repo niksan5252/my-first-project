@@ -51,6 +51,10 @@ public class GraveyardEnvironmentDecorator : MonoBehaviour, IEnvironmentDecorato
     // The kits' daylight colours multiplied down to a moonlit night.
     [SerializeField] private Color stoneTint = new Color(0.5f, 0.55f, 0.68f);
 
+    // The ground beyond the road: cemetery soil by default, a leaf carpet, a field, a pavement.
+    [SerializeField] protected Color groundColor = new Color(0.03f, 0.04f, 0.05f);
+    [SerializeField] protected int batCountOverride = -1;
+
     [Header("Layout")]
     [SerializeField] protected float segmentSpacing = 8f;
     [SerializeField] private float behindCamera = 16f;
@@ -142,7 +146,7 @@ public class GraveyardEnvironmentDecorator : MonoBehaviour, IEnvironmentDecorato
         ground.transform.localPosition = new Vector3(0f, -0.04f, tunnelLength * 0.5f);
         ground.transform.localScale = new Vector3(9f, 1f, (tunnelLength + 120f) / 10f);
         groundMat = new Material(Shader.Find("Universal Render Pipeline/Lit"));
-        groundMat.SetColor("_BaseColor", new Color(0.03f, 0.04f, 0.05f));
+        groundMat.SetColor("_BaseColor", groundColor);
         groundMat.SetFloat("_Smoothness", 0.15f);
         var gr = ground.GetComponent<MeshRenderer>();
         gr.sharedMaterial = groundMat;
@@ -164,7 +168,8 @@ public class GraveyardEnvironmentDecorator : MonoBehaviour, IEnvironmentDecorato
         batMat.SetFloat("_ZWrite", 0f);
         batMat.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
         batMat.renderQueue = (int)RenderQueue.Transparent;
-        for (int i = 0; i < batCount; i++) bats.Add(NewBat(i));
+        int batsWanted = batCountOverride >= 0 ? batCountOverride : batCount;
+        for (int i = 0; i < batsWanted; i++) bats.Add(NewBat(i));
 
         tweens.Loop(DOTween.To(x => kick = x, 1f, 0f, 1f).SetEase(Ease.OutCubic), 1f);
         tweens.Loop(DOTween.To(x => eighth = x, 1f, 0.4f, 0.5f).SetEase(Ease.OutQuad), 0.5f);
@@ -284,6 +289,9 @@ public class GraveyardEnvironmentDecorator : MonoBehaviour, IEnvironmentDecorato
             }
         }
     }
+
+    /// A material of the subclass's own whose emission kicks on the beat with the props' ones.
+    protected void RegisterEmissive(Material m, Color baseEmission) => emissives.Add((m, baseEmission));
 
     /// A segment that travels with the road and wraps round (Update scrolls every registered one).
     protected void RegisterSegment(Transform seg) => segments.Add(seg);

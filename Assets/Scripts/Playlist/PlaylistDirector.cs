@@ -67,6 +67,7 @@ public class PlaylistDirector : MonoBehaviour
         spawner.SetTrackInfo(name.Replace(' ', '_'), timeline.Length);
         if (themeApplier != null) themeApplier.SetTheme(timeline.spans[0].segment.theme);
         if (trainer != null && list.trainerMotionSet != null) trainer.UseMotionSet(list.trainerMotionSet, list.trainerTextured);
+        if (trainer != null && list.trainerPanelInThemeColors) trainer.UsePanelPalette();
 
         BuildAudio();
         // The beat every environment pulses to lives here, for the whole run. Left to the
@@ -183,11 +184,15 @@ public class PlaylistDirector : MonoBehaviour
                 src.SetScheduledEndTime(startDsp + span.audioEnd);
             }
 
-            if (span.HasTransitionIn && span.segment.transitionIn == PlaylistTransition.Thunder
+            bool rumble = span.HasTransitionIn && (span.segment.transitionIn == PlaylistTransition.Thunder
+                                                   || span.segment.transitionLook == PlaylistTransitionLook.Rain);
+            if (rumble
                 && !thunderScheduled.Contains(k) && now >= span.inMiddle - ScheduleAhead && startAt <= span.inMiddle)
             {
                 thunderScheduled.Add(k);
                 thunder.Stop();
+                // Rain's thunder is distant: half as loud as a thunder transition's clap.
+                thunder.volume = playlist.thunderVolume * (span.segment.transitionIn == PlaylistTransition.Thunder ? 1f : 0.45f);
                 thunder.PlayScheduled(startDsp + span.inMiddle - ThunderSynth.CrackAt);
             }
         }
