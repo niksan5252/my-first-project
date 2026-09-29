@@ -57,6 +57,9 @@ public class TunnelTheme : ScriptableObject
     // Side/background set-dressing (buildings, cacti, planets, mountains...), instantiated once
     // under the Applier's environment anchor when the theme loads. Null = no environment.
     public GameObject environmentPrefab;
+    // Optional: what a playlist flies through on its way INTO this theme - a gate at the border
+    // between the previous look and this one. Null = this theme's own arch, made large and bright.
+    public GameObject gatePrefab;
 
     [Header("Particles")]
     public ParticlePreset airParticles;

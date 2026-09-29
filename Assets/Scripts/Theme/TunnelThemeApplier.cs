@@ -29,6 +29,16 @@ public class TunnelThemeApplier : MonoBehaviour
     [SerializeField] private HudController hud;
 
     private GameObject spawnedEnvironment;
+    private Transform preparedHolder;
+
+    public TunnelTheme Current => theme;
+    public Volume GlobalVolume => globalVolume;
+    public Camera TargetCamera => targetCamera;
+    public Light DirectionalLight => directionalLight;
+    public NeonTunnelGenerator Tunnel => tunnelGenerator;
+    public CueSpawner Spawner => cueSpawner;
+    public HudController Hud => hud;
+    public Transform EnvironmentAnchor => environmentAnchor != null ? environmentAnchor : transform;
 
     /// Chooses the theme before Awake builds with it (see RunProfileSelector). After Awake, use
     /// Apply to swap live.
@@ -102,6 +112,57 @@ public class TunnelThemeApplier : MonoBehaviour
         directionalLight.color = theme.lightColor;
     }
 
+    // --- Live change of look, for a playlist (see PlaylistThemeBlender) ---
+    //
+    // Apply() above rebuilds the tunnel and the cues, which only works before they exist. A
+    // playlist changes theme in the middle of a run, so it goes through these instead: the next
+    // environment is instantiated early but kept inactive, and SwapTo puts the whole new theme in
+    // place in one frame - sky, light, post-processing, environment, cue colours, HUD - while the
+    // fog and the colours are blended around it and the rings change as they recycle.
+
+    /// Instantiates `next`'s environment under an inactive holder, so none of its scripts run
+    /// yet - it costs its load now, and nothing else, until SwapTo wakes it up.
+    public GameObject PrepareEnvironment(TunnelTheme next)
+    {
+        if (next == null || next.environmentPrefab == null) return null;
+        if (preparedHolder == null)
+        {
+            preparedHolder = new GameObject("Prepared Environment (inactive)").transform;
+            preparedHolder.gameObject.SetActive(false);
+        }
+        return Instantiate(next.environmentPrefab, preparedHolder);
+    }
+
+    /// Makes `next` the current theme without rebuilding the tunnel or the cues. `prepared` is
+    /// PrepareEnvironment's result, or null to instantiate here. The old environment is destroyed
+    /// after the new one has taken the sky, so its teardown cannot put its own sky back.
+    public void SwapTo(TunnelTheme next, GameObject prepared)
+    {
+        if (next == null) return;
+        theme = next;
+        ApplyPostProcessing();
+        ApplyCameraBackground();
+        ApplyLight();
+        if (cueSpawner != null) cueSpawner.Configure(theme);
+        if (hud != null) hud.ApplyTheme(theme);
+        if (tunnelGenerator != null)
+        {
+            tunnelGenerator.SetFloorMaterial(theme.floorMaterialOverride);
+            tunnelGenerator.ApplyRoadPalette(theme);
+        }
+
+        var old = spawnedEnvironment;
+        spawnedEnvironment = null;
+        if (prepared == null && theme.environmentPrefab != null) prepared = PrepareEnvironment(theme);
+        if (prepared != null)
+        {
+            prepared.transform.SetParent(EnvironmentAnchor, false);
+            spawnedEnvironment = prepared;
+            InitializeEnvironment();
+        }
+        if (old != null) Destroy(old);
+    }
+
     private void ApplyEnvironment()
     {
         if (spawnedEnvironment != null)
@@ -113,7 +174,11 @@ public class TunnelThemeApplier : MonoBehaviour
         if (theme.environmentPrefab == null) return;
 
         spawnedEnvironment = Instantiate(theme.environmentPrefab, environmentAnchor);
+        InitializeEnvironment();
+    }
 
+    private void InitializeEnvironment()
+    {
         if (spawnedEnvironment.TryGetComponent<IThemePalette>(out var palette))
             palette.ApplyPalette(theme.primaryColor, theme.secondaryColor, theme.accentEmissionIntensity);
 

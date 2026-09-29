@@ -130,6 +130,9 @@ public class NeonTunnelGenerator : MonoBehaviour
     private Material magentaMat;
     private Material cyanMat;
     private Material floorMat;
+    private Material generatedFloorMat;
+    private MeshRenderer floorRenderer;
+    private Material rungMat;
     private Material laneMat;
     private float tunnelLength;
     private float recycleZ;
@@ -210,6 +213,9 @@ public class NeonTunnelGenerator : MonoBehaviour
 
             if (recycle) pos.z += tunnelLength;
             t.localPosition = pos;
+            // A playlist moving on to its next look: every ring that goes round from here comes
+            // back in the new style, so the new arches arrive out of the distance, one by one.
+            if (recycle && ringStyleSerial[i] != pendingRingSerial) RestyleRing(i);
         }
 
         for (int d = 0; d < laneDashLines.Length; d++)
@@ -242,7 +248,8 @@ public class NeonTunnelGenerator : MonoBehaviour
         cubeMesh = GetSharedCubeMesh();
         magentaMat = CreateNeonMaterial(magentaColor, ringEmissionIntensity);
         cyanMat = CreateNeonMaterial(cyanColor, ringEmissionIntensity);
-        floorMat = floorMaterialOverride != null ? floorMaterialOverride : CreateFloorMaterial(floorColor, floorMetallic, floorSmoothness);
+        if (floorMaterialOverride == null) generatedFloorMat = CreateFloorMaterial(floorColor, floorMetallic, floorSmoothness);
+        floorMat = floorMaterialOverride != null ? floorMaterialOverride : generatedFloorMat;
         laneMat = CreateNeonMaterial(laneLineColor, laneLineEmissionIntensity);
 
         BuildRings();
@@ -333,45 +340,112 @@ public class NeonTunnelGenerator : MonoBehaviour
 
     private void BuildRings()
     {
-        Vector3[] localPoints = BuildOctagonPoints(ringRadius);
-
         ringRoots = new Transform[ringCount];
         ringRenderers = new MeshRenderer[ringCount][];
         ringBaseEmission = new Color[ringCount][];
         ringFlashTimers = new float[ringCount];
         ringFlashColors = new Color[ringCount];
+        ringStyleSerial = new int[ringCount];
         ringFlashBlock = new MaterialPropertyBlock();
         for (int i = 0; i < ringCount; i++)
+            BuildRing(i, new Vector3(0f, 0f, ringSpawnNearZ + i * ringSpacing));
+    }
+
+    /// One ring in the current style at `localPos`: the theme's arch prefab, or the procedural
+    /// octagon of beams when it has none.
+    private void BuildRing(int i, Vector3 localPos)
+    {
+        Color accent = (i % 2 == 0) ? magentaColor : cyanColor;
+
+        if (ringArchPrefab != null)
         {
-            Color accent = (i % 2 == 0) ? magentaColor : cyanColor;
-
-            if (ringArchPrefab != null)
-            {
-                var archInstance = Instantiate(ringArchPrefab, transform).transform;
-                archInstance.localPosition = new Vector3(0f, 0f, ringSpawnNearZ + i * ringSpacing);
-                ringRoots[i] = archInstance;
-                if (archInstance.TryGetComponent<IThemeAccent>(out var themedAccent))
-                    themedAccent.ApplyAccent(accent, ringEmissionIntensity);
-                ringRenderers[i] = archInstance.GetComponentsInChildren<MeshRenderer>();
-                ringBaseEmission[i] = CaptureEmission(ringRenderers[i]);
-                continue;
-            }
-
-            var ringGO = new GameObject("Ring_" + i.ToString("00"));
-            ringGO.transform.SetParent(transform, false);
-            ringGO.transform.localPosition = new Vector3(0f, 0f, ringSpawnNearZ + i * ringSpacing);
-            ringRoots[i] = ringGO.transform;
-
-            Material mat = (i % 2 == 0) ? magentaMat : cyanMat;
-            for (int p = 0; p < localPoints.Length; p++)
-            {
-                Vector3 a = localPoints[p];
-                Vector3 b = localPoints[(p + 1) % localPoints.Length];
-                CreateBeam(ringGO.transform, a, b, beamThickness, mat);
-            }
-            ringRenderers[i] = ringGO.GetComponentsInChildren<MeshRenderer>();
+            var archInstance = Instantiate(ringArchPrefab, transform).transform;
+            archInstance.localPosition = localPos;
+            ringRoots[i] = archInstance;
+            if (archInstance.TryGetComponent<IThemeAccent>(out var themedAccent))
+                themedAccent.ApplyAccent(accent, ringEmissionIntensity);
+            ringRenderers[i] = archInstance.GetComponentsInChildren<MeshRenderer>();
             ringBaseEmission[i] = CaptureEmission(ringRenderers[i]);
+            return;
         }
+
+        Vector3[] localPoints = BuildOctagonPoints(ringRadius);
+        var ringGO = new GameObject("Ring_" + i.ToString("00"));
+        ringGO.transform.SetParent(transform, false);
+        ringGO.transform.localPosition = localPos;
+        ringRoots[i] = ringGO.transform;
+
+        Material mat = (i % 2 == 0) ? magentaMat : cyanMat;
+        for (int p = 0; p < localPoints.Length; p++)
+        {
+            Vector3 a = localPoints[p];
+            Vector3 b = localPoints[(p + 1) % localPoints.Length];
+            CreateBeam(ringGO.transform, a, b, beamThickness, mat);
+        }
+        ringRenderers[i] = ringGO.GetComponentsInChildren<MeshRenderer>();
+        ringBaseEmission[i] = CaptureEmission(ringRenderers[i]);
+    }
+
+    // --- Changing style while running (a playlist moving to its next segment) ---
+    //
+    // The recycle logic above is untouched: a ring still goes round exactly when it leaves the
+    // frustum. What changes is only what it is made of when it comes back - RestyleRing swaps
+    // the ring's own objects for the queued style's, at the position the recycle gave it.
+    private int[] ringStyleSerial;
+    private int pendingRingSerial;
+
+    /// From now on every ring that recycles is rebuilt in `theme`'s style (arch prefab and the
+    /// two accents). Since rings recycle behind the camera and reappear at the far end, the new
+    /// arches reach the camera one tunnel-length of travel later - TunnelLength / ScrollSpeed.
+    public void QueueRingStyle(TunnelTheme theme)
+    {
+        if (theme == null || !built) return;
+        magentaColor = theme.primaryColor;
+        cyanColor = theme.secondaryColor;
+        ringEmissionIntensity = theme.accentEmissionIntensity;
+        ringArchPrefab = theme.ringArchPrefab;
+        if (ringArchPrefab == null)
+        {
+            magentaMat = CreateNeonMaterial(magentaColor, ringEmissionIntensity);
+            cyanMat = CreateNeonMaterial(cyanColor, ringEmissionIntensity);
+        }
+        pendingRingSerial++;
+    }
+
+    private void RestyleRing(int i)
+    {
+        ringStyleSerial[i] = pendingRingSerial;
+        Vector3 pos = ringRoots[i].localPosition;
+        Destroy(ringRoots[i].gameObject);
+        ringFlashTimers[i] = 0f;
+        BuildRing(i, pos);
+    }
+
+    /// Recolours the road - lane lines, grid rungs and (the generated) floor - toward `theme`.
+    /// Cheap enough to call every frame of a transition, which is how a playlist blends it.
+    /// A theme with its own floor material is switched to with SetFloorMaterial instead.
+    public void ApplyRoadPalette(TunnelTheme theme)
+    {
+        if (!built || theme == null) return;
+        if (laneMat != null) ApplyCappedEmission(laneMat, theme.laneLineColor, theme.laneLineEmissionIntensity);
+        if (laneMat != null) laneMat.SetColor("_BaseColor", theme.laneLineColor * 0.12f);
+        if (rungMat != null) ApplyCappedEmission(rungMat, theme.floorGridLineColor, theme.floorGridGlintIntensity);
+        if (rungMat != null) rungMat.SetColor("_BaseColor", theme.floorGridLineColor * 0.12f);
+        if (floorMat != null && floorMat == generatedFloorMat)
+        {
+            floorMat.SetColor("_BaseColor", theme.floorColor);
+            floorMat.SetFloat("_Smoothness", theme.floorSmoothness);
+            floorMat.SetFloat("_Metallic", theme.floorMetallic);
+        }
+    }
+
+    /// The road's surface: `material`, or null for the generated one (coloured by ApplyRoadPalette).
+    public void SetFloorMaterial(Material material)
+    {
+        if (!built || floorRenderer == null) return;
+        if (generatedFloorMat == null) generatedFloorMat = CreateFloorMaterial(floorColor, floorMetallic, floorSmoothness);
+        floorMat = material != null ? material : generatedFloorMat;
+        floorRenderer.sharedMaterial = floorMat;
     }
 
     /// Reads each renderer's effective emission — its per-instance override if it has one, else
@@ -527,6 +601,7 @@ public class NeonTunnelGenerator : MonoBehaviour
         floorGO.transform.localScale = new Vector3(floorWidth, 0.1f, length);
 
         var mr = floorGO.GetComponent<MeshRenderer>();
+        floorRenderer = mr;
         mr.sharedMaterial = floorMat;
         mr.shadowCastingMode = ShadowCastingMode.Off;
         mr.receiveShadows = false;
@@ -542,7 +617,7 @@ public class NeonTunnelGenerator : MonoBehaviour
     // sidesteps both dead ends and reuses a technique already proven to work everywhere else.
     private void BuildFloorGridRungs()
     {
-        Material rungMat = CreateNeonMaterial(floorGridLineColor, floorGridGlintIntensity);
+        rungMat = CreateNeonMaterial(floorGridLineColor, floorGridGlintIntensity);
 
         float startZ = recycleZ - ringSpacing;
         float endZ = tunnelLength + ringSpacing * 2f;

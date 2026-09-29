@@ -163,7 +163,7 @@ public static class TunnelRecording
     private static void Begin(float seconds, Profile profile, bool png)
     {
         var spawner = UnityEngine.Object.FindFirstObjectByType<CueSpawner>();
-        string track = spawner != null && spawner.Music != null ? spawner.Music.name : "tunnel";
+        string track = spawner != null && !string.IsNullOrEmpty(spawner.TrackName) ? spawner.TrackName : "tunnel";
         Directory.CreateDirectory(OutputFolder);
         outputBase = Path.Combine(OutputFolder, track + "_" + DateTime.Now.ToString("yyyyMMdd_HHmmss")
                                                + "_" + profile.label + (seconds > 0f ? "_test" : ""));
@@ -272,10 +272,11 @@ public static class TunnelRecording
         if (stopAfter > 0f) done = video >= stopAfter;
         else
         {
+            // The track's length - or, for a playlist, the whole run's, every segment end to end.
             var spawner = UnityEngine.Object.FindFirstObjectByType<CueSpawner>();
-            var clip = spawner != null ? spawner.Music : null;
+            float length = spawner != null ? spawner.TrackLength : 0f;
             var clock = spawner != null ? spawner.Clock : null;
-            done = clip != null && clock != null && clock.IsRunning && clock.SongTime >= clip.length + TailSeconds;
+            done = length > 0f && clock != null && clock.IsRunning && clock.SongTime >= length + TailSeconds;
         }
         if (done) EditorApplication.ExitPlaymode();   // Finish runs on the way out
     }

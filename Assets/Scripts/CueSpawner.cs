@@ -919,7 +919,7 @@ public class CueSpawner : MonoBehaviour
         songClock.Stop();
         if (musicSource != null && musicSource.clip != null) musicSource.clip.LoadAudioData();
         clockStartFrames = ClockStartDelayFrames;
-        Debug.Log("[CueSpawner] beatmap '" + beatmapFileName + "' loaded: " + cues.Count + " of " + total + " notes, bpm " + beatmapMeta.bpm
+        Debug.Log("[CueSpawner] beatmap '" + (injectedCues != null ? beatmapMeta.track + " (playlist)" : beatmapFileName) + "' loaded: " + cues.Count + " of " + total + " notes, bpm " + beatmapMeta.bpm
                 + ", intro " + introBars.ToString("0.##") + " bars, first note at " + (cues.Count > 0 ? cues[0].time : 0f).ToString("F2")
                 + "s (cutoff " + cutoff.ToString("F2") + "s, flight " + FlightTime.ToString("F2") + "s, pre-roll "
                 + preRollSeconds.ToString("F2") + "s), offset "

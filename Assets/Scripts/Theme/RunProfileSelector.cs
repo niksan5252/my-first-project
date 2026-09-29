@@ -11,13 +11,28 @@ using UnityEngine;
 public class RunProfileSelector : MonoBehaviour
 {
     [SerializeField] private RunProfile profile;
+    // A playlist - several tracks through one tunnel - takes the profile's place when set.
+    [SerializeField] private RunPlaylist playlist;
+    // -1 plays the whole playlist; 0, 1, 2... plays that one segment alone (to record it by itself).
+    [SerializeField] private int playlistSolo = -1;
     [SerializeField] private CueSpawner cueSpawner;
     [SerializeField] private TunnelThemeApplier themeApplier;
+    [SerializeField] private HudController hud;
+    [SerializeField] private SilhouetteTrainer trainer;
 
     public RunProfile Profile => profile;
+    public RunPlaylist Playlist => playlist;
 
     private void Awake()
     {
+        if (playlist != null)
+        {
+            if (hud == null) hud = FindAnyObjectByType<HudController>();
+            if (trainer == null) trainer = FindAnyObjectByType<SilhouetteTrainer>();
+            var director = gameObject.AddComponent<PlaylistDirector>();
+            if (director.Configure(playlist, playlistSolo, cueSpawner, themeApplier, hud, trainer)) return;
+            Destroy(director);
+        }
         if (profile == null) return;
         if (cueSpawner != null) cueSpawner.SetTrack(profile.track, profile.beatmapFileName);
         if (cueSpawner != null && profile.overrideIntro)

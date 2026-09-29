@@ -41,6 +41,10 @@ public sealed class SongClock
     private float offlineTime;
 
     public bool IsRunning => running;
+    /// dspTime at which song time 0 is PRODUCED by the mixer. Anything else that has to sound on
+    /// the song's timeline - the next track of a playlist, a thunderclap - is scheduled against it:
+    /// PlayScheduled(StartDsp + t) is heard exactly when SongTime reads t.
+    public double StartDsp => startDsp;
     public bool IsOffline => offline;
 
     /// Seconds of Unity's DSP buffering subtracted from SongTime. 0 offline, where nothing plays.

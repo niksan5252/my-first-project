@@ -27,6 +27,10 @@ public class ClubBeat : MonoBehaviour
     public static float BeatsSinceDrop { get; private set; } = float.PositiveInfinity;
     /// How many drops have happened before the latest one (0 during and before the first).
     public static int DropsBefore { get; private set; }
+    /// Set by a playlist, whose tracks each have a tempo of their own: song time -> (grid anchor,
+    /// seconds per beat) of the track playing then. Null for a single track, whose grid is the
+    /// chart's own.
+    public static System.Func<float, Vector2> TempoAt;
 
     [SerializeField] private float lowEnergy = 0.4f;
     [SerializeField] private float dropBoost = 0.6f;
@@ -55,6 +59,12 @@ public class ClubBeat : MonoBehaviour
 
         bool running = spawner != null && spawner.Clock.IsRunning;
         float t = running ? spawner.Clock.SongTime : Time.time;
+        if (TempoAt != null && planned)
+        {
+            var tempo = TempoAt(t);
+            anchor = tempo.x;
+            beat = Mathf.Max(0.05f, tempo.y);
+        }
         float beats = (t - anchor) / beat;
         SongTime = t;
         SecondsPerBeat = beat;
