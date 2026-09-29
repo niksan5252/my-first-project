@@ -21,7 +21,13 @@ using UnityEngine.Rendering;
 //
 // PunchSweep came later and is therefore last: a sustained punch whose tail runs diagonally from
 // the vanishing point up and out to one side, so the raised fist is carried out along it.
-public enum CueType { Kick, Punch, Jump, PunchHold, KickHold, Dodge, Curb, Duck, PunchSweep }
+//
+// Then the variety set of video 3: PunchHigh (a punch at overhead height), and two balance kerbs
+// that the player stands beside rather than moves around - CurbGap covers every lane but its own
+// (stand on one leg in the free lane), CurbSplit covers the two inner lanes (a wide stance on the
+// outer ones). Both carry a duration: they run along the road for as long as the pose is held.
+// A Dodge may carry one too now: a long wall, 2-4 bars, with notes on the free side.
+public enum CueType { Kick, Punch, Jump, PunchHold, KickHold, Dodge, Curb, Duck, PunchSweep, PunchHigh, CurbGap, CurbSplit }
 
 /// Spawns pooled cue markers across the tunnel's lanes at a height matching their type
 /// (Kick = floor, Punch = chest, Jump = a low hurdle bar), colors each cue instance
@@ -110,6 +116,9 @@ public class CueSpawner : MonoBehaviour
     // point there is nothing to fly over, and at 4.2 it sat in the top of the arch where the
     // player is not looking.
     [SerializeField] private float punchHoldHeight = 2.45f;
+    // The overhead punch: well above the one-shot punch and the hold, a reach straight up. Only
+    // the Halloween themes use it, whose arches stand clear of it (3.9 m out at this height).
+    [SerializeField] private float punchHighHeight = 3.05f;
 
     [Header("Visual Sizing (larger = more prominent)")]
     [SerializeField, Range(0.1f, 1f)] private float cueLaneWidthRatio = 0.8f;
@@ -214,6 +223,11 @@ public class CueSpawner : MonoBehaviour
     // It was 1.45 when the camera rode at 1.6; at the shipping 1.35 that would have let the
     // camera sail underneath without ducking at all, turning the obstacle into decoration.
     // If the camera's height moves again, this moves with it.
+    // The balance kerbs: low slabs of glowing glass over the covered lanes, as long as the pose.
+    [SerializeField] private float balanceCurbHeight = 0.32f;
+    [SerializeField, Range(0.5f, 1f)] private float balanceCurbLaneRatio = 0.9f;
+    [SerializeField, Range(0.1f, 1f)] private float balanceFillScale = 0.35f;
+
     [SerializeField] private float duckBeamBottom = 1.1f;
     [SerializeField] private float duckBeamHeight = 0.95f;
     [SerializeField] private float duckBeamDepth = 0.9f;
@@ -454,6 +468,11 @@ public class CueSpawner : MonoBehaviour
         // for a PunchSweep, whose tail runs diagonally and is longer than its extent along Z.
         public float holdStripScale;
         public Transform holdTailPivot; // PunchSweep only: aims the tail at its far end
+        // Obstacles with a length of their own (a long Dodge, the balance kerbs): the part that is
+        // stretched along the road, and how long it is when its scale is 1.
+        public Transform stretch;
+        public float stretchBase;
+        public GameObject[] laneBlocks; // balance kerbs: one block per lane, the free ones hidden
         public bool holding;
         public float holdProgress;   // 0..1 of the length already swept, pushed straight to the shader
         public bool holdFinishing;   // in the closing dissolve
@@ -473,7 +492,8 @@ public class CueSpawner : MonoBehaviour
 
     // What gets a pool, and therefore what can spawn. Jump is deliberately not here; see CueType.
     private static readonly CueType[] CueTypes = { CueType.Kick, CueType.Punch, CueType.PunchHold, CueType.KickHold,
-                                                   CueType.Dodge, CueType.Curb, CueType.Duck, CueType.PunchSweep };
+                                                   CueType.Dodge, CueType.Curb, CueType.Duck, CueType.PunchSweep,
+                                                   CueType.PunchHigh, CueType.CurbGap, CueType.CurbSplit };
 
     // The border/tail color every cue's accent parts are blended toward — a deep ink-blue, so a
     // cyan cue gets a navy border and a magenta cue a dark plum one. Contrast, not bloom, is
@@ -839,7 +859,7 @@ public class CueSpawner : MonoBehaviour
     /// Books the camera's reaction to one obstacle. Everything the director needs is known here:
     /// WHEN from the chart, and how long the thing takes to go past from its own length and the
     /// scroll speed - measured from the hit zone, four metres ahead, to behind the camera.
-    private void RegisterObstaclePass(CueType type, int side, float dueTime)
+    private void RegisterObstaclePass(CueType type, int side, float dueTime, float extent)
     {
         ObstacleMove move =
             type == CueType.Dodge ? (side > 0 ? ObstacleMove.DodgeLeft : ObstacleMove.DodgeRight)
@@ -854,7 +874,7 @@ public class CueSpawner : MonoBehaviour
         // the second, so both follow hitZoneZ and the scroll speed instead of being re-tuned
         // by hand whenever either changes.
         float reachSeconds = hitZoneZ / speed;
-        float passSeconds = (hitZoneZ + ObstacleZExtent(type)) / speed;
+        float passSeconds = (hitZoneZ + extent) / speed;
         obstacleCamera.Register(move, dueTime, reachSeconds, passSeconds);
     }
 
@@ -871,7 +891,7 @@ public class CueSpawner : MonoBehaviour
           : ObstacleMove.Duck;
         cameraSide = move == ObstacleMove.DodgeLeft ? -1 : move == ObstacleMove.DodgeRight ? 1 : 0;
         float speed = Mathf.Max(0.01f, tunnel.ScrollSpeed);
-        obstacleCamera.Window(move, cue.time, hitZoneZ / speed, (hitZoneZ + ObstacleZExtent(cue.type)) / speed,
+        obstacleCamera.Window(move, cue.time, hitZoneZ / speed, (hitZoneZ + ObstacleExtent(cue.type, cue.duration)) / speed,
                               out begin, out commit, out release, out settled);
     }
 
@@ -976,7 +996,8 @@ public class CueSpawner : MonoBehaviour
             for (int i = 0; i < sequencer.Count; i++)
             {
                 var t = sequencer[i].type;
-                if (t == CueType.Kick || t == CueType.Punch || t == CueType.KickHold || t == CueType.PunchHold || t == CueType.PunchSweep)
+                if (t == CueType.Kick || t == CueType.Punch || t == CueType.KickHold || t == CueType.PunchHold || t == CueType.PunchSweep
+                    || t == CueType.PunchHigh)
                     return sequencer[i].time;
             }
             return -1f;
@@ -1210,6 +1231,7 @@ public class CueSpawner : MonoBehaviour
         float x = !obstacle ? tunnel.GetLaneCenterX(lane)
                 : type == CueType.Dodge ? DodgeWallCenterX(side)
                 : 0f;
+        float extent = obstacle ? ObstacleExtent(type, duration) : 0f;
         float y = HeightForType(type);
         Color color = obstacle ? obstacleBodyColor
                               : (Random.value < 0.5f) ? cueColorA : cueColorB;
@@ -1227,15 +1249,16 @@ public class CueSpawner : MonoBehaviour
         // wipes the spent tint left on this pooled object by its previous use.
         SetupHoldInstance(slotIndex, type, duration, lane);
         if (type == CueType.Dodge) AimDodgeChevrons(slotIndex, side);
+        if (obstacle) SetupObstacleInstance(slotIndex, type, lane, extent);
         ApplyCueColor(slots[slotIndex], color);
 
         // How far this instance reaches back along the road, which is the one thing the recycle
         // test needs and the only thing a hold and an obstacle measure differently.
         slots[slotIndex].tailLength = IsHold(type) ? slots[slotIndex].holdLength
-                                    : obstacle ? ObstacleZExtent(type)
+                                    : obstacle ? extent
                                     : 0f;
 
-        if (obstacle) RegisterObstaclePass(type, side, dueTime);
+        if (MovesCamera(type)) RegisterObstaclePass(type, side, dueTime, extent);
 
         slots[slotIndex].inUse = true;
         slots[slotIndex].hit = false;
@@ -1248,10 +1271,26 @@ public class CueSpawner : MonoBehaviour
     /// The distance at which this cue resolves. One number for almost everything, and a second
     /// for the punches; see punchHitZoneZ.
     private float HitZoneZFor(CueType type) =>
-        (type == CueType.Punch || type == CueType.PunchHold || type == CueType.PunchSweep) ? punchHitZoneZ : hitZoneZ;
+        (type == CueType.Punch || type == CueType.PunchHold || type == CueType.PunchSweep || type == CueType.PunchHigh) ? punchHitZoneZ : hitZoneZ;
 
     private static bool IsObstacle(CueType type) =>
+        type == CueType.Dodge || type == CueType.Curb || type == CueType.Duck || IsBalance(type);
+
+    private static bool IsBalance(CueType type) => type == CueType.CurbGap || type == CueType.CurbSplit;
+
+    /// Obstacles the camera moves for. The balance kerbs are not among them: the player stands.
+    private static bool MovesCamera(CueType type) =>
         type == CueType.Dodge || type == CueType.Curb || type == CueType.Duck;
+
+    /// How far back one obstacle reaches: its type's own length, or - for a long Dodge and the
+    /// balance kerbs - the road its duration covers, whichever is longer.
+    private float ObstacleExtent(CueType type, float duration)
+    {
+        float byDuration = duration * Mathf.Max(0.01f, tunnel.ScrollSpeed);
+        if (type == CueType.Dodge) return Mathf.Max(dodgeWallLength, byDuration);
+        if (IsBalance(type)) return Mathf.Max(1f, byDuration);
+        return ObstacleZExtent(type);
+    }
 
     /// Which side of the road a Dodge wall stands on, read off the note's lane: the left half of
     /// the lanes puts it on the left, the right half on the right. The lane carries the direction
@@ -1296,6 +1335,26 @@ public class CueSpawner : MonoBehaviour
         slots[slotIndex].holdFinishTimer = 0f;
         PushHoldShader(slotIndex, 0f, 1f, 1f);
         SetHoldIconAlpha(slotIndex, 1f);
+    }
+
+    /// Stretches an obstacle to its length and, for a balance kerb, shows the blocks over the lanes
+    /// it covers: CurbGap every lane but its own, CurbSplit the two inner ones.
+    private void SetupObstacleInstance(int slotIndex, CueType type, int lane, float extent)
+    {
+        var st = slots[slotIndex].stretch;
+        if (st != null)
+        {
+            var sc = st.localScale;
+            st.localScale = new Vector3(sc.x, sc.y, extent / Mathf.Max(0.01f, slots[slotIndex].stretchBase));
+        }
+        var blocks = slots[slotIndex].laneBlocks;
+        if (blocks == null) return;
+        int n = blocks.Length;
+        for (int i = 0; i < n; i++)
+        {
+            bool covered = type == CueType.CurbGap ? i != lane : (i > 0 && i < n - 1);
+            if (blocks[i] != null) blocks[i].SetActive(covered);
+        }
     }
 
     /// Turns a pooled wall into a left-hand or a right-hand one. Only the chevrons rotate; the
@@ -1346,6 +1405,9 @@ public class CueSpawner : MonoBehaviour
             fillRenderers = visual.fill,
             chevronRenderers = visual.chevron,
             chevronRoots = visual.chevronRoots,
+            stretch = visual.stretch,
+            stretchBase = visual.stretchBase,
+            laneBlocks = visual.laneBlocks,
             inUse = false,
         };
     }
@@ -1406,6 +1468,7 @@ public class CueSpawner : MonoBehaviour
             case CueType.Punch: return punchHeight;
             case CueType.PunchHold:
             case CueType.PunchSweep: return punchHoldHeight; // sustained punches fly high, out of the one-shot lane
+            case CueType.PunchHigh: return punchHighHeight;
             // Jump's posts and every obstacle's box are authored from their own floor-level root.
             default: return 0f;
         }
@@ -1590,6 +1653,8 @@ public class CueSpawner : MonoBehaviour
         {
             case CueType.Dodge: return dodgeWallHeight * 0.5f;
             case CueType.Curb: return curbHeight * 0.5f;
+            case CueType.CurbGap:
+            case CueType.CurbSplit: return balanceCurbHeight;
             default: return duckBeamBottom + duckBeamHeight * 0.5f;
         }
     }
@@ -1976,6 +2041,9 @@ public class CueSpawner : MonoBehaviour
         public MeshRenderer[] chevron; // obstacle only: the contrasting direction marks
         public Transform[] chevronRoots; // obstacle only: re-aimed per instance (a Dodge wall)
         public Transform tailPivot;    // PunchSweep only: the strip's parent, aimed per instance
+        public Transform stretch;      // long obstacles: scaled along Z per instance
+        public float stretchBase;
+        public GameObject[] laneBlocks;
     }
 
     private CueVisual CreateCueVisual(CueType type)
@@ -1997,8 +2065,9 @@ public class CueSpawner : MonoBehaviour
                 return new CueVisual { root = root.transform, bright = new[] { plate }, frame = new[] { frame } };
             }
             case CueType.Punch:
+            case CueType.PunchHigh:
             {
-                var root = new GameObject("Cue_Punch");
+                var root = new GameObject(type == CueType.Punch ? "Cue_Punch" : "Cue_PunchHigh");
                 root.transform.SetParent(transform, false);
 
                 // Local -Z is toward the camera, so the plate is pushed forward out of the frame.
@@ -2137,8 +2206,10 @@ public class CueSpawner : MonoBehaviour
                     new Vector2(-wallWidth * 0.18f, dodgeWallHeight * 0.5f),
                     new Vector2(wallWidth * 0.18f, dodgeWallHeight * 0.5f),
                 };
-                return BuildObstacleVisual("Cue_DodgeWall", min, max, centers,
-                                           chevronSpan, chevronDepth, DodgeChevronAngle(1));
+                var wall = BuildObstacleVisual("Cue_DodgeWall", min, max, centers,
+                                               chevronSpan, chevronDepth, DodgeChevronAngle(1), stretch: true);
+                wall.stretchBase = max.z;
+                return wall;
             }
             case CueType.Curb:
             {
@@ -2148,6 +2219,40 @@ public class CueSpawner : MonoBehaviour
                 var centers = ChevronRow(3, max.x - min.x, curbHeight * 0.5f);
                 return BuildObstacleVisual("Cue_Curb", min, max, centers,
                                            (max.x - min.x) / 6f, curbHeight * 0.66f, 180f);
+            }
+            case CueType.CurbGap:
+            case CueType.CurbSplit:
+            {
+                // One low glass block per lane, a metre long and stretched to the pose's length;
+                // SetupObstacleInstance shows the covered ones. No chevrons: nothing to dodge, the
+                // free lanes themselves are the instruction.
+                var root = new GameObject(type == CueType.CurbGap ? "Cue_CurbGap" : "Cue_CurbSplit");
+                root.transform.SetParent(transform, false);
+                var stretchT = new GameObject("Stretch").transform;
+                stretchT.SetParent(root.transform, false);
+                float laneW = tunnel.FloorWidth / tunnel.LaneCount;
+                var bright = new List<MeshRenderer>();
+                var fills = new List<MeshRenderer>();
+                var blocks = new GameObject[tunnel.LaneCount];
+                for (int i = 0; i < tunnel.LaneCount; i++)
+                {
+                    var b = new GameObject("Lane_" + i);
+                    b.transform.SetParent(stretchT, false);
+                    float half = laneW * balanceCurbLaneRatio * 0.5f;
+                    float cx = tunnel.GetLaneCenterX(i);
+                    var min = new Vector3(cx - half, 0f, 0f);
+                    var max = new Vector3(cx + half, balanceCurbHeight, 1f);
+                    bright.AddRange(CreateBoxEdges(b.transform, min, max, obstacleEdgeThickness * 0.6f, cueBaseMat));
+                    fills.Add(CreateBoxFill(b.transform, min, max, obstacleFillMat));
+                    blocks[i] = b;
+                }
+                return new CueVisual
+                {
+                    root = root.transform, bright = bright.ToArray(), frame = System.Array.Empty<MeshRenderer>(),
+                    head = System.Array.Empty<MeshRenderer>(), fill = fills.ToArray(),
+                    chevron = System.Array.Empty<MeshRenderer>(), chevronRoots = System.Array.Empty<Transform>(),
+                    stretch = stretchT, stretchBase = 1f, laneBlocks = blocks,
+                };
             }
             case CueType.Duck:
             {
@@ -2323,13 +2428,22 @@ public class CueSpawner : MonoBehaviour
     /// player has time to read: by the time a side face is square-on, the obstacle is level with
     /// them and the instruction has come too late to act on.
     private CueVisual BuildObstacleVisual(string name, Vector3 min, Vector3 max,
-                                          Vector2[] chevronCenters, float span, float depth, float angleDeg)
+                                          Vector2[] chevronCenters, float span, float depth, float angleDeg,
+                                          bool stretch = false)
     {
         var root = new GameObject(name);
         root.transform.SetParent(transform, false);
 
-        var edges = CreateBoxEdges(root.transform, min, max, obstacleEdgeThickness, cueBaseMat);
-        var fill = CreateBoxFill(root.transform, min, max, obstacleFillMat);
+        // A stretchable obstacle keeps its body under one child scaled along Z per instance; the
+        // chevrons stay on the root, on the near face, at their own size.
+        Transform body = root.transform;
+        if (stretch)
+        {
+            body = new GameObject("Stretch").transform;
+            body.SetParent(root.transform, false);
+        }
+        var edges = CreateBoxEdges(body, min, max, obstacleEdgeThickness, cueBaseMat);
+        var fill = CreateBoxFill(body, min, max, obstacleFillMat);
 
         var chevronRoots = new Transform[chevronCenters.Length];
         var chevrons = new List<MeshRenderer>();
@@ -2350,6 +2464,8 @@ public class CueSpawner : MonoBehaviour
             fill = new[] { fill },
             chevron = chevrons.ToArray(),
             chevronRoots = chevronRoots,
+            stretch = stretch ? body : null,
+            stretchBase = max.z,
         };
     }
 
@@ -2432,8 +2548,9 @@ public class CueSpawner : MonoBehaviour
     {
         float rim = Mathf.Clamp(cueRimIntensity, 0f, MaxEmissionIntensity);
 
+        float edge = Mathf.Clamp(obstacleEdgeEmission, 0f, MaxEmissionIntensity) * (IsBalance(slot.type) ? balanceFillScale * 1.5f : 1f);
         mpb.SetColor("_BaseColor", obstacleBodyColor * 0.15f);
-        mpb.SetColor("_EmissionColor", obstacleBodyColor * Mathf.Clamp(obstacleEdgeEmission, 0f, MaxEmissionIntensity));
+        mpb.SetColor("_EmissionColor", obstacleBodyColor * edge);
         mpb.SetColor("_RimColor", Color.Lerp(obstacleBodyColor, Color.white, 0.35f) * rim * 0.5f);
         for (int i = 0; i < slot.colorRenderers.Length; i++)
             slot.colorRenderers[i].SetPropertyBlock(mpb);
@@ -2453,6 +2570,10 @@ public class CueSpawner : MonoBehaviour
         // partial alpha rather than a wipe: the same depth-write-plus-clip transparency the hold
         // notes use, which is what keeps it sorting sanely against the rest of the scene.
         float fillEmission = Mathf.Clamp(obstacleFillEmission, 0f, MaxEmissionIntensity);
+        float fillAlpha = obstacleFillAlpha;
+        // A balance kerb lies flat on the road right in front of the lens for seconds: at a wall's
+        // brightness it floods the frame and hides the free lane that is the whole instruction.
+        if (IsBalance(slot.type)) { fillEmission *= balanceFillScale; fillAlpha *= balanceFillScale; }
         for (int i = 0; i < slot.fillRenderers.Length; i++)
         {
             var mr = slot.fillRenderers[i];
@@ -2464,7 +2585,7 @@ public class CueSpawner : MonoBehaviour
             mpb.SetFloat("_HoldProgress", 0f);
             mpb.SetFloat("_HoldGradient", 0f);
             mpb.SetFloat("_HoldBoost", 1f);
-            mpb.SetFloat("_HoldAlpha", Mathf.Clamp01(obstacleFillAlpha));
+            mpb.SetFloat("_HoldAlpha", Mathf.Clamp01(fillAlpha));
             mr.SetPropertyBlock(mpb);
         }
     }

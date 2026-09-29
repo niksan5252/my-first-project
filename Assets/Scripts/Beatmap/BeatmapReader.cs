@@ -125,19 +125,22 @@ public static class BeatmapReader
             // duration check below already refuses one that carries a sustain, and their lane -
             // a side for Dodge, ignored by Curb and Duck - is validated by exactly the same
             // range test as a note's, which is the point of carrying the direction in it.
-            bool wantsHold = type == CueType.KickHold || type == CueType.PunchHold || type == CueType.PunchSweep;
+            bool wantsHold = type == CueType.KickHold || type == CueType.PunchHold || type == CueType.PunchSweep
+                          || type == CueType.CurbGap || type == CueType.CurbSplit;
+            // A Dodge may be long (a wall held for bars) or the ordinary one-shot wall.
+            bool mayHold = wantsHold || type == CueType.Dodge;
             if (wantsHold && !(e.duration > 0f))
             {
                 error = Where(i) + type + " needs a duration greater than 0";
                 return false;
             }
-            if (!wantsHold && e.duration > 0f)
+            if (!mayHold && e.duration > 0f)
             {
                 error = Where(i) + type + " is a one-shot note but carries duration " + e.duration.ToString(CultureInfo.InvariantCulture);
                 return false;
             }
 
-            parsed.Add(new BeatmapCue(e.time, type, e.lane, wantsHold ? e.duration : 0f, Mathf.Clamp01(e.intensity)));
+            parsed.Add(new BeatmapCue(e.time, type, e.lane, mayHold ? Mathf.Max(0f, e.duration) : 0f, Mathf.Clamp01(e.intensity)));
         }
 
         // Sorted here rather than trusted from the file: the sequencer walks a cursor forward and

@@ -640,16 +640,60 @@ public class SilhouetteTrainer : MonoBehaviour
                             y = -s.chordDip * Mathf.Sin(Mathf.Min(1f, land * 2f) * Mathf.PI * 0.5f) * (1f - Smooth01(land));
                             spread = 1f - Smooth01(land);
                         }
-                        body += new Vector3(0f, y, 0f) * stance;
-                        // Both feet leave the ground with the body and land a little apart.
+                        // Toward the side of the pair it lands on (screen side -> the figure's -X).
+                        float shiftX = X(1) * g.shift * s.chordShift * w;
+                        body += new Vector3(shiftX, y * stance, 0f);
+                        // Both feet leave the ground with the body and land apart - wider the more
+                        // lanes lie between the pair.
                         float lift = Mathf.Max(0f, y);
+                        float apart = s.chordFeetOut + Mathf.Max(0, g.spread - 1) * s.chordFeetPerLane;
                         for (int f = 0; f < 2; f++)
                         {
-                            float fx = (f == 0 ? -1f : 1f) * s.chordFeetOut * spread;   // figure left is -X: feet apart, not crossed
-                            footW[f] = 1f;
-                            foot[f] = new Vector3(fx, lift, 0f);
+                            float fx = (f == 0 ? -1f : 1f) * apart * spread;   // figure left is -X: feet apart, not crossed
+                            if (w >= footW[f]) { footW[f] = w; foot[f] = new Vector3(fx + shiftX, lift, 0f); }
+                        }
+                        // A jumping jack's clap over the head on the wide landing.
+                        if (s.jackClap && g.spread >= 3)
+                        {
+                            Take(ref hand[0], w, lShoulder + new Vector3(X(1) * 0.1f, s.punchHighRaise, 0.08f), lShoulder + new Vector3(X(1) * 0.25f, 0.3f, -0.1f));
+                            Take(ref hand[1], w, rShoulder + new Vector3(X(-1) * 0.1f, s.punchHighRaise, 0.08f), rShoulder + new Vector3(X(-1) * 0.25f, 0.3f, -0.1f));
                         }
                         tapping = 1f;
+                        break;
+                    }
+                    case SilhouettePlanner.GestureKind.PunchHigh:
+                    {
+                        // Straight up above the head, the elbow out to the side.
+                        Vector3 t = shoulder + new Vector3(x * 0.14f, s.punchHighRaise, 0.1f);
+                        Take(ref hand[limb], w, t, shoulder + new Vector3(x * 0.3f, 0.28f, -0.1f));
+                        break;
+                    }
+                    case SilhouettePlanner.GestureKind.StarArms:
+                    {
+                        // Both arms up and out: X(-1) is the figure's left... each arm to its own side.
+                        Take(ref hand[0], w, lShoulder + new Vector3(X(1) * s.starArm.x, s.starArm.y, s.starArm.z), lShoulder + new Vector3(X(1) * 0.3f, 0.15f, -0.1f));
+                        Take(ref hand[1], w, rShoulder + new Vector3(X(-1) * s.starArm.x, s.starArm.y, s.starArm.z), rShoulder + new Vector3(X(-1) * 0.3f, 0.15f, -0.1f));
+                        break;
+                    }
+                    case SilhouettePlanner.GestureKind.Straddle:
+                    case SilhouettePlanner.GestureKind.Wide:
+                    {
+                        for (int f = 0; f < 2; f++)
+                        {
+                            Vector3 out_ = new Vector3((f == 0 ? -1f : 1f) * s.straddleOut * w, 0f, 0f);
+                            if (w >= footW[f]) { footW[f] = w; foot[f] = out_; }
+                        }
+                        tapping = Mathf.Max(tapping, w);
+                        break;
+                    }
+                    case SilhouettePlanner.GestureKind.OneLeg:
+                    {
+                        // Stand on the leg on the free lane's side; the other knee comes up.
+                        int lifted = 1 - limb;
+                        Vector3 up = new Vector3(-X(g.side) * 0.05f * w, s.oneLegLift * w, s.oneLegForward * w);
+                        if (w >= footW[lifted]) { footW[lifted] = w; foot[lifted] = up; }
+                        body += new Vector3(x * 0.05f * w, 0f, 0f);
+                        tapping = Mathf.Max(tapping, w);
                         break;
                     }
                     case SilhouettePlanner.GestureKind.Dodge:

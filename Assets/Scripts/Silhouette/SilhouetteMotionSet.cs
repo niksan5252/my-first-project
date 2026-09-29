@@ -126,6 +126,22 @@ public class SilhouetteMotionSet : ScriptableObject
     public float chordDip = 0.07f;
     // How far each foot lands out from where it stands - a slightly wider stance on the landing.
     public float chordFeetOut = 0.08f;
+    // Each lane between the two feet widens the landing by this (a jack lands on the outer lanes),
+    // and the jump carries the body this far toward the side of the pair (side jumps, the shift).
+    public float chordFeetPerLane = 0.13f;
+    public float chordShift = 0.3f;
+    // On the widest landing (the outer lanes) the hands meet over the head: a jumping jack's clap.
+    public bool jackClap = true;
+
+    [Header("Variety set: overhead punch, the star, balance")]
+    public float punchHighRaise = 0.62f;
+    // The star's arms, from the shoulder: out and up.
+    public Vector3 starArm = new Vector3(0.45f, 0.42f, 0.05f);
+    // The star's and the wide stance's feet, out from where they stand.
+    public float straddleOut = 0.3f;
+    // Standing on one leg: how high the other foot is lifted, and how far forward.
+    public float oneLegLift = 0.34f;
+    public float oneLegForward = 0.14f;
 
     [Header("Timing")]
     // A gesture reaches its note in at most this many beats (and at most riseSeconds), and lets go

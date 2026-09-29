@@ -522,3 +522,35 @@ N-beat floor (without it rounding of the fitted period drops every other one). T
 their bin). Drums play from the first bar, so notes start at 0.07 s; the playlist's pre-roll lets
 them fly in. 193 events: Kick 85 (36 of them in 18 two-foot chords), Punch 72 (9 on chords),
 PunchSweep 14, KickHold 8, PunchHold 4, Duck 2 (27.5 s, 112.1 s), Dodge 8 (2 in Dodge sets, 6 gap walls).
+
+## intense-v2 - the variety routine (video 3, pass 2)
+
+`--pattern intense-v2` is planned by `plan_sets_v2` / `choose_set_exercise`, not cycled: a normal
+rotation of short sets (2 bars, the long wall 4) that never repeats an exercise back to back and
+never puts two obstacle sets together, and a heavy rotation - Cross, Jack, SideJump, Chord - for the
+eight bars after every drop (the drums returning after 4+ quiet bars). Rest: `--rest-beats 1`.
+`--grid-quiet-every 2` keeps a note every other beat through breakdowns and intros. PunchSweep is
+off unless `--sweeps` is given (a sweep set becomes a PunchHold set).
+
+`expand_compound` writes the variety exercises out as ordinary notes:
+
+| set exercise | notes |
+|---|---|
+| Cross | PunchHold + KickHold on lanes 0 and 3 together, once a bar, held to a beat before the next (the star) |
+| WallRun | one Dodge with a duration along the set (a long wall), Kicks alternating on the free lanes, a Punch every other beat |
+| SideJump | Kick pairs 0+1 / 2+3 on alternate beats |
+| HighLow | Punch and the new **PunchHigh** (overhead) on alternating hands, every fourth beat both at once |
+| Jack | Kick pairs 0+3 / 1+2 alternating |
+| Shift | a Kick pair walking one lane per beat: 0+1, 1+2, 2+3, 1+2, ... |
+| Balance | one **CurbGap** (a kerb over every lane but `lane`: stand on one leg) or **CurbSplit** (over the two inner lanes: wide stance), in turn, held for the set |
+
+New JSON: `PunchHigh` (one-shot), `CurbGap` / `CurbSplit` (obstacles, duration required), and
+`Dodge` may now carry a duration (a long wall). The committed charts:
+
+```powershell
+.venv\Scripts\python generate_beatmap.py ..\..\Assets\Audio\Tracks\neoni_haunted_house.wav --detector grid --pattern intense-v2 --rest-beats 1 --spacing-tolerance 0.05 --grid-quiet-every 2 --fill-gaps-dodge
+.venv\Scripts\python generate_beatmap.py ..\..\Assets\Audio\Tracks\axollo_burn_it.wav --detector grid --pattern intense-v2 --rest-beats 1 --spacing-tolerance 0.05 --grid-quiet-every 2 --fill-gaps-dodge
+```
+
+`axollo_burn_it.wav`: 130.001 BPM from the comb (kick IOIs 0.46 s; beat_track and the tempogram
+give their 129.2 bin); a 29.5 s drumless intro, filled at every other beat.

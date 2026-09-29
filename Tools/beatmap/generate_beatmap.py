@@ -67,6 +67,22 @@ HOLD_TYPES = set(HOLD_TYPE_OF.values()) | {SWEEP}
 # `expand_chords` does the translation after lanes are settled, so nothing above it needs to know.
 CHORD = "Chord"
 
+# Video 3, pass 2: the variety exercises. Every one of these is a SET exercise that
+# `expand_compound` writes out as ordinary notes; three are also JSON types of their own.
+PUNCH_HIGH = "PunchHigh"     # JSON type: a punch at overhead height
+CURB_GAP = "CurbGap"         # JSON type, obstacle with a duration: a kerb over every lane but `lane`
+CURB_SPLIT = "CurbSplit"     # JSON type, obstacle with a duration: a kerb over the two inner lanes
+CROSS = "Cross"              # two high PunchHolds + two KickHolds on the outer lanes: the star
+WALL_RUN = "WallRun"         # a long Dodge wall down one side, notes on the free side
+SIDE_JUMP = "SideJump"       # both feet: lanes 0+1, then 2+3, alternating on the beats
+HIGH_LOW = "HighLow"         # punches on two levels, alternating hands, sometimes both at once
+JACK = "Jack"                # both feet: outer 0+3, inner 1+2, alternating (jumping jacks)
+SHIFT = "Shift"              # both feet: a pair sliding one lane per beat, 0+1 -> 1+2 -> 2+3 -> back
+BALANCE = "Balance"          # a CurbGap or CurbSplit held for the set: one leg, or a wide stance
+COMPOUND = {CROSS, WALL_RUN, SIDE_JUMP, HIGH_LOW, JACK, SHIFT, BALANCE}
+# Types that may carry a duration in the JSON: the holds, a long Dodge wall, the balance kerbs.
+DURATION_TYPES = {"KickHold", "PunchHold", "PunchSweep", "Dodge", CURB_GAP, CURB_SPLIT}
+
 # The three obstacles. Unlike the note types these are not something to strike at the hit zone -
 # they are pieces of road furniture to get around, over or under, and in the game the camera
 # itself performs the movement. Two consequences for this file:
@@ -369,10 +385,23 @@ def detect_grid(y: np.ndarray, sr: int, mel_hop: int, low_onsets: np.ndarray,
         end = bar_starts[index + 1] if index + 1 < len(bar_starts) else start + cfg.beats_per_bar * beat_period
         inside = kick_times[(kick_times >= start + offset - beat_period / 4) & (kick_times < end + offset - beat_period / 4)]
         active = drums_play_in_bar(len(inside), cfg)
-        bar_map.append("#" if active else ".")
-        if not active:
+        quiet_every = getattr(cfg, "grid_quiet_every", 0.0)
+        bar_map.append("#" if active else (":" if quiet_every > 0 else "."))
+        if not active and quiet_every <= 0:
             continue
-        for beat in grid[(grid >= start - 1e-6) & (grid < end - 1e-6)]:
+        beats_here = grid[(grid >= start - 1e-6) & (grid < end - 1e-6)]
+        if not active:
+            # --grid-quiet-every: a breakdown still carries a note every N beats, at a lower
+            # intensity, so a "maximum load" chart does not stop for the whole of it.
+            step = max(1, int(round(quiet_every)))
+            for n, beat in enumerate(beats_here):
+                if n % step: continue
+                time = float(beat + offset)
+                if 0.0 <= time < duration:
+                    events.append(Event(time=time, type=KICK, acoustic=KICK, intensity=0.45,
+                                        frame=int(round(time * sr / mel_hop))))
+            continue
+        for beat in beats_here:
             time = float(beat + offset)
             if time < 0.0 or time >= duration:
                 continue
@@ -641,7 +670,8 @@ def measure_hold(energy: np.ndarray, start_frame: int, limit_frame: int, cfg,
 # Set boundaries are placed on BARS, not on round numbers of seconds, because a change of
 # movement that lands mid-bar reads as a mistake even to someone who cannot name what is wrong.
 
-ALL_EXERCISES = (PUNCH, KICK, "PunchHold", "KickHold", SWEEP, CHORD, DODGE, CURB, DUCK)
+ALL_EXERCISES = (PUNCH, KICK, "PunchHold", "KickHold", SWEEP, CHORD, DODGE, CURB, DUCK,
+                 CROSS, WALL_RUN, SIDE_JUMP, HIGH_LOW, JACK, SHIFT, BALANCE)
 
 # Named set orders. A pattern is a list of (exercise, how many sets in a row), cycled until the
 # track runs out. This is the one place the shape of the workout lives: changing the routine
@@ -704,6 +734,9 @@ DEFAULT_SPACING_BEATS: Dict[str, float] = {
     # A jump every other beat is the most a person keeps up for a whole block; a sweep needs the
     # arm back at the centre before the next one, so it too takes every other beat.
     CHORD: 2.0, SWEEP: 2.0,
+    # The variety set: jumps and punches on every beat, the star once a bar, the long wall's and
+    # the balance kerb's single note at the set's start (spacing = the whole set).
+    SIDE_JUMP: 1.0, JACK: 1.0, SHIFT: 1.0, HIGH_LOW: 1.0, CROSS: 4.0, WALL_RUN: 1.0, BALANCE: 64.0,
     # Obstacles are spaced far wider than any note, and the number is not a taste judgement: the
     # camera performs the movement and has to be back at centre before the next one starts. The
     # longest reaction is the dodge, whose lead-in, hold and return together run 1.59 s - so at
@@ -770,6 +803,8 @@ def find_bar_lines(beat_times: np.ndarray, low_onsets: np.ndarray, beat_frames: 
 
 def parse_pattern(spec: str) -> List[Tuple[str, int]]:
     """A named pattern, or an inline one like 'Punch:6,Kick:5,Jump:4,PunchHold:2'."""
+    if spec == "intense-v2":
+        return [(KICK, 1)]      # planned by plan_sets_v2, not cycled
     if spec in SET_PATTERNS:
         return SET_PATTERNS[spec]
 
@@ -999,6 +1034,146 @@ def expand_chords(events: List[Event], sets: List[WorkoutSet], punch_every: int,
     for block in sets:
         if block.exercise == CHORD:
             block.notes = counts.get(block.index, 0)
+    out.sort(key=lambda e: e.time)
+    return out
+
+
+# The "intense-v2" routine: which exercise each set gets. This is the whole policy - the two
+# rotations, how long each exercise's set is, and what counts as the stretch after a drop - and it
+# is the one function to change for a different routine (plan_sets_v2 only walks the bars).
+INTENSE_V2_NORMAL = [KICK, HIGH_LOW, SIDE_JUMP, PUNCH, WALL_RUN, SHIFT, CHORD, "KickHold",
+                     HIGH_LOW, JACK, DUCK, KICK, CROSS, PUNCH, BALANCE, SIDE_JUMP, "PunchHold",
+                     SHIFT, DODGE, CHORD]
+INTENSE_V2_HEAVY = [CROSS, JACK, SIDE_JUMP, CHORD]
+INTENSE_V2_BARS = {WALL_RUN: 4, CROSS: 2, BALANCE: 2, DUCK: 2, DODGE: 2}
+INTENSE_V2_HEAVY_BARS = 8        # bars after a drop that take the heavy rotation
+OBSTACLE_SETS = {WALL_RUN, BALANCE, DUCK, DODGE, CURB}
+
+
+def drops_from_bar_map(bar_map: List[str]) -> List[int]:
+    """Bars where the drums come back after at least four bars without them (or first start)."""
+    drops, quiet = [], 0   # a track that opens on its drums does not open on a "drop"
+    for i, c in enumerate(bar_map):
+        if c == "#":
+            if quiet >= 4: drops.append(i)
+            quiet = 0
+        else:
+            quiet += 1
+    return drops
+
+
+def choose_set_exercise(bar: int, drops: List[int], history: List[str], cursor: dict) -> str:
+    """The next set's exercise. Heavy ones (the star, jacks, side jumps, chords) for the first
+    bars after a drop, the normal rotation elsewhere; never the same twice running, and never two
+    obstacle sets back to back - the camera has to come home between them."""
+    heavy = any(0 <= bar - d < INTENSE_V2_HEAVY_BARS for d in drops)
+    rotation, key = (INTENSE_V2_HEAVY, "heavy") if heavy else (INTENSE_V2_NORMAL, "normal")
+    for _ in range(len(rotation)):
+        ex = rotation[cursor[key] % len(rotation)]
+        cursor[key] += 1
+        if history and ex == history[-1]: continue
+        if history and ex in OBSTACLE_SETS and history[-1] in OBSTACLE_SETS: continue
+        return ex
+    return KICK
+
+
+def plan_sets_v2(bar_lines: np.ndarray, bar_map: List[str], rest_beats: float, beat: float,
+                 track_end: float) -> List[WorkoutSet]:
+    """Sets for the intense-v2 routine, laid bar line to bar line like plan_sets."""
+    drops = drops_from_bar_map(bar_map)
+    sets: List[WorkoutSet] = []
+    history: List[str] = []
+    cursor = {"heavy": 0, "normal": 0}
+    bar = 0
+    while True:
+        ex = choose_set_exercise(bar, drops, history, cursor)
+        bars = INTENSE_V2_BARS.get(ex, 2)
+        if bar + bars >= len(bar_lines):
+            break
+        start, boundary = float(bar_lines[bar]), float(bar_lines[bar + bars])
+        if start >= track_end:
+            break
+        end = max(start, boundary - rest_beats * beat)
+        sets.append(WorkoutSet(index=len(sets), exercise=ex, start=start, end=min(end, track_end),
+                               rest_end=min(boundary, track_end), bar=bar))
+        history.append(ex)
+        bar += bars
+    return sets
+
+
+def expand_compound(events: List[Event], sets: List[WorkoutSet], beat: float, lane_count: int,
+                    rng: random.Random) -> List[Event]:
+    """Writes the variety exercises out as notes. The whole shape of each one lives here:
+
+      * SideJump - Kick pairs 0+1 / 2+3 alternating;  Jack - 0+3 / 1+2;  Shift - a pair walking
+        one lane per beat and back (0+1, 1+2, 2+3, 1+2, ...);
+      * HighLow - alternate hands, low Punch and PunchHigh in turn, every fourth beat both at once;
+      * Cross - two PunchHolds and two KickHolds on the outer lanes, held to a beat before the next;
+      * WallRun - one Dodge along the set (its duration), Kicks alternating on the two free lanes and
+        a Punch on every other beat above them;
+      * Balance - one CurbGap (a random free lane) or CurbSplit held for the set, nothing else.
+    """
+    by_set: Dict[int, List[Event]] = {}
+    out: List[Event] = []
+    for ev in events:
+        if ev.type in COMPOUND: by_set.setdefault(ev.set_index, []).append(ev)
+        else: out.append(ev)
+
+    def note(src: Event, type_: str, lane: int, duration: float = 0.0) -> Event:
+        return Event(time=src.time, type=type_, intensity=src.intensity, lane=lane, duration=duration,
+                     frame=src.frame, bands=src.bands, acoustic=src.acoustic, set_index=src.set_index)
+
+    shift_path = [(0, 1), (1, 2), (2, 3), (1, 2)]
+    wall_side = 0
+    balance_count = 0
+    for block in sets:
+        members = sorted(by_set.get(block.index, []), key=lambda e: e.time)
+        if not members: continue
+        ex = block.exercise
+        made: List[Event] = []
+        if ex == WALL_RUN:
+            first = members[0]
+            wall_left = wall_side % 2 == 0
+            wall_side += 1
+            length = max(beat, block.rest_end - first.time - beat)
+            made.append(note(first, DODGE, 0 if wall_left else lane_count - 1, length))
+            free = (2, 3) if wall_left else (0, 1)
+            for n, ev in enumerate(members[1:]):
+                if ev.time > first.time + length - 0.5 * beat: break
+                made.append(note(ev, KICK, free[n % 2]))
+                if n % 2 == 1: made.append(note(ev, PUNCH, free[(n + 1) % 2]))
+        elif ex == BALANCE:
+            first = members[0]
+            length = max(beat, block.end - first.time)
+            # One leg and the wide stance take turns; the free lane of a one-leg kerb is random.
+            if balance_count % 2 == 0: made.append(note(first, CURB_GAP, rng.randrange(lane_count), length))
+            else: made.append(note(first, CURB_SPLIT, 1, length))
+            balance_count += 1
+        elif ex == CROSS:
+            for n, ev in enumerate(members):
+                limit = members[n + 1].time if n + 1 < len(members) else block.end
+                length = max(0.5 * beat, limit - ev.time - beat)
+                for lane in (0, lane_count - 1):
+                    made.append(note(ev, "PunchHold", lane, length))
+                    made.append(note(ev, "KickHold", lane, length))
+        else:
+            for n, ev in enumerate(members):
+                if ex == SIDE_JUMP: pair = (0, 1) if n % 2 == 0 else (2, 3)
+                elif ex == JACK: pair = (0, lane_count - 1) if n % 2 == 0 else (1, 2)
+                elif ex == SHIFT: pair = shift_path[n % len(shift_path)]
+                else: pair = None
+                if pair is not None:
+                    made.append(note(ev, KICK, pair[0]))
+                    made.append(note(ev, KICK, pair[1]))
+                elif ex == HIGH_LOW:
+                    hand = 1 + n % 2
+                    if n % 4 == 3:
+                        made.append(note(ev, PUNCH, 1))
+                        made.append(note(ev, PUNCH_HIGH, 2))
+                    else:
+                        made.append(note(ev, PUNCH_HIGH if (n // 2) % 2 else PUNCH, hand))
+        block.notes = len(made)
+        out.extend(made)
     out.sort(key=lambda e: e.time)
     return out
 
@@ -1338,13 +1513,20 @@ def analyse(path: Path, cfg) -> Tuple[List[Event], float, float, int, List[Worko
 
         set_bars_for = parse_mapping(cfg.set_bars_for, {}, "--set-bars-for",
                                      lambda raw, name, chunk: _positive_int(raw, name, chunk))
-        sets = plan_sets(bar_lines, pattern, cfg.set_bars, cfg.rest_beats, beat, track_end, set_bars_for)
+        if cfg.pattern == "intense-v2":
+            sets = plan_sets_v2(bar_lines, cfg.bar_map, cfg.rest_beats, beat, track_end)
+        else:
+            sets = plan_sets(bar_lines, pattern, cfg.set_bars, cfg.rest_beats, beat, track_end, set_bars_for)
         if not sets:
             raise SystemExit(
                 f"the track is too short for even one {cfg.set_bars}-bar set - lower --set-bars"
             )
 
         cfg.beat = beat
+        if not cfg.sweeps:
+            # PunchSweep is off unless asked for: a sweep set becomes a PunchHold set.
+            for block in sets:
+                if block.exercise == SWEEP: block.exercise = "PunchHold"
         events = apply_workout(events, sets, beat, spacing, cfg)
         retire_jump(events)
         events = space_obstacles(events, cfg.obstacle_gap * beat)
@@ -1352,6 +1534,7 @@ def analyse(path: Path, cfg) -> Tuple[List[Event], float, float, int, List[Worko
         assign_workout_lanes(events, sets, pairs, cfg.lanes)
         resolve_hold_overlaps(events, cfg.lanes, cfg.hold_gap)
         events = expand_chords(events, sets, cfg.chord_punch_every, pairs[CHORD], cfg.lanes)
+        events = expand_compound(events, sets, beat, cfg.lanes, random.Random(cfg.seed))
         if cfg.fill_gaps_dodge:
             cfg.gap_walls = fill_gaps_with_dodges(events, bar_lines, beat, track_end, cfg)
             events = sorted(events + cfg.gap_walls, key=lambda e: e.time)
@@ -1500,7 +1683,7 @@ def to_document(events: List[Event], bpm: float, track: str, audio_offset: float
     """
     payload = []
     for ev in events:
-        hold = ev.type in HOLD_TYPES
+        hold = ev.type in HOLD_TYPES or (ev.type in DURATION_TYPES and ev.duration > 0.0)
         payload.append({
             "time": round(ev.time, 3),
             "type": ev.type,
@@ -1659,6 +1842,10 @@ def build_parser() -> argparse.ArgumentParser:
     g.add_argument("--lane-pairs", default=None,
                    help="the two lanes each exercise alternates between, e.g. 'Punch:0-3'; "
                         "default is 1-2 for everything, and 0-3 for Dodge, whose lane is a side")
+    g.add_argument("--sweeps", action="store_true",
+                   help="keep PunchSweep sets (off by default: a sweep set becomes a PunchHold set)")
+    g.add_argument("--grid-quiet-every", type=float, default=0.0,
+                   help="grid detector: bars without drums still get a note every N beats (0 = rest)")
     g.add_argument("--spacing-tolerance", type=float, default=0.0,
                    help="beats by which a note may fall short of its --spacing floor and still be "
                         "kept; 0.05 lets grid notes exactly N beats apart through")

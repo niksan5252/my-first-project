@@ -46,7 +46,10 @@ public static class SilhouettePlanner
     // Sweep: the raised fist carried out to the side along a PunchSweep's tail. ChordJump: a hop
     // that lands on both feet exactly on a chord of two kicks (a punch in the chord is its own
     // Punch gesture, thrown on the landing).
-    public enum GestureKind { Punch, PunchHold, Kick, KickHold, Dodge, Sweep, ChordJump }
+    // Video 3's variety set: PunchHigh (a punch straight up), StarArms and Straddle (the two
+    // halves of the star - both arms up and out, both feet wide - from a pair of holds on the
+    // outer lanes), OneLeg and Wide (standing beside a balance kerb).
+    public enum GestureKind { Punch, PunchHold, Kick, KickHold, Dodge, Sweep, ChordJump, PunchHigh, StarArms, Straddle, OneLeg, Wide }
 
     public struct Gesture
     {
@@ -59,6 +62,10 @@ public static class SilhouettePlanner
         public float end;        // weight is back to 0
         public bool glide;       // ease both ways (a dodge, to match the camera's Glide)
         public int note;
+        // A two-foot jump: where it lands, -1 (the two left lanes) .. 1 (the two right lanes), and
+        // how many lanes apart the feet land (1 = side by side, 3 = the outer lanes).
+        public float shift;
+        public int spread;
 
         public float Weight(float t)
         {
@@ -115,19 +122,41 @@ public static class SilhouettePlanner
             int side = c.lane < laneCount * 0.5f ? -1 : 1;
             bool outer = c.lane == 0 || c.lane == laneCount - 1;
 
-            // Two kicks on the same moment are a chord: one jump onto both feet, not two taps.
+            if (chordDone.Contains(i)) continue;
+
+            // Two kicks on the same moment are a chord: one jump onto both feet, not two taps -
+            // landing where the pair is (side jumps, the pair shift) and as wide as it is (jacks).
             if (c.type == CueType.Kick)
             {
-                if (chordDone.Contains(i)) continue;
-                int partner = ChordPartner(chart, order, i);
+                int partner = Partner(chart, order, i, CueType.Kick);
                 if (partner >= 0)
                 {
                     chordDone.Add(partner);
+                    int a = c.lane, b = chart[partner].lane;
+                    float mid = (laneCount - 1) * 0.5f;
                     gestures.Add(new Gesture
                     {
                         kind = GestureKind.ChordJump, side = 0, outer = false,
                         start = c.time - set.chordAirBeats * beat, impact = c.time, holdEnd = c.time,
                         end = c.time + set.chordLandBeats * beat, note = i,
+                        shift = mid > 0f ? ((a + b) * 0.5f - mid) / mid : 0f, spread = Mathf.Abs(a - b),
+                    });
+                    continue;
+                }
+            }
+            // A pair of holds on the two outer lanes is half of the star: both arms up and out, or
+            // both feet wide, held for the note.
+            if ((c.type == CueType.PunchHold || c.type == CueType.KickHold) && (c.lane == 0 || c.lane == laneCount - 1))
+            {
+                int partner = Partner(chart, order, i, c.type);
+                if (partner >= 0 && (chart[partner].lane == 0 || chart[partner].lane == laneCount - 1))
+                {
+                    chordDone.Add(partner);
+                    gestures.Add(new Gesture
+                    {
+                        kind = c.type == CueType.PunchHold ? GestureKind.StarArms : GestureKind.Straddle,
+                        side = 0, outer = true, start = c.time - rise, impact = c.time,
+                        holdEnd = c.time + c.duration, end = c.time + c.duration + fall, note = i,
                     });
                     continue;
                 }
@@ -135,6 +164,26 @@ public static class SilhouettePlanner
 
             switch (c.type)
             {
+                case CueType.PunchHigh:
+                    gestures.Add(new Gesture
+                    {
+                        kind = GestureKind.PunchHigh, side = side, outer = outer,
+                        start = c.time - rise, impact = c.time, holdEnd = c.time, end = c.time + fall, note = i,
+                    });
+                    break;
+                case CueType.CurbGap:
+                case CueType.CurbSplit:
+                {
+                    // Stand beside the kerb for as long as it runs: on the leg of the free lane's
+                    // side (CurbGap), or wide on the two outer lanes (CurbSplit).
+                    gestures.Add(new Gesture
+                    {
+                        kind = c.type == CueType.CurbGap ? GestureKind.OneLeg : GestureKind.Wide,
+                        side = side, outer = outer, start = c.time - rise, impact = c.time,
+                        holdEnd = c.time + c.duration, end = c.time + c.duration + fall, note = i,
+                    });
+                    break;
+                }
                 case CueType.PunchSweep:
                 {
                     // Up to the start of the tail by the note, out along it for the note's length.
@@ -214,8 +263,8 @@ public static class SilhouettePlanner
         stance.Fill(segments, freeFrom, float.PositiveInfinity, returnFade);
     }
 
-    /// The other Kick of a chord on note i, or -1: a Kick at the same moment, in a different lane.
-    private static int ChordPartner(BeatmapSequencer chart, List<int> order, int i)
+    /// The other note of a pair on note i, or -1: one of `type` at the same moment, in another lane.
+    private static int Partner(BeatmapSequencer chart, List<int> order, int i, CueType type)
     {
         var c = chart[i];
         foreach (int j in order)
@@ -223,7 +272,7 @@ public static class SilhouettePlanner
             if (j == i) continue;
             var o = chart[j];
             if (o.time > c.time + 0.002f) break;
-            if (o.type == CueType.Kick && o.lane != c.lane && Mathf.Abs(o.time - c.time) <= 0.002f) return j;
+            if (o.type == type && o.lane != c.lane && Mathf.Abs(o.time - c.time) <= 0.002f) return j;
         }
         return -1;
     }
