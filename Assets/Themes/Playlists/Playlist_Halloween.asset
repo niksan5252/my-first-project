@@ -19,12 +19,20 @@ MonoBehaviour:
     beatmapFileName: neoni_haunted_house.json
     theme: {fileID: 11400000, guid: a5373f9a2d34d624386f0a6492100cfa, type: 2}
     clipStart: 0
-    clipEnd: 0
+    clipEnd: 176
+    transitionIn: 0
+    transitionSeconds: 3.5
+  - label: PumpkinFestival
+    track: {fileID: 8300000, guid: 3c5d6b3344d09454b8e612b1fd58140c, type: 3}
+    beatmapFileName: axollo_burn_it.json
+    theme: {fileID: 11400000, guid: 684784822c006e44daf327ed07654d56, type: 2}
+    clipStart: 14.816
+    clipEnd: 181.2
     transitionIn: 0
     transitionSeconds: 3.5
   preRoll: 1
   noteMarginBeats: 1
-  wallsInTransition: 1
+  wallsInTransition: 0
   veilFogEnd: 22
   thunderFlash: 0.8
   thunderVolume: 1

@@ -24,13 +24,13 @@ using UnityEngine.Rendering;
 /// pulses with the kick; bats scatter faster on a drop. Everything is capped below white.
 public class GraveyardEnvironmentDecorator : MonoBehaviour, IEnvironmentDecorator, IThemePalette
 {
-    private const float MaxGlow = 2.2f;
+    protected const float MaxGlow = 2.2f;
 
     [Header("Shaders and textures")]
     [SerializeField] private Shader glowShader;
-    [SerializeField] private Texture2D flareMask;
-    [SerializeField] private Texture2D flameTexture;
-    [SerializeField] private Texture2D smokeTexture;
+    [SerializeField] protected Texture2D flareMask;
+    [SerializeField] protected Texture2D flameTexture;
+    [SerializeField] protected Texture2D smokeTexture;
     [SerializeField] private Texture2D coneMask;
 
     [Header("Models (Kenney Graveyard Kit, Cemetery Snap, Poly Halloween)")]
@@ -39,63 +39,63 @@ public class GraveyardEnvironmentDecorator : MonoBehaviour, IEnvironmentDecorato
     [SerializeField] private GameObject[] trees;
     [SerializeField] private GameObject[] fences;
     [SerializeField] private GameObject[] ironFences;
-    [SerializeField] private GameObject[] lamps;
-    [SerializeField] private GameObject[] candles;
-    [SerializeField] private GameObject[] pumpkins;
-    [SerializeField] private GameObject[] details;
+    [SerializeField] protected GameObject[] lamps;
+    [SerializeField] protected GameObject[] candles;
+    [SerializeField] protected GameObject[] pumpkins;
+    [SerializeField] protected GameObject[] details;
 
     [Header("Colours")]
-    [SerializeField] private Color moonBlue = new Color(0.55f, 0.72f, 1f);
-    [SerializeField] private Color flameOrange = new Color(1f, 0.5f, 0.1f);
-    [SerializeField] private Color poisonGreen = new Color(0.42f, 1f, 0.22f);
+    [SerializeField] protected Color moonBlue = new Color(0.55f, 0.72f, 1f);
+    [SerializeField] protected Color flameOrange = new Color(1f, 0.5f, 0.1f);
+    [SerializeField] protected Color poisonGreen = new Color(0.42f, 1f, 0.22f);
     // The kits' daylight colours multiplied down to a moonlit night.
     [SerializeField] private Color stoneTint = new Color(0.5f, 0.55f, 0.68f);
 
     [Header("Layout")]
-    [SerializeField] private float segmentSpacing = 8f;
+    [SerializeField] protected float segmentSpacing = 8f;
     [SerializeField] private float behindCamera = 16f;
-    [SerializeField] private float fenceX = 5.3f;
+    [SerializeField] protected float fenceX = 5.3f;
     [SerializeField] private Vector2 graveX = new Vector2(6.3f, 15f);
     [SerializeField] private Vector2 cryptX = new Vector2(12f, 19f);
     [SerializeField] private Vector2 treeX = new Vector2(15f, 30f);
-    [SerializeField] private float lampX = 5.9f;
-    [SerializeField] private float propScale = 1.9f;
+    [SerializeField] protected float lampX = 5.9f;
+    [SerializeField] protected float propScale = 1.9f;
 
     [Header("Lights")]
-    [SerializeField] private float lampLightRange = 11f;
-    [SerializeField] private float lampLightIntensity = 5f;
+    [SerializeField] protected float lampLightRange = 11f;
+    [SerializeField] protected float lampLightIntensity = 5f;
 
     [Header("Fog and bats")]
-    [SerializeField] private int fogPerSegment = 3;
+    [SerializeField] protected int fogPerSegment = 3;
     [SerializeField] private int batCount = 34;
 
-    private Color primary = new Color(0.42f, 1f, 0.22f);
-    private Color secondary = new Color(1f, 0.5f, 0.08f);
-    private float emission = 1.2f;
+    protected Color primary = new Color(0.42f, 1f, 0.22f);
+    protected Color secondary = new Color(1f, 0.5f, 0.08f);
+    protected float emission = 1.2f;
 
     private bool built;
-    private float scrollSpeed, tunnelLength, span;
-    private Camera cam;
-    private Material glowTemplate, groundMat, batMat, sky, savedSky;
+    protected float scrollSpeed, tunnelLength, span;
+    protected Camera cam;
+    protected Material glowTemplate, groundMat, batMat, sky, savedSky;
     private Texture2D batTex;
-    private MaterialPropertyBlock mpb;
-    private System.Random rng = new System.Random(31);
+    protected MaterialPropertyBlock mpb;
+    protected System.Random rng = new System.Random(31);
     private readonly SongTweens tweens = new SongTweens();
 
     // Written by the tweens.
-    private float kick;        // 1 on the beat, falling over it
-    private float eighth;      // flicker on the eighths
-    private float bar;         // 0..1..0 over a bar
+    protected float kick;        // 1 on the beat, falling over it
+    protected float eighth;      // flicker on the eighths
+    protected float bar;         // 0..1..0 over a bar
 
     private readonly List<Transform> segments = new List<Transform>();
-    private struct Glow { public MeshRenderer r; public Color color; public float baseI, kickI; public bool face; }
-    private readonly List<Glow> glows = new List<Glow>();
-    private struct Swell { public Transform t; public Vector3 rest; public float amount; }
-    private readonly List<Swell> swells = new List<Swell>();
-    private struct LampLight { public Light light; }
-    private readonly List<LampLight> lampLights = new List<LampLight>();
-    private struct Fog { public Transform t; public MeshRenderer r; public float seed, y; }
-    private readonly List<Fog> fogs = new List<Fog>();
+    protected struct Glow { public MeshRenderer r; public Color color; public float baseI, kickI; public bool face; }
+    protected readonly List<Glow> glows = new List<Glow>();
+    protected struct Swell { public Transform t; public Vector3 rest; public float amount; }
+    protected readonly List<Swell> swells = new List<Swell>();
+    protected struct LampLight { public Light light; }
+    protected readonly List<LampLight> lampLights = new List<LampLight>();
+    protected struct Fog { public Transform t; public MeshRenderer r; public float seed, y; }
+    protected readonly List<Fog> fogs = new List<Fog>();
     private class Bat { public Transform t; public float angle, radius, height, speed, flap, size; public Vector3 center; }
     private readonly List<Bat> bats = new List<Bat>();
     // Every material the props use, re-made once for the night (and for URP, where a pack ships
@@ -173,7 +173,7 @@ public class GraveyardEnvironmentDecorator : MonoBehaviour, IEnvironmentDecorato
 
     // --- building ---
 
-    private void BuildSegment(Transform stage, int index, float z)
+    protected virtual void BuildSegment(Transform stage, int index, float z)
     {
         var seg = new GameObject("Segment_" + index.ToString("00")).transform;
         seg.SetParent(stage, false);
@@ -285,7 +285,10 @@ public class GraveyardEnvironmentDecorator : MonoBehaviour, IEnvironmentDecorato
         }
     }
 
-    private Transform Prop(Transform parent, GameObject model, Vector3 pos, float yaw, float scale)
+    /// A segment that travels with the road and wraps round (Update scrolls every registered one).
+    protected void RegisterSegment(Transform seg) => segments.Add(seg);
+
+    protected Transform Prop(Transform parent, GameObject model, Vector3 pos, float yaw, float scale)
     {
         if (model == null) return null;
         var go = Instantiate(model, parent);
@@ -344,7 +347,7 @@ public class GraveyardEnvironmentDecorator : MonoBehaviour, IEnvironmentDecorato
         return m;
     }
 
-    private MeshRenderer GlowQuad(Transform parent, string name, Texture2D mask, Color color, bool alphaMask)
+    protected MeshRenderer GlowQuad(Transform parent, string name, Texture2D mask, Color color, bool alphaMask)
     {
         var q = GameObject.CreatePrimitive(PrimitiveType.Quad);
         Destroy(q.GetComponent<Collider>());
@@ -390,7 +393,7 @@ public class GraveyardEnvironmentDecorator : MonoBehaviour, IEnvironmentDecorato
 
     // --- per frame ---
 
-    private void OnDestroy()
+    protected virtual void OnDestroy()
     {
         tweens.KillAll();
         if (sky != null)
@@ -420,7 +423,7 @@ public class GraveyardEnvironmentDecorator : MonoBehaviour, IEnvironmentDecorato
         }
     }
 
-    private void LateUpdate()
+    protected virtual void LateUpdate()
     {
         if (!built) return;
         tweens.SeekLoops(ClubBeat.BeatIndex + ClubBeat.BeatPhase);
@@ -469,7 +472,7 @@ public class GraveyardEnvironmentDecorator : MonoBehaviour, IEnvironmentDecorato
         }
     }
 
-    private void SetGlow(MeshRenderer r, Color? color, float intensity)
+    protected void SetGlow(MeshRenderer r, Color? color, float intensity)
     {
         r.GetPropertyBlock(mpb);
         if (color.HasValue) mpb.SetColor(ColorId, color.Value);
@@ -484,10 +487,10 @@ public class GraveyardEnvironmentDecorator : MonoBehaviour, IEnvironmentDecorato
         return peak > MaxGlow ? c * (MaxGlow / peak) : c;
     }
 
-    private static void Face(Transform t, Vector3 camPos) => t.rotation = Quaternion.LookRotation(t.position - camPos);
+    protected static void Face(Transform t, Vector3 camPos) => t.rotation = Quaternion.LookRotation(t.position - camPos);
 
-    private GameObject Pick(GameObject[] list) => list == null || list.Length == 0 ? null : list[rng.Next(list.Length)];
-    private float Rand(float a, float b) => a + (float)rng.NextDouble() * (b - a);
+    protected GameObject Pick(GameObject[] list) => list == null || list.Length == 0 ? null : list[rng.Next(list.Length)];
+    protected float Rand(float a, float b) => a + (float)rng.NextDouble() * (b - a);
 
     /// A bat, drawn in code: a small body and two scalloped wings, alpha only.
     private static Texture2D BatTexture()

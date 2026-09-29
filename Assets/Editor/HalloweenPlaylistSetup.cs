@@ -24,6 +24,7 @@ public static class HalloweenPlaylistSetup
     };
     private const string GraveyardTheme = "Assets/Themes/Theme_HalloweenGraveyard.asset";
     private const string PhonkTheme = "Assets/Themes/Theme_Phonk.asset";
+    private const string PumpkinTheme = "Assets/Themes/Theme_HalloweenPumpkin.asset";
     private const string OceanTheme = "Assets/Themes/Theme_Ocean.asset";
 
     [MenuItem("Tunnel/Playlist/Build Halloween Playlist", priority = 80)]
@@ -34,6 +35,9 @@ public static class HalloweenPlaylistSetup
         var p = LoadOrCreate(PlaylistPath);
         p.title = "Halloween";
         p.preRoll = true;
+        // Nothing on the road through a transition: the look changing IS the event, and a long
+        // wall there hides it.
+        p.wallsInTransition = 0;
         p.trainerMotionSet = AssetDatabase.LoadAssetAtPath<SilhouetteMotionSet>(SkeletonSet);
         p.trainerTextured = true;
         p.segments = new List<PlaylistSegment>
@@ -42,12 +46,25 @@ public static class HalloweenPlaylistSetup
             {
                 label = "Graveyard", track = Clip(HauntedHouse), beatmapFileName = "neoni_haunted_house.json",
                 theme = Theme(GraveyardTheme) ?? Theme(OceanTheme),
+                // The music is over by 176 s (the file runs on in silence to 181.9): end there, so
+                // the crossfade overlaps music with music instead of fading silence.
+                clipEnd = 176f,
+            },
+            // Burn It: its drumless intro is 29.5 s; the segment starts 16 bars in (14.8 s), so the
+            // crossfade lands in the intro's second half and the drums come in 15 s later.
+            new PlaylistSegment
+            {
+                label = "PumpkinFestival", track = Clip(Tracks[1]), beatmapFileName = "axollo_burn_it.json",
+                theme = Theme(PumpkinTheme), clipStart = 14.816f,
+                // Burn It falls silent after 181 s.
+                clipEnd = 181.2f,
+                transitionIn = PlaylistTransition.Crossfade, transitionSeconds = 3.5f,
             },
         };
         EditorUtility.SetDirty(p);
         AssetDatabase.SaveAssets();
         Use(PlaylistPath);
-        Debug.Log("[Playlist] built " + PlaylistPath + " (" + p.segments.Count + " segment)");
+        Debug.Log("[Playlist] built " + PlaylistPath + " (" + p.segments.Count + " segments)");
     }
 
     /// Segment 1 cut short, then the same track again under Phonk through a THUNDER transition, then

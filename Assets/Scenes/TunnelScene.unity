@@ -874,6 +874,7 @@ MonoBehaviour:
   kickHeight: 0.05
   punchHeight: 2.05
   punchHoldHeight: 2.45
+  punchHighHeight: 3.05
   cueLaneWidthRatio: 0.8
   kickDepth: 1.5
   kickThickness: 0.34
@@ -905,6 +906,9 @@ MonoBehaviour:
   curbHeight: 0.5
   curbDepth: 1.2
   curbWidthRatio: 1
+  balanceCurbHeight: 0.32
+  balanceCurbLaneRatio: 0.9
+  balanceFillScale: 0.35
   duckBeamBottom: 1.1
   duckBeamHeight: 0.95
   duckBeamDepth: 0.9

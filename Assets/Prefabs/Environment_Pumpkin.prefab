@@ -1,0 +1,114 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &6565490333513737566
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 487558491821461781}
+  - component: {fileID: 5289223297606842103}
+  m_Layer: 0
+  m_Name: Environment_Pumpkin
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &487558491821461781
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6565490333513737566}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &5289223297606842103
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6565490333513737566}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 38194c46411e42946af2cd7d40d79dd2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PumpkinEnvironmentDecorator
+  glowShader: {fileID: 4800000, guid: 229111d1025b0ea4da235a1272af8445, type: 3}
+  flareMask: {fileID: 2800000, guid: ffe5f4c20c77e9c4999b43e88956ade1, type: 3}
+  flameTexture: {fileID: 2800000, guid: 4a8dbaab130c721489ede3279c0da37e, type: 3}
+  smokeTexture: {fileID: 2800000, guid: 3f7cb6b8f26dccd4497661407c825ae1, type: 3}
+  coneMask: {fileID: 0}
+  gravestones: []
+  crypts: []
+  trees: []
+  fences: []
+  ironFences: []
+  lamps:
+  - {fileID: 7329880952836632882, guid: be6d9d3cddfea994ba51e3cf425087a2, type: 3}
+  - {fileID: 6473289392299665909, guid: f24c94125f67fd1428db4b54c387fbef, type: 3}
+  candles:
+  - {fileID: 6275929066778676279, guid: 9ab100afff737d84f8a9bc394de613f4, type: 3}
+  - {fileID: 3368435056302763307, guid: ea849c3f31297b342a05c44d4f0ccc62, type: 3}
+  - {fileID: 8264468213022692365, guid: 369456f238c2221498ccdf16df24b160, type: 3}
+  pumpkins:
+  - {fileID: 7129618346194545963, guid: 2efd17ea6e088e4439727b6932594ef7, type: 3}
+  - {fileID: 4467135361893618014, guid: bad15bf9648b35346a364933a7c3600b, type: 3}
+  - {fileID: 251666197779250496, guid: 539b32ce3edabfa4a83beed7678cc3c6, type: 3}
+  - {fileID: 8277209953243396805, guid: 36694657a5f6ed44ca298dd8501b1122, type: 3}
+  - {fileID: 919132149155446097, guid: e9581cf6add18c44cb4e2f127e35b279, type: 3}
+  - {fileID: 919132149155446097, guid: 8e16cc068dea9b94e818ae5a0cd8c3c6, type: 3}
+  details:
+  - {fileID: 1511164707345436327, guid: 8ed2a5651976f214ba27cbc9b1f9fcc4, type: 3}
+  - {fileID: 2569659205156790823, guid: e94df6b633c3aaa45834ff62a0c73674, type: 3}
+  - {fileID: 6522480445163838556, guid: 6d58392d0b7c5a44a82040de4cdf5f68, type: 3}
+  moonBlue: {r: 0.75, g: 0.45, b: 1, a: 1}
+  flameOrange: {r: 1, g: 0.48, b: 0.08, a: 1}
+  poisonGreen: {r: 0.45, g: 1, b: 0.3, a: 1}
+  stoneTint: {r: 0.8, g: 0.66, b: 0.62, a: 1}
+  segmentSpacing: 8
+  behindCamera: 16
+  fenceX: 5.3
+  graveX: {x: 6.3, y: 15}
+  cryptX: {x: 12, y: 19}
+  treeX: {x: 15, y: 30}
+  lampX: 5.9
+  propScale: 1.9
+  lampLightRange: 11
+  lampLightIntensity: 5
+  fogPerSegment: 3
+  batCount: 34
+  litPumpkins:
+  - {fileID: 4655076214908982717, guid: 81a373bf062c567419256ed415c47f4b, type: 3}
+  - {fileID: 5589411136755986614, guid: 32a07afdb9244484ea69e3551e9cbd4f, type: 3}
+  - {fileID: 34970304474066948, guid: dce89cb9f874bbb4ca1d87d699e86d59, type: 3}
+  - {fileID: 919132149155446097, guid: dae2c98ffc0ae1c458592b0f851e718b, type: 3}
+  - {fileID: 919132149155446097, guid: 66d8fc449610af743b75c164a2890537, type: 3}
+  hay:
+  - {fileID: 919132149155446097, guid: e8505d790f830874ba2658e36a65bb81, type: 3}
+  - {fileID: 919132149155446097, guid: 289626745b10af8498137160073dc495, type: 3}
+  scarecrows:
+  - {fileID: 8045810702686802794, guid: 6466f21c32f0b664d8f3c4d04a087c49, type: 3}
+  - {fileID: 1189682042208265435, guid: b690cb73b33aed849b8f65e31595dea7, type: 3}
+  garlands:
+  - {fileID: 141645319705763572, guid: 995e3c8df9e740948b260bfa99b6c405, type: 3}
+  bunting:
+  - {fileID: 6819139947600422862, guid: e599aac102f3b92438c6de45169052e4, type: 3}
+  fireBasket: {fileID: 919132149155446097, guid: c392cba5afc8c2a42bf99ea7c99e6dde, type: 3}
+  cauldron: {fileID: 8060137026819741764, guid: 6727fc23ce9109444b62e6392293a7a5, type: 3}
+  sparkTexture: {fileID: 2800000, guid: a5231a79ceb8aaf409ab5828bdba752f, type: 3}
+  purple: {r: 0.62, g: 0.25, b: 1, a: 1}
+  warmYellow: {r: 1, g: 0.8, b: 0.3, a: 1}
+  poleX: 5.2
+  poleHeight: 4.6
+  heapX: {x: 6.4, y: 9}
