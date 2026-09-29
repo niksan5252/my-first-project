@@ -1,0 +1,143 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &2032117926222738636
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7198381609272883680}
+  - component: {fileID: 6528577587258226418}
+  m_Layer: 0
+  m_Name: Environment_Graveyard
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7198381609272883680
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2032117926222738636}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &6528577587258226418
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2032117926222738636}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9d688576a59130740ab06f84021e6d6a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::GraveyardEnvironmentDecorator
+  glowShader: {fileID: 4800000, guid: 229111d1025b0ea4da235a1272af8445, type: 3}
+  flareMask: {fileID: 2800000, guid: ffe5f4c20c77e9c4999b43e88956ade1, type: 3}
+  flameTexture: {fileID: 2800000, guid: 4a8dbaab130c721489ede3279c0da37e, type: 3}
+  smokeTexture: {fileID: 2800000, guid: 3f7cb6b8f26dccd4497661407c825ae1, type: 3}
+  coneMask: {fileID: 2800000, guid: 9ae373f4020fafa4da1b1a906ba78064, type: 3}
+  gravestones:
+  - {fileID: 3637704407608538012, guid: 60f67bdcf80b65e4bbbfb9a0c20ca62d, type: 3}
+  - {fileID: 498064912315247137, guid: ff3c8929527894f4eabb85bbd2a125cd, type: 3}
+  - {fileID: 7820937559156902863, guid: 36298ee4e4bdc4643bd8f5385e47c8d4, type: 3}
+  - {fileID: 1774593212930658034, guid: 68552a41bc8e24d4b8b869dfc1ae51df, type: 3}
+  - {fileID: 1173350932223888399, guid: eb9dbc698ed9cee438ea8c68bdccdd2e, type: 3}
+  - {fileID: 8443590408702446086, guid: 60ec5703451ac1544a5cf054ccafd957, type: 3}
+  - {fileID: 134026917719416604, guid: 1e78cb3325ea1954fae4b0eaa8e5984d, type: 3}
+  - {fileID: 4485039125734639420, guid: 2a1e167656ef5664a9c7f8081fa23081, type: 3}
+  - {fileID: 8443969872023620607, guid: 71ba7593c7cbc58478d6fd1e2ae946b2, type: 3}
+  - {fileID: 8226515810227641253, guid: ddf61ec92a666fd45980b19a92e1186f, type: 3}
+  - {fileID: 547654924143946539, guid: 56c7bd716806a8d4294e48963cb72ef7, type: 3}
+  - {fileID: 3601075098563100067, guid: 4cfb6dcda5190d44cab1749f3a427686, type: 3}
+  - {fileID: 8955911942933997631, guid: 7b456eda45ee7f24b881e4fd9c1ccd8b, type: 3}
+  - {fileID: 717680720414598960, guid: 58bbf4f7d573bc545b8a244b7a96a803, type: 3}
+  - {fileID: 919132149155446097, guid: 052c3f0bd2cabf241bfdd59192d3cb2c, type: 3}
+  - {fileID: 919132149155446097, guid: 55294c24bd75e854ca62a3c5b6168a51, type: 3}
+  - {fileID: 919132149155446097, guid: 3ddf16d6c28fd7e408ce265ef1e97974, type: 3}
+  - {fileID: 919132149155446097, guid: 4a676f67e2256c94cbd562f566d804d9, type: 3}
+  - {fileID: 919132149155446097, guid: dd3d7f424fdbc3c43bf541a3287ed0db, type: 3}
+  - {fileID: 919132149155446097, guid: 78062178d58a23f42a4c1a92abb098af, type: 3}
+  - {fileID: 919132149155446097, guid: 94bccf427c903594d81e9a316e4be64c, type: 3}
+  - {fileID: 4153502148593233343, guid: de2d09b271cfb144ab19747dc1626af1, type: 3}
+  - {fileID: 4731041251265943480, guid: 802993c0a67c1474a8e45bec6ae1a495, type: 3}
+  - {fileID: 8862360825952428780, guid: 13b23f35e616a8b45be94a4b9164bcb4, type: 3}
+  - {fileID: 3042831833515112434, guid: e54b5da67e1b90f4e91949ca516a50ae, type: 3}
+  crypts:
+  - {fileID: 6472250246403028806, guid: ddcc657a15145024c99d55fcb80a68e6, type: 3}
+  - {fileID: 3491787209607423075, guid: c698985a1ca7d654592eb09e0dd50b32, type: 3}
+  - {fileID: 919132149155446097, guid: 17c118ef6118fe44ea6f3a959a69f5e9, type: 3}
+  - {fileID: 919132149155446097, guid: 23a22ae1e135b214da228b1a8fd6ddc1, type: 3}
+  - {fileID: 919132149155446097, guid: 3e7a26aead3db444f834d1d81d37c244, type: 3}
+  trees:
+  - {fileID: 6440774818338459094, guid: 7a8589994318cfa4ba3f5fb998d7ac8e, type: 3}
+  - {fileID: 7408756708330696469, guid: 1ebd6e95b6290c540838557fa756c578, type: 3}
+  - {fileID: 2715411153055925695, guid: edb0c67f316104c448c064cc015e207c, type: 3}
+  - {fileID: 6014915393420732381, guid: 43d4f8f62219d094dbc663d3e9717391, type: 3}
+  - {fileID: 8580231704540326794, guid: b023186f66fdb2f4cbce763233dbee12, type: 3}
+  - {fileID: 1303053335246012418, guid: 02663bb757dc5aa40b58a32b4dee0893, type: 3}
+  - {fileID: 2198532698984072747, guid: 0c2f1fb509b67014bbd7626f123123d4, type: 3}
+  - {fileID: 919132149155446097, guid: b19f8fd297d5f0748b40c551f73f2eb7, type: 3}
+  fences:
+  - {fileID: 1723528090924883111, guid: 11bd476b5dfbb6048980a0e946822042, type: 3}
+  - {fileID: 1963584078338303645, guid: 9553b621a564db5419b3bf2d8cd74852, type: 3}
+  - {fileID: 1987964543598985638, guid: b55aa1b82b5fb2140b82556015f4afea, type: 3}
+  ironFences:
+  - {fileID: 919132149155446097, guid: 6ee09180f56af4548a60957985c85a00, type: 3}
+  - {fileID: 919132149155446097, guid: 8765b1b32728f3b418690b166fe8d6d7, type: 3}
+  lamps:
+  - {fileID: 2697965227584190506, guid: 065df652f7951be43937b6a03394c689, type: 3}
+  - {fileID: 8666880256272808067, guid: 4e20c28d33a37064cb82d02e113c09f2, type: 3}
+  - {fileID: 6473289392299665909, guid: f24c94125f67fd1428db4b54c387fbef, type: 3}
+  candles:
+  - {fileID: 6275929066778676279, guid: 9ab100afff737d84f8a9bc394de613f4, type: 3}
+  - {fileID: 3368435056302763307, guid: ea849c3f31297b342a05c44d4f0ccc62, type: 3}
+  - {fileID: 7848657572127513549, guid: 97718a386a494f64f9bbea4b62581a79, type: 3}
+  - {fileID: 6141948743995340936, guid: 1ec8def73bb35c1468e0c3604ac21aaa, type: 3}
+  - {fileID: 7644766710738608322, guid: 3d076538d6e3aa24b9f7dba50f6dd5c4, type: 3}
+  - {fileID: 8264468213022692365, guid: 369456f238c2221498ccdf16df24b160, type: 3}
+  pumpkins:
+  - {fileID: 7129618346194545963, guid: 2efd17ea6e088e4439727b6932594ef7, type: 3}
+  - {fileID: 4467135361893618014, guid: bad15bf9648b35346a364933a7c3600b, type: 3}
+  - {fileID: 4655076214908982717, guid: 81a373bf062c567419256ed415c47f4b, type: 3}
+  - {fileID: 5589411136755986614, guid: 32a07afdb9244484ea69e3551e9cbd4f, type: 3}
+  details:
+  - {fileID: 5149521868476923043, guid: 952993bf12e7814498676b0552b5f3bf, type: 3}
+  - {fileID: 4989516053293696553, guid: d523dc5e51658214ba9eb053ea86b7d6, type: 3}
+  - {fileID: 8751491499007880521, guid: 4e711aeb7b12c3b488c081b3025a9ab8, type: 3}
+  - {fileID: 291724602121693812, guid: b7f27d0cf1b8f444088c681fdd6c9768, type: 3}
+  - {fileID: 8533965681625350508, guid: c410ff09ab71fd945a0f40cf6973f04c, type: 3}
+  - {fileID: 2119252929475379375, guid: 478d38c3698cbe24cbf7dbfad105d10c, type: 3}
+  - {fileID: 7797295479864358708, guid: 73f30cb686b247f45bee3ef5ee46fedb, type: 3}
+  - {fileID: 8244163362554518717, guid: c0b291beda7fe7c4da1dd428d9bff867, type: 3}
+  - {fileID: 3445003256888115320, guid: 17ecc69fedc732d4b96ab4722d7dd95f, type: 3}
+  - {fileID: 8045810702686802794, guid: 6466f21c32f0b664d8f3c4d04a087c49, type: 3}
+  - {fileID: 919132149155446097, guid: d25faa8a972c1b94986bc51db80547cc, type: 3}
+  moonBlue: {r: 0.55, g: 0.72, b: 1, a: 1}
+  flameOrange: {r: 1, g: 0.5, b: 0.1, a: 1}
+  poisonGreen: {r: 0.42, g: 1, b: 0.22, a: 1}
+  stoneTint: {r: 0.5, g: 0.55, b: 0.68, a: 1}
+  segmentSpacing: 8
+  behindCamera: 16
+  fenceX: 5.3
+  graveX: {x: 6.3, y: 15}
+  cryptX: {x: 12, y: 19}
+  treeX: {x: 15, y: 30}
+  lampX: 5.9
+  propScale: 1.9
+  lampLightRange: 11
+  lampLightIntensity: 5
+  fogPerSegment: 3
+  batCount: 34
