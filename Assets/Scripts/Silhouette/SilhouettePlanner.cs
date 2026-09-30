@@ -172,14 +172,23 @@ public static class SilhouettePlanner
                     });
                     break;
                 case CueType.CurbGap:
-                case CueType.CurbSplit:
                 {
-                    // Stand beside the kerb for as long as it runs: on the leg of the free lane's
-                    // side (CurbGap), or wide on the two outer lanes (CurbSplit).
+                    // Over onto the free lane with the camera, on one leg there for as long as the
+                    // kerb runs, and back - the camera's own window, like a dodge.
+                    obstacleTiming(c, out float begin, out float commit, out float release, out float settled, out int camSide);
                     gestures.Add(new Gesture
                     {
-                        kind = c.type == CueType.CurbGap ? GestureKind.OneLeg : GestureKind.Wide,
-                        side = side, outer = outer, start = c.time - rise, impact = c.time,
+                        kind = GestureKind.OneLeg, side = camSide != 0 ? camSide : side, outer = outer, glide = true,
+                        start = begin, impact = commit, holdEnd = release, end = settled, note = i,
+                    });
+                    break;
+                }
+                case CueType.CurbSplit:
+                {
+                    // Wide on the two outer lanes for as long as the kerb runs, in the middle.
+                    gestures.Add(new Gesture
+                    {
+                        kind = GestureKind.Wide, side = side, outer = outer, start = c.time - rise, impact = c.time,
                         holdEnd = c.time + c.duration, end = c.time + c.duration + fall, note = i,
                     });
                     break;

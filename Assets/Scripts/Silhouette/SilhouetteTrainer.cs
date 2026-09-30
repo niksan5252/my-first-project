@@ -72,6 +72,10 @@ public class SilhouetteTrainer : MonoBehaviour
     [SerializeField] private bool autoFrame = true;
     [SerializeField] private float frameHeights = 1.7f;
     [SerializeField] private float frameCenter = 0.66f;
+    // Share of a step aside the panel's camera follows. At 0 a tap thrown outward from the
+    // stepped-out figure leaves the panel; at 1 the step would not show at all.
+    [SerializeField, Range(0f, 1f)] private float stepAsideFollow = 0.4f;
+    private Vector3 cameraRest;
 
     [Header("Textured character (a playlist's own trainer)")]
     [SerializeField] private Shader texturedShader;
@@ -328,7 +332,7 @@ public class SilhouetteTrainer : MonoBehaviour
         var rot = Quaternion.Euler(cameraPitch, cameraYaw, 0f);
         Vector3 target = new Vector3(0f, viewCenterY, viewAheadZ);
         go.transform.localRotation = rot;
-        go.transform.localPosition = target - rot * Vector3.forward * 10f;
+        go.transform.localPosition = cameraRest = target - rot * Vector3.forward * 10f;
     }
 
     private void BuildPanel()
@@ -497,7 +501,7 @@ public class SilhouetteTrainer : MonoBehaviour
         viewCenterY = height * (motionSet.frameCenter > 0f ? motionSet.frameCenter : frameCenter);
         figureCamera.orthographicSize = viewHeight * 0.5f;
         var rot = figureCamera.transform.localRotation;
-        figureCamera.transform.localPosition = new Vector3(0f, viewCenterY, viewAheadZ) - rot * Vector3.forward * 10f;
+        figureCamera.transform.localPosition = cameraRest = new Vector3(0f, viewCenterY, viewAheadZ) - rot * Vector3.forward * 10f;
         Debug.Log("[Silhouette] figure " + height.ToString("F2") + " m tall, view " + viewHeight.ToString("F2") + " m, centre " + viewCenterY.ToString("F2"), this);
     }
 
@@ -697,26 +701,21 @@ public class SilhouetteTrainer : MonoBehaviour
                     }
                     case SilhouettePlanner.GestureKind.OneLeg:
                     {
-                        // Stand on the leg on the free lane's side; the other knee comes up.
+                        // Stepped over onto the free lane (StepAside), on the leg of that side; the
+                        // other knee comes up once the feet are together, and down before the
+                        // step back.
                         int lifted = 1 - limb;
-                        Vector3 up = new Vector3(-X(g.side) * 0.05f * w, s.oneLegLift * w, s.oneLegForward * w);
-                        if (w >= footW[lifted]) { footW[lifted] = w; foot[lifted] = up; }
-                        body += new Vector3(x * 0.05f * w, 0f, 0f);
+                        float k = w * w * w;
+                        Vector3 up = new Vector3(-X(g.side) * 0.05f * k, s.oneLegLift * k, s.oneLegForward * k);
+                        if (k >= footW[lifted]) { footW[lifted] = k; foot[lifted] = up; }
                         tapping = Mathf.Max(tapping, w);
                         break;
                     }
                     case SilhouettePlanner.GestureKind.Dodge:
                     {
-                        body += new Vector3(x * s.dodgeShift * w, -0.02f * w, 0f);
-                        // Positive roll about +Z tips the top toward -X, i.e. toward the screen's right.
-                        lean += s.dodgeLeanDegrees * g.side * w;
-                        // Positive yaw turns the figure's front toward +X; the turn is toward the
-                        // step, so toward x. The arms stay the stance's, relaxed at the sides.
+                        // The step itself is StepAside; the shoulders turn a little toward it.
+                        // Positive yaw turns the figure's front toward +X, i.e. toward x.
                         turn += s.dodgeTurnDegrees * x * w;
-                        int other = 1 - limb;
-                        Vector3 lead = new Vector3(x * s.dodgeLeadFoot * w, 0f, 0f), trail = new Vector3(x * s.dodgeTrailFoot * w, 0f, 0f);
-                        if (w > footW[limb]) { footW[limb] = w; foot[limb] = lead; }
-                        if (w > footW[other]) { footW[other] = w; foot[other] = trail; }
                         break;
                     }
                 }
@@ -726,6 +725,15 @@ public class SilhouetteTrainer : MonoBehaviour
         // While a foot taps, the knees stop giving on the beat: a dip on top of a tap is what made
         // it read as a hop from foot to foot.
         body.y += dip * stance * tapping;
+
+        // Stepping aside: the whole figure goes over (so everything above - a tap, a reach - is
+        // thrown from where it now stands), the feet carried there by their own step curves.
+        float asideX = StepAside(now, out Vector3 stepL, out Vector3 stepR);
+        float vx = (StepAside(now + 0.02f, out _, out _) - StepAside(now - 0.02f, out _, out _)) / 0.04f;
+        // Positive roll tips the top toward -X: lean INTO the travel, only while travelling.
+        lean += -s.stepLeanPerSpeed * vx / Mathf.Max(0.1f, s.gestureScale);
+        foot[0] += stepL;
+        foot[1] += stepR;
         // The moves in the character's own proportions: offsets from the shoulders, the feet and
         // the body scaled together.
         float scale = s.gestureScale;
@@ -743,7 +751,10 @@ public class SilhouetteTrainer : MonoBehaviour
         job.bodyOffset = body;
         job.leanDegrees = lean;
         job.turnDegrees = turn;
-        Vector3 W(Vector3 local) => stage.transform.TransformPoint(local);
+        figure.localPosition = new Vector3(asideX, 0f, 0f);
+        figureCamera.transform.localPosition = cameraRest + new Vector3(asideX * stepAsideFollow, 0f, 0f);
+        // Targets are the figure's own: they go with it when it steps aside.
+        Vector3 W(Vector3 local) => figure.TransformPoint(local);
         // The hand's target rides with the body (its bounce and its shift).
         job.lHandW = hand[0].w; job.lHand = W(hand[0].target + body); job.lElbow = W(hand[0].elbow + body);
         job.rHandW = hand[1].w; job.rHand = W(hand[1].target + body); job.rElbow = W(hand[1].elbow + body);
@@ -754,6 +765,48 @@ public class SilhouetteTrainer : MonoBehaviour
         lastLFoot = foot[0];
         lastRFoot = foot[1];
         return job;
+    }
+
+    /// Where the figure stands sideways because of walls and kerbs (stage X, metres, already in
+    /// the character's scale), and each foot's offset from being carried along with it: the foot
+    /// on the side of the move steps first over the first stepLeadShare of the move, the other is
+    /// brought up to it over the last share - and on the way back the inner foot leads. A foot in
+    /// the air is lifted a little.
+    private float StepAside(float now, out Vector3 left, out Vector3 right)
+    {
+        left = right = Vector3.zero;
+        if (gestures == null) return 0f;
+        var s = motionSet;
+        float shift = 0f;
+        foreach (var g in gestures)
+        {
+            if (g.kind != SilhouettePlanner.GestureKind.Dodge && g.kind != SilhouettePlanner.GestureKind.OneLeg) continue;
+            if (now <= g.start || now >= g.end) continue;
+            float dist = X(g.side) * s.stepAsideShift * s.gestureScale;
+            float body = g.Weight(now);
+            shift += dist * body;
+            // Which foot is on the outside of the move: toward +X that is the figure's right (1).
+            int outer = dist > 0f ? 1 : 0;
+            bool goingOut = now < g.impact;
+            bool comingBack = now > g.holdEnd;
+            if (!goingOut && !comingBack) continue;
+            float a = goingOut ? g.start : g.holdEnd, b = goingOut ? g.impact : g.end;
+            float u = Mathf.Clamp01((now - a) / Mathf.Max(1e-4f, b - a));
+            float share = s.stepLeadShare;
+            float leadU = Smooth01(u / share), trailU = Smooth01((u - (1f - share)) / share);
+            int lead = goingOut ? outer : 1 - outer;
+            for (int f = 0; f < 2; f++)
+            {
+                float fu = f == lead ? leadU : trailU;
+                // The foot's own weight along the move, against the body's.
+                float footW = goingOut ? fu : 1f - fu;
+                float off = dist * (footW - body);
+                float lift = s.stepFootLift * s.gestureScale * Mathf.Sin(Mathf.PI * fu);
+                var v = new Vector3(off, lift, 0f);
+                if (f == 0) left += v; else right += v;
+            }
+        }
+        return shift;
     }
 
     private static void Take(ref Limb l, float w, Vector3 target, Vector3 elbow)
@@ -875,7 +928,10 @@ public class SilhouetteTrainer : MonoBehaviour
         {
             if (now < captures[i].Key) continue;
             ScreenCapture.CaptureScreenshot(captures[i].Value);
-            Debug.Log("[Silhouette] capture " + captures[i].Value + " at song " + now.ToString("F3") + " (asked " + captures[i].Key.ToString("F3") + ")");
+            var cam = Camera.main != null ? Camera.main.transform : null;
+            Debug.Log("[Silhouette] capture " + captures[i].Value + " at song " + now.ToString("F3") + " (asked " + captures[i].Key.ToString("F3") + ")"
+                      + (cam != null ? " camera x " + cam.localPosition.x.ToString("F3") + " roll " + Mathf.DeltaAngle(0f, cam.localEulerAngles.z).ToString("F1") : "")
+                      + " figure x " + figure.localPosition.x.ToString("F3"));
             captures.RemoveAt(i);
         }
     }

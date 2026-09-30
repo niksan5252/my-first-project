@@ -104,12 +104,16 @@ public class SilhouetteMotionSet : ScriptableObject
     [Range(0f, 0.5f)] public float tapStayBeats = 0.1f;
     [Range(0.1f, 1f)] public float tapOutBeats = 0.4f;
 
-    [Header("Dodge: turn, lean and step away from the wall")]
-    public float dodgeShift = 0.2f;        // how far the body moves (m)
-    public float dodgeLeadFoot = 0.34f;    // the foot on the side of the step
-    public float dodgeTrailFoot = 0.1f;
-    public float dodgeLeanDegrees = 12f;
-    public float dodgeTurnDegrees = 30f;   // shoulders and hips turned toward the step
+    [Header("Step aside: away from a wall, onto a kerb's free lane")]
+    // The whole figure steps over with the camera and stays there while the wall or the kerb goes
+    // past - kicks and punches in the meantime are thrown from there - then steps back. The lead
+    // foot goes first and the other is brought up to it (a side step); the body leans into the
+    // move only while it travels.
+    public float stepAsideShift = 0.36f;           // how far the figure moves (m)
+    [Range(0.3f, 1f)] public float stepLeadShare = 0.65f;   // share of the move the lead foot takes
+    [Range(0f, 0.3f)] public float stepFootLift = 0.07f;    // a foot in the air clears the floor by this
+    public float stepLeanPerSpeed = 9f;            // degrees of lean per m/s of travel
+    public float dodgeTurnDegrees = 12f;           // shoulders turned toward the step while stepped out
 
     [Header("Sweep: the raised fist carried out along a PunchSweep's tail")]
     // Metres from the shoulder where the hand is at the note (high, near the middle) and where it
