@@ -92,7 +92,7 @@ public static class SilhouettePlanner
 
     // Where the plan begins: before the music (SongClock reports negative time until the audio
     // starts). Finite on purpose - a loop's clip time is solved from it.
-    private const float SongStart = -30f;
+    internal const float SongStart = -30f;
 
     public static void Plan(SilhouetteMotionSet set, BeatmapSequencer chart, float bpm, int laneCount, string seedText,
                             ObstacleTimingFn obstacleTiming, out List<Segment> segments, out List<Gesture> gestures)
@@ -273,7 +273,7 @@ public static class SilhouettePlanner
     }
 
     /// The other note of a pair on note i, or -1: one of `type` at the same moment, in another lane.
-    private static int Partner(BeatmapSequencer chart, List<int> order, int i, CueType type)
+    internal static int Partner(BeatmapSequencer chart, List<int> order, int i, CueType type)
     {
         var c = chart[i];
         foreach (int j in order)
@@ -317,11 +317,13 @@ public static class SilhouettePlanner
     /// each held for at least stanceMinSeconds and one full cycle, never the same twice running.
     /// The choice at any moment is fixed once for the whole track, so a jump or a crouch that
     /// interrupts the stance comes back to the same idle, at the point it would have reached.
-    private sealed class StanceTrack
+    internal sealed class StanceTrack
     {
-        private struct Piece { public float start, end; public SilhouetteMotion motion; }
+        public struct Piece { public float start, end; public SilhouetteMotion motion; }
         private readonly List<Piece> pieces = new List<Piece>();
         private readonly float fade;
+        public IReadOnlyList<Piece> Pieces => pieces;
+        public float Fade => fade;
 
         public StanceTrack(SilhouetteMotionSet set, BeatmapSequencer chart, float beat, System.Random rng)
         {
@@ -413,7 +415,7 @@ public static class SilhouettePlanner
     }
 
     /// Never the same take twice running, otherwise at random - seeded by the track.
-    private static SilhouetteMotion Pick(List<SilhouetteMotion> list, ref SilhouetteMotion last, System.Random rng)
+    internal static SilhouetteMotion Pick(List<SilhouetteMotion> list, ref SilhouetteMotion last, System.Random rng)
     {
         var pool = new List<SilhouetteMotion>();
         if (list != null) foreach (var m in list) if (m != null && m.Valid && m != last) pool.Add(m);

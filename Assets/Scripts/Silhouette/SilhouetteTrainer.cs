@@ -126,6 +126,22 @@ public class SilhouetteTrainer : MonoBehaviour
     private Vector3 lShoulder, rShoulder, lFootRest, rFootRest;
     private Transform lHandBone, rHandBone, lFootBone, rFootBone;
 
+    // Motion capture (a set with exercises, see SilhouetteExercisePlanner): takes on the body and on
+    // each arm, the stance under them, where the figure stands.
+    private bool mocap;
+    private List<SilhouetteExercisePlanner.Move> moves;
+    private List<SilhouetteExercisePlanner.HomeStep> home;
+    private SilhouettePlanner.StanceTrack stanceTrack;
+    private AnimationLayerMixerPlayable layers;
+    private readonly AnimationMixerPlayable[] armMixers = new AnimationMixerPlayable[2];
+    private readonly List<AnimationClipPlayable>[] armInputs = { new List<AnimationClipPlayable>(), new List<AnimationClipPlayable>() };
+    private float[][] armWeights = { new float[0], new float[0] };
+    // (clip, slot) -> input: slot 0 the stance, 1/2 two copies on the body, 3/4 the left/right arm.
+    private readonly Dictionary<(AnimationClip, int), int> slotInput = new Dictionary<(AnimationClip, int), int>();
+    private float travelScale = 1f, maxMoveLength = 1f;
+    private System.Func<float, float> beatAt;
+    private float lastRootX;
+
     private List<SilhouettePlanner.Segment> plan;
     private List<SilhouettePlanner.Gesture> gestures;
     private float beatAnchor, secondsPerBeat = 0.5f;
@@ -188,6 +204,8 @@ public class SilhouetteTrainer : MonoBehaviour
 
     private void OnDestroy()
     {
+        // A run stopped before the report filled up still leaves what it measured.
+        if (!syncWritten && syncRows.Count > 0) WriteSync();
         if (graph.IsValid()) graph.Destroy();
         if (rt != null) { rt.Release(); Destroy(rt); }
         if (stage != null) Destroy(stage);
@@ -302,8 +320,24 @@ public class SilhouetteTrainer : MonoBehaviour
         Stance(motionSet.idle);
         Stance(motionSet.idleLively);
 
+        // Over the body: one layer per arm, masked, for a punch thrown over a leg exercise.
+        layers = AnimationLayerMixerPlayable.Create(graph, 3);
+        graph.Connect(mixer, 0, layers, 0);
+        layers.SetInputWeight(0, 1f);
+        for (int arm = 0; arm < 2; arm++)
+        {
+            armMixers[arm] = AnimationMixerPlayable.Create(graph, 0);
+            graph.Connect(armMixers[arm], 0, layers, arm + 1);
+            layers.SetInputWeight(arm + 1, 0f);
+            var mask = new AvatarMask();
+            for (int part = 0; part < (int)AvatarMaskBodyPart.LastBodyPart; part++) mask.SetHumanoidBodyPartActive((AvatarMaskBodyPart)part, false);
+            mask.SetHumanoidBodyPartActive(arm == 0 ? AvatarMaskBodyPart.LeftArm : AvatarMaskBodyPart.RightArm, true);
+            mask.SetHumanoidBodyPartActive(arm == 0 ? AvatarMaskBodyPart.LeftFingers : AvatarMaskBodyPart.RightFingers, true);
+            layers.SetLayerMaskFromAvatarMask((uint)(arm + 1), mask);
+        }
+
         poser = AnimationScriptPlayable.Create(graph, new SilhouettePoseJob { forward = Vector3.forward, pin = 1f }, 1);
-        graph.Connect(mixer, 0, poser, 0);
+        graph.Connect(layers, 0, poser, 0);
         poser.SetInputWeight(0, 1f);
         output.SetSourcePlayable(poser);
     }
@@ -444,10 +478,36 @@ public class SilhouetteTrainer : MonoBehaviour
         var meta = cueSpawner.BeatmapMeta;
         if (chart == null || meta == null) return;
 
-        SilhouettePlanner.Plan(motionSet, chart, meta.bpm, cueSpawner.LaneCount, meta.track ?? cueSpawner.name,
-                               cueSpawner.ObstacleTiming, out plan, out gestures);
         secondsPerBeat = 60f / (meta.bpm >= 20f ? meta.bpm : 120f);
         beatAnchor = SilhouettePlanner.BeatAnchor(chart);
+        // A playlist changes tempo from track to track: each beat-length is the one of the track
+        // playing at that moment.
+        var timeline = PlaylistDirector.Active != null ? PlaylistDirector.Active.Timeline : null;
+        float spb = secondsPerBeat;
+        beatAt = _ => spb;
+        if (timeline != null && timeline.spans.Count > 0)
+            beatAt = t =>
+            {
+                var span = timeline.spans[0];
+                foreach (var sp in timeline.spans) if (t >= sp.audioStart - 0.01f) span = sp;
+                return span.secondsPerBeat;
+            };
+        mocap = motionSet.HasExercises && animator.isHuman;
+        string seed = meta.track ?? cueSpawner.name;
+        if (mocap)
+        {
+            travelScale = animator.humanScale / Mathf.Max(0.01f, motionSet.analysisHipsHeight);
+            SilhouetteExercisePlanner.Plan(motionSet, chart, beatAt, cueSpawner.LaneCount, seed, cueSpawner.ObstacleTiming, travelScale,
+                                           out moves, out gestures, out home);
+            stanceTrack = new SilhouettePlanner.StanceTrack(motionSet, chart, secondsPerBeat, new System.Random(SilhouettePlanner.StableHash(seed)));
+            BuildMoveInputs();
+            plan = new List<SilhouettePlanner.Segment>();
+        }
+        else
+        {
+            SilhouettePlanner.Plan(motionSet, chart, meta.bpm, cueSpawner.LaneCount, seed,
+                                   cueSpawner.ObstacleTiming, out plan, out gestures);
+        }
         planned = true;
         cursor = 0;
         LogPlan();
@@ -460,7 +520,7 @@ public class SilhouetteTrainer : MonoBehaviour
         ApplyTheme();
 
         float now = Now;
-        float stance = plan == null || plan.Count == 0 ? EvaluateStanceOnly(now) : EvaluatePlan(now);
+        float stance = mocap && planned ? EvaluateMocap(now) : plan == null || plan.Count == 0 ? EvaluateStanceOnly(now) : EvaluatePlan(now);
 
         // First frame: the stance alone, unposed, to measure the figure by.
         if (!measured)
@@ -545,6 +605,138 @@ public class SilhouetteTrainer : MonoBehaviour
         return Mathf.Clamp01(stance);
     }
 
+    /// Inputs for every take of the plan: two copies of a clip on the body (a take can start again
+    /// while its last one is still fading out), one per arm.
+    private void BuildMoveInputs()
+    {
+        var lastEnd = new Dictionary<AnimationClip, (float end, int inst)>();
+        foreach (var mv in moves)
+        {
+            maxMoveLength = Mathf.Max(maxMoveLength, mv.end - mv.start);
+            int slot;
+            if (mv.layer == 0)
+            {
+                int inst = 0;
+                bool seen = lastEnd.TryGetValue(mv.motion.clip, out var le);
+                if (seen && mv.start < le.end) inst = 1 - le.inst;
+                mv.instance = inst;
+                lastEnd[mv.motion.clip] = (seen ? Mathf.Max(mv.end, le.end) : mv.end, inst);
+                slot = 1 + inst;
+            }
+            else slot = 2 + mv.layer;
+            Input(mv.motion.clip, slot);
+        }
+        foreach (var piece in stanceTrack.Pieces) if (piece.motion != null && piece.motion.Valid) Input(piece.motion.clip, 0);
+        weights = new float[mixer.GetInputCount()];
+        for (int arm = 0; arm < 2; arm++) armWeights[arm] = new float[armMixers[arm].GetInputCount()];
+    }
+
+    private int Input(AnimationClip clip, int slot)
+    {
+        if (slot == 0 && inputOf.TryGetValue(clip, out int st)) return st;
+        if (slotInput.TryGetValue((clip, slot), out int i)) return i;
+        var p = AnimationClipPlayable.Create(graph, clip);
+        p.SetApplyFootIK(true);
+        p.Pause();
+        if (slot <= 2)
+        {
+            i = mixer.GetInputCount();
+            mixer.SetInputCount(i + 1);
+            graph.Connect(p, 0, mixer, i);
+            inputs.Add(p);
+        }
+        else
+        {
+            var mx = armMixers[slot - 3];
+            i = mx.GetInputCount();
+            mx.SetInputCount(i + 1);
+            graph.Connect(p, 0, mx, i);
+            armInputs[slot - 3].Add(p);
+        }
+        slotInput[(clip, slot)] = i;
+        return i;
+    }
+
+    /// The body: the takes under way, newest on top (each takes its fade's share of what the newer
+    /// ones left), the stance under all of them. Where the figure stands comes out of the same
+    /// weights. The arms: their own takes, over the body by their summed weight.
+    private float EvaluateMocap(float now)
+    {
+        System.Array.Clear(weights, 0, weights.Length);
+        for (int arm = 0; arm < 2; arm++) System.Array.Clear(armWeights[arm], 0, armWeights[arm].Length);
+        float homeX = StepAside(now, out _, out _) + SilhouetteExercisePlanner.Home(home, now);
+        float remaining = 1f, stance = 0f, rootX = 0f;
+        float[] armLeft = { 1f, 1f };
+
+        int hi = moves.Count - 1;
+        while (hi >= 0 && moves[hi].start > now) hi--;
+        for (int k = hi; k >= 0; k--)
+        {
+            var mv = moves[k];
+            if (mv.start < now - maxMoveLength) break;
+            float e = mv.Envelope(now);
+            if (e <= 0f) continue;
+            if (mv.layer == 0)
+            {
+                if (remaining <= 1e-4f) continue;
+                float w = remaining * e;
+                remaining -= w;
+                int i = Input(mv.motion.clip, 1 + mv.instance);
+                float clipT = mv.ClipTime(now);
+                if (weights[i] == 0f) inputs[i].SetTime(clipT);
+                weights[i] += w * mv.amp;
+                stance += w * (1f - mv.amp);
+                // A side step moves the hips over by itself: the figure stays where the step
+                // started from, and is carried the rest of the way by the take.
+                float root = mv.carries ? homeX - mv.motion.TravelAt(clipT) * travelScale : homeX;
+                rootX += w * mv.amp * root + w * (1f - mv.amp) * homeX;
+            }
+            else
+            {
+                int arm = mv.layer - 1;
+                if (armLeft[arm] <= 1e-4f) continue;
+                float w = armLeft[arm] * e;
+                armLeft[arm] -= w;
+                int i = Input(mv.motion.clip, 2 + mv.layer);
+                if (armWeights[arm][i] == 0f) armInputs[arm][i].SetTime(mv.ClipTime(now));
+                armWeights[arm][i] += w;
+            }
+        }
+        stance += remaining;
+        rootX += remaining * homeX;
+        lastRootX = rootX;
+
+        // The stance: the piece the clock is in, crossfading from the one before.
+        var pieces = stanceTrack.Pieces;
+        int p = 0;
+        while (p + 1 < pieces.Count && pieces[p + 1].start <= now) p++;
+        if (pieces.Count > 0 && stance > 0f)
+        {
+            float fade = Mathf.Max(0.01f, stanceTrack.Fade);
+            float a = p > 0 ? Smooth01((now - pieces[p].start) / fade) : 1f;
+            StanceWeight(pieces[p], now, stance * a);
+            if (a < 1f) StanceWeight(pieces[p - 1], now, stance * (1f - a));
+        }
+        PushWeights();
+        for (int arm = 0; arm < 2; arm++)
+        {
+            float sum = 0f;
+            foreach (float w in armWeights[arm]) sum += w;
+            for (int i = 0; i < armWeights[arm].Length; i++) armMixers[arm].SetInputWeight(i, sum > 0f ? armWeights[arm][i] / sum : 0f);
+            layers.SetInputWeight(arm + 1, Mathf.Clamp01(sum));
+        }
+        return Mathf.Clamp01(stance);
+    }
+
+    private void StanceWeight(SilhouettePlanner.StanceTrack.Piece piece, float now, float w)
+    {
+        if (w <= 0f || piece.motion == null || !piece.motion.Valid) return;
+        int i = Input(piece.motion.clip, 0);
+        float t = piece.motion.holdFrame >= 0f ? piece.motion.holdFrame : Mathf.Repeat(now - piece.start, piece.motion.Length);
+        if (weights[i] == 0f) inputs[i].SetTime(t);
+        weights[i] += w;
+    }
+
     private static float Smooth01(float x)
     {
         x = Mathf.Clamp01(x);
@@ -572,7 +764,7 @@ public class SilhouetteTrainer : MonoBehaviour
     private SilhouettePoseJob Pose(float now, float stance)
     {
         var s = motionSet;
-        var job = new SilhouettePoseJob { forward = stage.transform.forward, pin = stance };
+        var job = new SilhouettePoseJob { forward = stage.transform.forward, pin = stance, faceFront = mocap && planned ? s.faceFront : 0f };
 
         // The mocap stance is what keeps the body alive; on top of it the knees only give a little
         // on every beat (lowest ON the beat), so the beat is felt without a mechanical rhythm.
@@ -590,7 +782,23 @@ public class SilhouetteTrainer : MonoBehaviour
             {
                 // A gesture only shapes the stance: while a jump or a crouch owns the body the
                 // gesture gives way, or the tail of a wall's lean would twist the jump.
-                float w = g.Weight(now) * stance;
+                float w = g.Weight(now) * (mocap ? 1f : stance);
+                if (mocap)
+                {
+                    // Over a take the reach or the tap is only a touch-up at the note.
+                    switch (g.kind)
+                    {
+                        case SilhouettePlanner.GestureKind.Punch:
+                        case SilhouettePlanner.GestureKind.PunchHold:
+                        case SilhouettePlanner.GestureKind.PunchHigh:
+                            w *= s.assistHand; break;
+                        case SilhouettePlanner.GestureKind.Kick:
+                        case SilhouettePlanner.GestureKind.KickHold:
+                            w *= s.assistFoot; break;
+                        case SilhouettePlanner.GestureKind.Dodge:
+                            w = 0f; break;   // the side step's take turns the body itself
+                    }
+                }
                 if (w <= 0f) continue;
                 int limb = g.side > 0 ? 0 : 1;           // the screen's right is the figure's left
                 float x = X(g.side);
@@ -617,10 +825,10 @@ public class SilhouetteTrainer : MonoBehaviour
                         float out_ = g.outer ? s.kickOutOuter : s.kickOutInner;
                         // Lifted on the way there and back, flat on the tile at the note. Only
                         // this foot moves; the other stays pinned where the stance put it.
-                        float lift = s.kickLift * 4f * w * (1f - w);
-                        Vector3 step = new Vector3(x * out_ * w, lift, s.kickForward * w);
+                        float lift = mocap ? 0f : s.kickLift * 4f * w * (1f - w);
+                        Vector3 step = new Vector3(x * out_ * w, lift, mocap ? 0f : s.kickForward * w);
                         if (w > footW[limb]) { footW[limb] = w; foot[limb] = step; }
-                        if (g.outer) body += new Vector3(x * out_ * s.kickBodyFollowOuter * w, 0f, 0f);
+                        if (g.outer && !mocap) body += new Vector3(x * out_ * s.kickBodyFollowOuter * w, 0f, 0f);
                         tapping = Mathf.Max(tapping, w);
                         break;
                     }
@@ -729,11 +937,20 @@ public class SilhouetteTrainer : MonoBehaviour
         // Stepping aside: the whole figure goes over (so everything above - a tap, a reach - is
         // thrown from where it now stands), the feet carried there by their own step curves.
         float asideX = StepAside(now, out Vector3 stepL, out Vector3 stepR);
-        float vx = (StepAside(now + 0.02f, out _, out _) - StepAside(now - 0.02f, out _, out _)) / 0.04f;
-        // Positive roll tips the top toward -X: lean INTO the travel, only while travelling.
-        lean += -s.stepLeanPerSpeed * vx / Mathf.Max(0.1f, s.gestureScale);
-        foot[0] += stepL;
-        foot[1] += stepR;
+        if (mocap && planned)
+        {
+            // The side step's take does the stepping and the leaning; the figure goes where the
+            // takes' weights put it (EvaluateMocap).
+            asideX = lastRootX;
+        }
+        else
+        {
+            float vx = (StepAside(now + 0.02f, out _, out _) - StepAside(now - 0.02f, out _, out _)) / 0.04f;
+            // Positive roll tips the top toward -X: lean INTO the travel, only while travelling.
+            lean += -s.stepLeanPerSpeed * vx / Mathf.Max(0.1f, s.gestureScale);
+            foot[0] += stepL;
+            foot[1] += stepR;
+        }
         // The moves in the character's own proportions: offsets from the shoulders, the feet and
         // the body scaled together.
         float scale = s.gestureScale;
@@ -782,7 +999,7 @@ public class SilhouetteTrainer : MonoBehaviour
         {
             if (g.kind != SilhouettePlanner.GestureKind.Dodge && g.kind != SilhouettePlanner.GestureKind.OneLeg) continue;
             if (now <= g.start || now >= g.end) continue;
-            float dist = X(g.side) * s.stepAsideShift * s.gestureScale;
+            float dist = X(g.side) * StepAsideDistance();
             float body = g.Weight(now);
             shift += dist * body;
             // Which foot is on the outside of the move: toward +X that is the figure's right (1).
@@ -807,6 +1024,16 @@ public class SilhouetteTrainer : MonoBehaviour
             }
         }
         return shift;
+    }
+
+    /// How far a step aside goes: with a side step take, exactly its own travel in this character's
+    /// size, so the figure arrives where the take puts its hips.
+    private float StepAsideDistance()
+    {
+        if (mocap)
+            foreach (var m in motionSet.sideSteps)
+                if (m != null && m.Valid && m.clip.name.StartsWith("Side Step Short Right")) return Mathf.Abs(m.travel) * travelScale;
+        return motionSet.stepAsideShift * motionSet.gestureScale;
     }
 
     private static void Take(ref Limb l, float w, Vector3 target, Vector3 elbow)
@@ -872,8 +1099,62 @@ public class SilhouetteTrainer : MonoBehaviour
     /// For each of the first notes, the first frame at or after its impact: when that was against
     /// the note, and - for a hand - how far the solved hand ended up from where it was sent, which
     /// is the check that the IK really reached the pose the timing promises.
+    /// Mocap: for each note a take lands on, the first frame at or after it - where the take was
+    /// (its clip time against the planned impact frame) and which hand or foot the solved figure
+    /// actually delivers it with (the one furthest out), against the one the note asks for.
+    private int syncFirst = -1;
+    private void CheckSyncMocap(float now)
+    {
+        if (syncReportNotes <= 0 || syncWritten || moves == null) return;
+        if (syncFirst < 0) syncFirst = Mathf.Max(0, moves.FindIndex(m => m.end >= now));
+        for (int k = syncFirst; k < moves.Count && moves[k].start <= now; k++)
+        {
+            var mv = moves[k];
+            foreach (var h in mv.hits)
+            {
+                if (now < h.song || now > h.song + 0.1f || syncSeen.Contains(h.note * 4 + mv.layer)) continue;
+                syncSeen.Add(h.note * 4 + mv.layer);
+                var cue = cueSpawner.Sequencer[h.note];
+                float planned = mv.RawTime(h.song);
+                float atFrame = mv.RawTime(now);
+                string actual = "-";
+                bool hand = cue.type == CueType.Punch || cue.type == CueType.PunchHigh || cue.type == CueType.PunchHold || cue.type == CueType.PunchSweep;
+                if (h.limb >= 0 && animator.isHuman)
+                {
+                    int got;
+                    if (hand)
+                    {
+                        // How far the hand is out from its shoulder plus how far above it: a
+                        // reach or a punch scores its length, an arm hanging straight down ~0
+                        // (by distance alone a relaxed straight arm beats a bent punching one).
+                        float Reach(Transform hand, HumanBodyBones sh)
+                        {
+                            var d = hand.position - animator.GetBoneTransform(sh).position;
+                            return d.magnitude + d.y;
+                        }
+                        float l = Reach(lHandBone, HumanBodyBones.LeftUpperArm);
+                        float r = Reach(rHandBone, HumanBodyBones.RightUpperArm);
+                        got = l > r ? 0 : 1;
+                    }
+                    else
+                    {
+                        var hips = animator.GetBoneTransform(HumanBodyBones.Hips).position;
+                        float Out(Transform f) { var d = f.position - hips; float y = d.y; d.y = 0f; return d.magnitude + y; }
+                        got = Out(lFootBone) > Out(rFootBone) ? 0 : 1;
+                    }
+                    actual = (got == h.limb ? "ok " : "WRONG ") + (got == 0 ? "L" : "R") + " (asked " + (h.limb == 0 ? "L" : "R") + ")";
+                }
+                syncRows.Add(string.Format("{0,3} | {1,-9} | lane {2} | {3,8:F3} | {4,8:F3} | {5,6:+0.0;-0.0;0.0} | {6,-40} | mark {7:F3} planned {8:F3} frame {9:F3} | {10}",
+                    syncRows.Count + 1, cue.type, cue.lane, cue.time, now, (now - cue.time) * 1000f, mv.label.Length > 40 ? mv.label.Substring(0, 40) : mv.label,
+                    h.clip, planned, atFrame, actual));
+                if (syncRows.Count >= syncReportNotes) { WriteSync(); return; }
+            }
+        }
+    }
+
     private void CheckSync(float now)
     {
+        if (mocap) { CheckSyncMocap(now); return; }
         if (syncReportNotes <= 0 || syncWritten || gestures == null) return;
         foreach (var g in gestures)
         {
@@ -909,7 +1190,10 @@ public class SilhouetteTrainer : MonoBehaviour
         syncWritten = true;
         var sb = new StringBuilder();
         sb.AppendLine("[Silhouette] impact sync, first " + syncRows.Count + " notes (" + (SongClock.Capturing ? "recording" : "play") + ", " + (1f / Mathf.Max(1e-4f, Time.smoothDeltaTime)).ToString("0") + " fps)");
-        sb.AppendLine("  # | type      | lane         |  note s  | observed |  d ms  | weight | pose check");
+        if (mocap)
+            sb.AppendLine("  # | type      | lane |  note s  | observed |  d ms  | take                                     | clip s: impact mark, planned at the note, at the frame | limb delivering");
+        else
+            sb.AppendLine("  # | type      | lane         |  note s  | observed |  d ms  | weight | pose check");
         foreach (var r in syncRows) sb.AppendLine(r);
         sb.AppendLine("The gesture's weight is 1 exactly at the note (planned error 0); observed = first frame at or after it.");
         sb.AppendLine("hand = distance of the solved hand bone from its IK goal; foot = sideways travel of the foot bone from the stance vs the step asked for.");
@@ -938,6 +1222,19 @@ public class SilhouetteTrainer : MonoBehaviour
 
     private void LogPlan()
     {
+        if (mocap)
+        {
+            var mb = new StringBuilder("[Silhouette] mocap plan: " + moves.Count + " takes, " + gestures.Count + " gestures, " + home.Count + " home steps, travel x" + travelScale.ToString("F2") + "\n");
+            for (int i = 0; i < moves.Count && i < 80; i++)
+            {
+                var mv = moves[i];
+                mb.Append("  ").Append(mv.start.ToString("F2")).Append("..").Append(mv.end.ToString("F2")).Append(" L").Append(mv.layer)
+                  .Append(mv.amp < 1f ? " amp" + mv.amp.ToString("F2") : "").Append("  ").Append(mv.label).Append('\n');
+            }
+            Debug.Log(mb.ToString(), this);
+            try { Directory.CreateDirectory("Screenshots"); File.WriteAllText("Screenshots/trainer_v6_plan.txt", mb.ToString()); } catch { }
+            return;
+        }
         var sb = new StringBuilder("[Silhouette] plan: " + plan.Count + " clip segments, " + gestures.Count + " gestures, beat grid from " + beatAnchor.ToString("F3") + "\n");
         foreach (var p in plan)
             sb.Append("  clip ").Append(p.start.ToString("F2")).Append(" x").Append(p.speed.ToString("F2"))

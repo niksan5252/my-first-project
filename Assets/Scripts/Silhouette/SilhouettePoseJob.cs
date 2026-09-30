@@ -23,6 +23,10 @@ public struct SilhouettePoseJob : IAnimationJob
     public Vector3 lHand, rHand, lElbow, rElbow;
     public Vector3 lFootOffset, rFootOffset;
     public float pin;             // 0 while a clip (jump, crouch) owns the legs, 1 otherwise
+    // Share of the take's own turn away from the viewer that is taken out: a boxing take stands
+    // side-on, which from the front is a profile nobody can read. What the shoulders do against
+    // the hips - the turn into a punch - is left as it is.
+    public float faceFront;
 
     public void ProcessRootMotion(AnimationStream stream) { }
 
@@ -34,6 +38,22 @@ public struct SilhouettePoseJob : IAnimationJob
         Vector3 lf = h.GetGoalPosition(AvatarIKGoal.LeftFoot), rf = h.GetGoalPosition(AvatarIKGoal.RightFoot);
         Quaternion lfr = h.GetGoalRotation(AvatarIKGoal.LeftFoot), rfr = h.GetGoalRotation(AvatarIKGoal.RightFoot);
         Vector3 lh = h.GetGoalPosition(AvatarIKGoal.LeftHand), rh = h.GetGoalPosition(AvatarIKGoal.RightHand);
+
+        if (faceFront > 0f)
+        {
+            Vector3 f = h.bodyRotation * Vector3.forward;
+            f.y = 0f;
+            if (f.sqrMagnitude > 1e-4f)
+            {
+                // The goals turn with the body, about the hips.
+                var q = Quaternion.AngleAxis(-Vector3.SignedAngle(forward, f, Vector3.up) * faceFront, Vector3.up);
+                Vector3 c = h.bodyPosition;
+                h.bodyRotation = q * h.bodyRotation;
+                lf = c + q * (lf - c); rf = c + q * (rf - c);
+                lfr = q * lfr; rfr = q * rfr;
+                lh = c + q * (lh - c); rh = c + q * (rh - c);
+            }
+        }
 
         h.bodyPosition += bodyOffset;
         if (leanDegrees != 0f || turnDegrees != 0f)
