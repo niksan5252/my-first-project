@@ -1,10 +1,12 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-/// The four reactions an obstacle can ask of the camera. Dodge is split by direction rather than
+/// The reactions an obstacle can ask of the camera. Dodge is split by direction rather than
 /// carrying a sign, so the policy table below can give a left dodge and a right dodge different
 /// amplitudes later without anything else having to know that it did.
-public enum ObstacleMove { DodgeLeft, DodgeRight, Hop, Duck }
+/// Balance is the move onto the one free lane of a CurbGap kerb: its offset is per metre, and
+/// each pass carries the lane's X as its gain, since the free lane can be any of them.
+public enum ObstacleMove { DodgeLeft, DodgeRight, Hop, Duck, Balance }
 
 /// How one half of a move is shaped. This is the difference between a camera that MOVES and a
 /// camera that drifts, and it matters more than the durations do.
@@ -101,7 +103,7 @@ public sealed class ObstacleCameraDirector
         public ObstacleEase inEase;   // shape of the return to it
     }
 
-    private const int MoveCount = 4;
+    private const int MoveCount = 5;
 
     private struct Pass
     {
@@ -109,6 +111,7 @@ public sealed class ObstacleCameraDirector
         public float arrival;      // song time at which the obstacle's near edge reaches the hit zone
         public float reachSeconds; // from that moment until its near edge is level with the camera
         public float passSeconds;  // from that moment until its far end is behind the camera
+        public float gain;         // scales the policy's offset and roll (Balance: the lane's X)
     }
 
     private readonly Move[] policy = new Move[MoveCount];
@@ -143,7 +146,7 @@ public sealed class ObstacleCameraDirector
     /// Announces an obstacle. Called at SPAWN, which in beatmap mode is a full flight time before
     /// the obstacle is due — far more than any lead-in — so the reaction is always registered
     /// long before the envelope that needs it becomes non-zero.
-    public void Register(ObstacleMove move, float arrivalTime, float reachSeconds, float passSeconds)
+    public void Register(ObstacleMove move, float arrivalTime, float reachSeconds, float passSeconds, float gain = 1f)
     {
         passes.Add(new Pass
         {
@@ -151,6 +154,7 @@ public sealed class ObstacleCameraDirector
             arrival = arrivalTime,
             reachSeconds = Mathf.Max(0f, reachSeconds),
             passSeconds = Mathf.Max(0f, passSeconds),
+            gain = gain,
         });
     }
 
@@ -194,8 +198,8 @@ public sealed class ObstacleCameraDirector
                                     shape.outEase, shape.inEase);
             if (weight <= 0f) continue;
 
-            sum += shape.offset * weight;
-            roll += shape.rollDegrees * weight;
+            sum += shape.offset * (weight * pass.gain);
+            roll += shape.rollDegrees * (weight * pass.gain);
         }
 
         return new Pose(

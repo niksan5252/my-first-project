@@ -343,6 +343,14 @@ public class CueSpawner : MonoBehaviour
     // road like something on rails. It is deliberately NOT given timings of its own - it rides
     // the same envelope as the sideways offset, so the two are one movement.
     [SerializeField, Range(0f, 30f)] private float dodgeRollDegrees = 11f;
+    // The lean onto a CurbGap's free lane, as a share of the dodge's lean per metre: the player
+    // steps over and stands there rather than swerving.
+    [SerializeField, Range(0f, 1f)] private float balanceLeanScale = 0.5f;
+    // The move onto the free lane and back, in beats. Longer than a dodge's: the outer lane is
+    // 2.25 m across, half as far again as a dodge, and the kerb is seen coming for bars - over the
+    // dodge's 0.8 beat that is a whip, over two it peaks slower than a dodge does.
+    [SerializeField] private float balanceLeadBeats = 2f;
+    [SerializeField] private float balanceRecoverBeats = 2f;
     [SerializeField] private float dodgeLeadBeats = 0.8f;
     [SerializeField] private float dodgeCommitMarginBeats = 0.15f;
     [SerializeField] private float dodgeHoldExtraBeats = 0.25f;
@@ -851,8 +859,27 @@ public class CueSpawner : MonoBehaviour
             outEase = ObstacleEase.Decelerate,   // a crouch is a drop
             inEase = ObstacleEase.Smooth,        // standing back up is not
         });
+        // Onto the free lane of a CurbGap and back: the dodge's envelope (Glide both ways, the same
+        // margin and hold), so it reads as the same kind of move, over its own longer lead and
+        // recovery. Per metre - the pass's gain is the free lane's X - with the lean scaled to the
+        // dodge's.
+        obstacleCamera.SetPolicy(ObstacleMove.Balance, new ObstacleCameraDirector.Move
+        {
+            offset = new Vector3(1f, 0f, 0f),
+            rollDegrees = -Mathf.Abs(dodgeRollDegrees) / Mathf.Max(0.1f, side) * balanceLeanScale,
+            leadBeats = balanceLeadBeats,
+            commitMarginBeats = dodgeCommitMarginBeats,
+            holdExtraBeats = dodgeHoldExtraBeats,
+            recoverBeats = balanceRecoverBeats,
+            outEase = ObstacleEase.Glide,
+            inEase = ObstacleEase.Glide,
+        });
 
-        obstacleCamera.SetLimit(new Vector3(Mathf.Abs(obstacleOffsetLimit.x), Mathf.Abs(obstacleOffsetLimit.y), 0f));
+        // A CurbGap puts the camera over the middle of its free lane, the outer ones included, so
+        // the sideways ceiling reaches the outer lane's centre; at standing height that is still
+        // well inside the road (floor edge 3 m, lane centre 2.25 m).
+        float balanceReach = Mathf.Abs(tunnel.GetLaneCenterX(0)) + 0.05f;
+        obstacleCamera.SetLimit(new Vector3(Mathf.Max(Mathf.Abs(obstacleOffsetLimit.x), balanceReach), Mathf.Abs(obstacleOffsetLimit.y), 0f));
         obstacleCamera.SetRollLimit(obstacleRollLimitDegrees);
         obstacleCamera.SetTempo(beatmapMeta != null ? beatmapMeta.bpm : 0f);
     }
@@ -860,12 +887,9 @@ public class CueSpawner : MonoBehaviour
     /// Books the camera's reaction to one obstacle. Everything the director needs is known here:
     /// WHEN from the chart, and how long the thing takes to go past from its own length and the
     /// scroll speed - measured from the hit zone, four metres ahead, to behind the camera.
-    private void RegisterObstaclePass(CueType type, int side, float dueTime, float extent)
+    private void RegisterObstaclePass(CueType type, int side, int lane, float dueTime, float extent)
     {
-        ObstacleMove move =
-            type == CueType.Dodge ? (side > 0 ? ObstacleMove.DodgeLeft : ObstacleMove.DodgeRight)
-          : type == CueType.Curb ? ObstacleMove.Hop
-          : ObstacleMove.Duck;
+        ObstacleMove move = MoveFor(type, side);
 
         float speed = Mathf.Max(0.01f, tunnel.ScrollSpeed);
         // Two moments, both measured from the chart's arrival time. The first is when the
@@ -876,8 +900,17 @@ public class CueSpawner : MonoBehaviour
         // by hand whenever either changes.
         float reachSeconds = hitZoneZ / speed;
         float passSeconds = (hitZoneZ + extent) / speed;
-        obstacleCamera.Register(move, dueTime, reachSeconds, passSeconds);
+        obstacleCamera.Register(move, dueTime, reachSeconds, passSeconds, MoveGain(type, lane));
     }
+
+    private static ObstacleMove MoveFor(CueType type, int side) =>
+        type == CueType.Dodge ? (side > 0 ? ObstacleMove.DodgeLeft : ObstacleMove.DodgeRight)
+      : type == CueType.Curb ? ObstacleMove.Hop
+      : type == CueType.CurbGap ? ObstacleMove.Balance
+      : ObstacleMove.Duck;
+
+    /// A CurbGap's free lane is where the camera goes: the lane's own centre, not half the road.
+    private float MoveGain(CueType type, int lane) => type == CueType.CurbGap ? tunnel.GetLaneCenterX(lane) : 1f;
 
     /// When the camera reacts to one obstacle from the chart: starting to move, fully committed,
     /// starting back, and home again - the numbers RegisterObstaclePass books, worked out without
@@ -886,11 +919,9 @@ public class CueSpawner : MonoBehaviour
     public void ObstacleTiming(BeatmapCue cue, out float begin, out float commit, out float release, out float settled, out int cameraSide)
     {
         int side = DodgeSideFromLane(cue.lane);
-        ObstacleMove move =
-            cue.type == CueType.Dodge ? (side > 0 ? ObstacleMove.DodgeLeft : ObstacleMove.DodgeRight)
-          : cue.type == CueType.Curb ? ObstacleMove.Hop
-          : ObstacleMove.Duck;
-        cameraSide = move == ObstacleMove.DodgeLeft ? -1 : move == ObstacleMove.DodgeRight ? 1 : 0;
+        ObstacleMove move = MoveFor(cue.type, side);
+        cameraSide = move == ObstacleMove.DodgeLeft ? -1 : move == ObstacleMove.DodgeRight ? 1
+                   : move == ObstacleMove.Balance ? (int)Mathf.Sign(MoveGain(cue.type, cue.lane)) : 0;
         float speed = Mathf.Max(0.01f, tunnel.ScrollSpeed);
         obstacleCamera.Window(move, cue.time, hitZoneZ / speed, (hitZoneZ + ObstacleExtent(cue.type, cue.duration)) / speed,
                               out begin, out commit, out release, out settled);
@@ -1260,7 +1291,7 @@ public class CueSpawner : MonoBehaviour
                                     : obstacle ? extent
                                     : 0f;
 
-        if (MovesCamera(type)) RegisterObstaclePass(type, side, dueTime, extent);
+        if (MovesCamera(type)) RegisterObstaclePass(type, side, lane, dueTime, extent);
 
         slots[slotIndex].inUse = true;
         slots[slotIndex].hit = false;
@@ -1280,9 +1311,10 @@ public class CueSpawner : MonoBehaviour
 
     private static bool IsBalance(CueType type) => type == CueType.CurbGap || type == CueType.CurbSplit;
 
-    /// Obstacles the camera moves for. The balance kerbs are not among them: the player stands.
-    private static bool MovesCamera(CueType type) =>
-        type == CueType.Dodge || type == CueType.Curb || type == CueType.Duck;
+    /// Obstacles the camera moves for. Of the balance kerbs only CurbGap: the camera goes onto its
+    /// free lane and stays there; over a CurbSplit the player stands wide in the middle.
+    public static bool MovesCamera(CueType type) =>
+        type == CueType.Dodge || type == CueType.Curb || type == CueType.Duck || type == CueType.CurbGap;
 
     /// How far back one obstacle reaches: its type's own length, or - for a long Dodge and the
     /// balance kerbs - the road its duration covers, whichever is longer.
