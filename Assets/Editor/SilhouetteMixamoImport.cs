@@ -24,6 +24,10 @@ using UnityEngine;
 /// `mirrorOneShots` adds a mirrored twin (" (Mirror)") of every punch and kick, for a character
 /// whose takes all lead with one side. The X Bot set does not need it: its punches already use
 /// both hands and its kicks both legs, see SilhouetteClipAnalysis.
+///
+/// fitness/ holds the takes every exercise is built on (Jumping Jacks, Step Touch, the jabs, the
+/// side steps, Air Squat...), downloaded In Place. Every one of them gets a mirrored twin, because
+/// a take leads with one hand or one foot and the trainer has to show the note on either side.
 public class SilhouetteMixamoImport : AssetPostprocessor
 {
     public const string Root = "Assets/SharedAssets/Mixamo";
@@ -34,7 +38,9 @@ public class SilhouetteMixamoImport : AssetPostprocessor
     private static readonly string[] LoopNames =
     {
         "Speedbag", "Stomping", "Stepping Left", "Walking", "Catwalk Walk", "Running Up Stairs",
+        "Jumping Jacks", "Running Man", "Step Touch Dance", "Boxing Warm Up", "Kick Step",
     };
+    public const string FitnessFolder = "fitness";
     // One-shots that get a mirrored copy, when mirrorOneShots is on.
     private static readonly string[] MirrorFolders = { "punch", "kick (step)" };
     private const bool mirrorOneShots = false;
@@ -61,7 +67,8 @@ public class SilhouetteMixamoImport : AssetPostprocessor
     public const string CharactersFolder = Root + "/Characters/";
     public static bool IsCharacter(string path) => path.Replace('\\', '/').StartsWith(CharactersFolder);
 
-    private static bool WantsMirror(string path) => mirrorOneShots && MirrorFolders.Contains(Folder(path)) && !IsLoop(path);
+    private static bool WantsMirror(string path) =>
+        Folder(path) == FitnessFolder || mirrorOneShots && MirrorFolders.Contains(Folder(path)) && !IsLoop(path);
 
     private void OnPreprocessModel()
     {
@@ -93,7 +100,9 @@ public class SilhouetteMixamoImport : AssetPostprocessor
         importer.resampleCurves = true;
         importer.animationCompression = ModelImporterAnimationCompression.Optimal;
 
-        if (skin) importer.avatarSetup = ModelImporterAvatarSetup.CreateFromThisModel;
+        // The fitness takes come on another export of the skeleton (bones "mixamorig6:"), which
+        // the X Bot's avatar does not map: each builds its own, and the humanoid retargets.
+        if (skin || Folder(assetPath) == FitnessFolder) importer.avatarSetup = ModelImporterAvatarSetup.CreateFromThisModel;
         else
         {
             var avatar = AssetDatabase.LoadAllAssetsAtPath(SkinFile).OfType<Avatar>().FirstOrDefault();
@@ -120,7 +129,7 @@ public class SilhouetteMixamoImport : AssetPostprocessor
 
         bool step = StepLoops.Contains(name);
         var clips = new List<ModelImporterClipAnimation> { Make(src, name, loop, false, !loop, !step) };
-        if (WantsMirror(path)) clips.Add(Make(src, name + " (Mirror)", false, true, true, true));
+        if (WantsMirror(path)) clips.Add(Make(src, name + " (Mirror)", loop, true, !loop, !step));
         importer.clipAnimations = clips.ToArray();
     }
 

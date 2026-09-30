@@ -20,9 +20,30 @@ public class SilhouetteMotion
     // is the LAST frame of Fight Idle To Standing Idle). Negative: played normally.
     public float holdFrame = -1f;
 
+    // --- the fitness takes (SilhouetteClipAnalysis.AnalyzeFitness) ---
+    // The limb the impact is delivered with: 0 the figure's left, 1 its right, -1 both or none.
+    public int limb = -1;
+    // Every moment in the take that can be put on a note, in clip seconds, with what it is and
+    // which limb does it: a foot's tap or step in a dance loop, a landing in a jump or a jack.
+    public float[] marks = new float[0];
+    public MarkKind[] markKinds = new MarkKind[0];
+    public int[] markLimbs = new int[0];
+    // A jump's take-off and apex, and for a squat the moment it is up again (clip seconds).
+    public float takeoff = -1f, apex = -1f, rise = -1f;
+    // How far the hips travel sideways over the take (X Bot metres, + = the figure's +X), and the
+    // path: a side step MOVES the body, and the trainer carries the figure on with it.
+    public float travel;
+    public AnimationCurve travelCurve;
+
     public bool Valid => clip != null;
     public float Length => clip != null ? clip.length : 0f;
+    public bool Loops => clip != null && clip.isLooping;
+
+    /// Where the hips are sideways at clip time t, from where the take starts (X Bot metres).
+    public float TravelAt(float t) => travelCurve != null && travelCurve.length > 0 ? travelCurve.Evaluate(t) : 0f;
 }
+
+public enum MarkKind { Step, Land, LandOpen, LandClosed, Strike }
 
 /// Everything that makes the trainer silhouette WHO it is and HOW it moves. SilhouetteTrainer reads
 /// nothing else about the character, so a different figure is a different asset of this type.
@@ -67,6 +88,26 @@ public class SilhouetteMotionSet : ScriptableObject
     // Crossfade from one stance to the next, in beats.
     [Range(0.1f, 4f)] public float stanceFadeBeats = 1.5f;
     public List<SilhouetteMotion> curb = new List<SilhouetteMotion>();       // jump over the kerb
+
+    [Header("Exercises: every one is a mocap take, timed so its impact frame lands on the note")]
+    // Hand notes: jab, cross, hook (each with its mirrored twin, so either hand leads); the
+    // uppercuts for a punch up and the held high punch.
+    public List<SilhouetteMotion> punches = new List<SilhouetteMotion>();
+    public List<SilhouetteMotion> uppercuts = new List<SilhouetteMotion>();
+    // Foot notes: dance loops whose steps and taps are marked; a run of kicks is played on one,
+    // each note on the next mark of the right foot.
+    public List<SilhouetteMotion> steps = new List<SilhouetteMotion>();
+    // Two-foot notes: the jumping jack (its open and closed landings), the jumps in place.
+    public List<SilhouetteMotion> jacks = new List<SilhouetteMotion>();
+    public List<SilhouetteMotion> hops = new List<SilhouetteMotion>();
+    // Walls and kerbs: the short side step (its travel carries the figure over) and the dodge.
+    public List<SilhouetteMotion> sideSteps = new List<SilhouetteMotion>();
+    public List<SilhouetteMotion> dodges = new List<SilhouetteMotion>();
+    public SilhouetteMotion squat = new SilhouetteMotion();      // impact = the bottom
+    // Animator.humanScale of the X Bot the takes were measured on: the humanoid retargets a take's
+    // body motion by the character's own humanScale over this, and so does the trainer's travel.
+    public float analysisHipsHeight = 1f;
+    public bool HasExercises => punches.Count > 0 && steps.Count > 0;
     public SilhouetteMotion duckDown = new SilhouetteMotion();   // impact = the bottom of the crouch
     public SilhouetteMotion duckUp = new SilhouetteMotion();     // impact = standing again
 
@@ -158,4 +199,23 @@ public class SilhouetteMotionSet : ScriptableObject
     [Range(0.05f, 1f)] public float crossfadeBeats = 0.35f;
     // How far the figure may drift from the centre of its panel before it is eased back (m).
     [Min(0.1f)] public float maxDrift = 0.6f;
+
+    [Header("Exercises: timing and the IK touch-up")]
+    // A take plays at its own speed where it can; to put its impact on the note it may be sped up
+    // or slowed down within these bounds (a hop in a run of side jumps is allowed to go faster).
+    [Range(1f, 3f)] public float takeMaxSpeed = 1.8f;
+    [Range(0.3f, 1f)] public float takeMinSpeed = 0.6f;
+    [Range(1f, 3f)] public float hopMaxSpeed = 2.2f;
+    // Crossfade into a take and out of it, in beats.
+    [Range(0.1f, 2f)] public float takeFadeBeats = 0.5f;
+    // How much of a jump in place a run of one-beat side jumps plays: blended with the stance, the
+    // hop is lower - a quick bounce rather than a tuck jump every beat.
+    [Range(0.2f, 1f)] public float quickHopAmount = 0.65f;
+    // The IK touch-up at the impact: how far toward the cube or the tile the hand or foot is
+    // pulled (0 = the take alone), and over how many beats either side of the note.
+    [Range(0f, 1f)] public float assistHand = 0.6f;
+    [Range(0f, 1f)] public float assistFoot = 0.55f;
+    [Range(0.1f, 1f)] public float assistBeats = 0.45f;
+    // How much of a take's turn away from the viewer is taken out (see SilhouettePoseJob).
+    [Range(0f, 1f)] public float faceFront = 0.85f;
 }

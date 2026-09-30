@@ -27,6 +27,34 @@ public static class SilhouetteMotionSetBuilder
     // breakdowns and finale. ("Idle" and the fight idles are low boxing stances, left out.)
     private static readonly string[] Calm = { "Fitness Idle With Breathing", "Breathing Idle", "Weight Shift Idle" };
     private static readonly string[] Lively = { "Happy Idle 1", "Happy Idle 2" };
+    // A boxer's bounce on the spot, from fitness/: one more lively stance between the sets.
+    private static readonly string[] LivelyFitness = { "Boxing Warm Up" };
+
+    // Every fitness take (Assets/SharedAssets/Mixamo/fitness) and the part it plays - the whole
+    // exercise-to-take mapping. Each is used together with its mirrored twin.
+    //   punches: Punch notes;  uppercuts: PunchHigh and PunchHold;  steps: runs of kicks;
+    //   jacks: jack runs, Cross (held on the open landing);  hops: side jumps, pair shifts, chords;
+    //   sideSteps/dodges: walls and CurbGap;  squat: Duck;  curb: Curb.
+    private static readonly (string clip, SilhouetteFitnessAnalysis.Role role)[] Fitness =
+    {
+        ("Lead Jab Short Head", SilhouetteFitnessAnalysis.Role.Punch),
+        ("Cross Punch", SilhouetteFitnessAnalysis.Role.Punch),
+        ("Hook Punch", SilhouetteFitnessAnalysis.Role.Punch),
+        ("Uppercut Left", SilhouetteFitnessAnalysis.Role.Uppercut),
+        ("Uppercut Lead Hand", SilhouetteFitnessAnalysis.Role.Uppercut),
+        ("Step Touch Dance", SilhouetteFitnessAnalysis.Role.Steps),
+        ("Kick Step", SilhouetteFitnessAnalysis.Role.Steps),
+        ("Running Man", SilhouetteFitnessAnalysis.Role.Steps),
+        ("Jumping Jacks", SilhouetteFitnessAnalysis.Role.Jack),
+        ("Jump In Place A", SilhouetteFitnessAnalysis.Role.Hop),
+        ("Jump In Place B", SilhouetteFitnessAnalysis.Role.Hop),
+        ("Standing Jump", SilhouetteFitnessAnalysis.Role.Jump),
+        ("Air Squat", SilhouetteFitnessAnalysis.Role.Squat),
+        ("Side Step Short Right", SilhouetteFitnessAnalysis.Role.SideStep),
+        ("Side Step Short Left", SilhouetteFitnessAnalysis.Role.SideStep),
+        ("Dodging Right", SilhouetteFitnessAnalysis.Role.Dodge),
+        ("Boxing Warm Up", SilhouetteFitnessAnalysis.Role.Idle),
+    };
 
     // Third preset: PolyOne's Cartoon Skeleton, for the Halloween playlist. Its FBX imports as a
     // valid Humanoid (26 bones mapped automatically), so the same Mixamo takes and IK gestures
@@ -70,6 +98,7 @@ public static class SilhouetteMotionSetBuilder
         set.curb = List(Curb);
         set.duckDown = Motion(byName, "Standing To Crouched") ?? new SilhouetteMotion();
         set.duckUp = Motion(byName, "Crouched To Standing") ?? new SilhouetteMotion();
+        BuildExercises(set);
 
         // A take that stops at the top of its jump lands by playing its take-off backwards.
         foreach (var m in set.curb)
@@ -79,6 +108,54 @@ public static class SilhouetteMotionSetBuilder
         EditorUtility.SetDirty(set);
         AssetDatabase.SaveAssets();
         Debug.Log("[Silhouette] motion set written to " + assetPath);
+    }
+
+    /// The fitness takes, each measured (SilhouetteFitnessAnalysis) together with its mirror.
+    private static void BuildExercises(SilhouetteMotionSet set)
+    {
+        string dir = SilhouetteMixamoImport.Root + "/" + SilhouetteMixamoImport.FitnessFolder + "/";
+        var model = AssetDatabase.LoadAssetAtPath<GameObject>(SilhouetteMixamoImport.SkinFile);
+        var go = Object.Instantiate(model);
+        go.hideFlags = HideFlags.HideAndDontSave;
+        var a = go.GetComponent<Animator>();
+        a.applyRootMotion = false;
+        var log = new System.Text.StringBuilder("[Silhouette] fitness takes").AppendLine();
+        foreach (var l in new[] { set.punches, set.uppercuts, set.steps, set.jacks, set.hops, set.sideSteps, set.dodges }) l.Clear();
+        set.curb.Clear();
+        try
+        {
+            set.analysisHipsHeight = a.humanScale;
+            foreach (var (name, role) in Fitness)
+            {
+                var clips = AssetDatabase.LoadAllAssetsAtPath(dir + "X Bot@" + name + ".fbx").OfType<AnimationClip>()
+                    .Where(c => !c.name.StartsWith("__preview__")).ToList();
+                var original = clips.FirstOrDefault(c => c.name == name);
+                if (original == null) { Debug.LogWarning("[Silhouette] fitness take not found: " + name); continue; }
+                foreach (var clip in clips.OrderBy(c => c.name))
+                {
+                    var m = SilhouetteFitnessAnalysis.Analyze(go, a, clip, original, role, log);
+                    switch (role)
+                    {
+                        case SilhouetteFitnessAnalysis.Role.Punch: set.punches.Add(m); break;
+                        case SilhouetteFitnessAnalysis.Role.Uppercut: set.uppercuts.Add(m); break;
+                        case SilhouetteFitnessAnalysis.Role.Steps: set.steps.Add(m); break;
+                        case SilhouetteFitnessAnalysis.Role.Jack: set.jacks.Add(m); break;
+                        case SilhouetteFitnessAnalysis.Role.Hop: set.hops.Add(m); break;
+                        case SilhouetteFitnessAnalysis.Role.Jump: if (clip == original) set.curb.Add(m); break;
+                        case SilhouetteFitnessAnalysis.Role.Squat: if (clip == original) set.squat = m; break;
+                        case SilhouetteFitnessAnalysis.Role.SideStep: set.sideSteps.Add(m); break;
+                        case SilhouetteFitnessAnalysis.Role.Dodge: set.dodges.Add(m); break;
+                        case SilhouetteFitnessAnalysis.Role.Idle:
+                            if (clip == original && LivelyFitness.Contains(name)) set.idleLively.Add(new SilhouetteMotion { clip = clip });
+                            break;
+                    }
+                }
+            }
+        }
+        finally { Object.DestroyImmediate(go); }
+        Debug.Log(log.ToString());
+        System.IO.Directory.CreateDirectory("Screenshots");
+        System.IO.File.WriteAllText("Screenshots/trainer_v6_takes.txt", log.ToString());
     }
 
     private static SilhouetteMotion Motion(Dictionary<string, SilhouetteClipAnalysis.Result> byName, string name)
