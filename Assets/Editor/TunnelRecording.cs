@@ -70,7 +70,7 @@ public static class TunnelRecording
     private static string outputBase;
     private static StringBuilder sync;
     private static int lastLoggedFrame;
-    private static bool restoreMute;
+    private static bool restoreMute, audioReported;
     private static readonly System.Diagnostics.Stopwatch wallClock = new System.Diagnostics.Stopwatch();
 
     public static string OutputFolder => Path.GetFullPath(Path.Combine(Application.dataPath, "..", "Recordings"));
@@ -229,6 +229,7 @@ public static class TunnelRecording
         // i.e. no audio is rendered for it, and the video has exactly one frame per row from here.
         firstFrame = Time.frameCount + 2;
         lastLoggedFrame = -1;
+        audioReported = false;
         sync = new StringBuilder("frame,videoTime,songTime,dspTime\n");
         RenderPipelineManager.endContextRendering += LogFrame;
         EditorApplication.update += Watch;
@@ -294,7 +295,13 @@ public static class TunnelRecording
     private static void Watch()
     {
         if (controller == null || !EditorApplication.isPlaying) return;
+        // Begin lifts the Game view's Mute Audio once, but the Editor can apply it again later (the
+        // Game view regaining focus, a layout change) and the rest of a 9-minute recording would be
+        // silent without a word. So it is kept lifted for as long as the recorder runs.
+        if (EditorUtility.audioMasterMute) { EditorUtility.audioMasterMute = false; Debug.LogWarning("[TunnelRecording] the Editor muted audio again - lifted"); }
+        if (AudioListener.pause) AudioListener.pause = false;
         float video = (Time.frameCount - firstFrame) / Fps;
+        if (!audioReported && video >= 3f) { audioReported = true; ReportAudio(); }
         bool done;
         if (stopAfter > 0f) done = video >= stopAfter;
         else
@@ -306,6 +313,19 @@ public static class TunnelRecording
             done = length > 0f && clock != null && clock.IsRunning && clock.SongTime >= length + TailSeconds;
         }
         if (done) EditorApplication.ExitPlaymode();   // Finish runs on the way out
+    }
+
+    /// A line in the log, 3 s into the video, saying whether anything is playing: a silent
+    /// recording is found out here, not after the last frame.
+    private static void ReportAudio()
+    {
+        var sb = new StringBuilder("[TunnelRecording] audio at 3 s: masterMute=" + EditorUtility.audioMasterMute
+            + " listenerVolume=" + AudioListener.volume + " listeners=" + UnityEngine.Object.FindObjectsByType<AudioListener>().Length);
+        int playing = 0;
+        foreach (var src in UnityEngine.Object.FindObjectsByType<AudioSource>(FindObjectsInactive.Include))
+            if (src.isPlaying) { playing++; sb.Append(" | ").Append(src.name).Append(" clip=").Append(src.clip != null ? src.clip.name : "null").Append(" volume=").Append(src.volume).Append(" mute=").Append(src.mute); }
+        if (playing == 0) Debug.LogError(sb.Append(" | NOTHING IS PLAYING - this recording will be silent").ToString());
+        else Debug.Log(sb.ToString());
     }
 
     private static void Finish()
