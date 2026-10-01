@@ -1,0 +1,55 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3bb9640588ee8e744972f872bcd42a92, type: 3}
+  m_Name: Playlist_NeonRemix
+  m_EditorClassIdentifier: Assembly-CSharp::RunPlaylist
+  title: NeonRemix
+  segments:
+  - label: ToxicNeon
+    track: {fileID: 8300000, guid: 49cd378a64e721448905847265fa007a, type: 3}
+    beatmapFileName: remix_toxic_neon.json
+    theme: {fileID: 11400000, guid: eb8ce5bf29824f24b949dabbce6a7bca, type: 2}
+    clipStart: 0
+    clipEnd: 0
+    transitionIn: 0
+    transitionSeconds: 3.5
+    transitionLook: 0
+  - label: IceCity
+    track: {fileID: 8300000, guid: 54041bc6c0247434bb1435ed00960294, type: 3}
+    beatmapFileName: remix_ice_city.json
+    theme: {fileID: 11400000, guid: 14ca60be9f3521249beaa7ef922967ef, type: 2}
+    clipStart: 0
+    clipEnd: 0
+    transitionIn: 0
+    transitionSeconds: 4
+    transitionLook: 2
+  - label: GoldDisco
+    track: {fileID: 8300000, guid: a2d00e8f8bfe6ec45b61ebce512f02fd, type: 3}
+    beatmapFileName: remix_gold_disco.json
+    theme: {fileID: 11400000, guid: 1e9aae0af1d29b447b0174fa3a7199fc, type: 2}
+    clipStart: 0
+    clipEnd: 0
+    transitionIn: 1
+    transitionSeconds: 3.5
+    transitionLook: 0
+  preRoll: 1
+  noteMarginBeats: 1
+  wallsInTransition: 0
+  veilFogEnd: 22
+  thunderFlash: 0.8
+  thunderVolume: 1
+  thunderTrackStartVolume: 0.55
+  thunderRiseSeconds: 0.8
+  finalFadeSeconds: 2.5
+  trainerMotionSet: {fileID: 0}
+  trainerTextured: 0
+  trainerPanelInThemeColors: 1
