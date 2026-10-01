@@ -10,7 +10,6 @@ GameObject:
   m_Component:
   - component: {fileID: 1149134078814991804}
   - component: {fileID: 9160193058922715893}
-  - component: {fileID: 3788516020658452414}
   m_Layer: 0
   m_Name: Environment_IceCity
   m_TagString: Untagged
@@ -227,21 +226,6 @@ MonoBehaviour:
   groundSmoothness: 0.92
   nightSky: {fileID: 2176174925336769963}
   seed: 20260920
---- !u!114 &3788516020658452414
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2070142543167483732}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: cc796ac26b820dc4589cc31d41ae1fd7, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::IceRain
-  rainColor: {r: 0.65, g: 0.82, b: 1, a: 0.55}
-  baseRate: 1400
-  beatRate: 900
 --- !u!1 &6339485093467655851
 GameObject:
   m_ObjectHideFlags: 0

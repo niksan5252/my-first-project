@@ -30,8 +30,8 @@ MonoBehaviour:
     clipStart: 0
     clipEnd: 0
     transitionIn: 0
-    transitionSeconds: 4
-    transitionLook: 2
+    transitionSeconds: 3.5
+    transitionLook: 0
   - label: GoldDisco
     track: {fileID: 8300000, guid: a2d00e8f8bfe6ec45b61ebce512f02fd, type: 3}
     beatmapFileName: remix_gold_disco.json

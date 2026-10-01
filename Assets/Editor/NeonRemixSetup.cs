@@ -50,7 +50,7 @@ public static class NeonRemixSetup
         p.segments = new List<PlaylistSegment>
         {
             Segment("ToxicNeon", profiles[0], PlaylistTransition.Crossfade, 3.5f, PlaylistTransitionLook.Veil),
-            Segment("IceCity", profiles[1], PlaylistTransition.Crossfade, 4f, PlaylistTransitionLook.Rain),
+            Segment("IceCity", profiles[1], PlaylistTransition.Crossfade, 3.5f, PlaylistTransitionLook.Veil),
             Segment("GoldDisco", profiles[2], PlaylistTransition.Thunder, 3.5f, PlaylistTransitionLook.Veil),
         };
         EditorUtility.SetDirty(p);
@@ -91,7 +91,7 @@ public static class NeonRemixSetup
         return theme;
     }
 
-    // --- IceCity: white, ice blue and a touch of violet; hexagon rings, rain, wet road, no moon ---
+    // --- IceCity: white, ice blue and a touch of violet; hexagon rings, wet road, no moon ---
     private static TunnelTheme BuildIceCity()
     {
         var theme = CopyTheme("Theme_Cyberpunk", "Theme_IceCity");
@@ -124,7 +124,7 @@ public static class NeonRemixSetup
                 SetColor(so, "groundColor", new Color(0.03f, 0.05f, 0.1f));
                 so.FindProperty("groundSmoothness").floatValue = 0.92f;
             });
-            if (root.GetComponent<IceRain>() == null) root.AddComponent<IceRain>();
+            GameObjectUtility.RemoveMonoBehavioursWithMissingScript(root);   // the rain component is gone: no rain in this look
             PrefabUtility.SaveAsPrefabAsset(root, AssetDatabase.GetAssetPath(env));
         }
         finally { PrefabUtility.UnloadPrefabContents(root); }
