@@ -803,8 +803,8 @@ def find_bar_lines(beat_times: np.ndarray, low_onsets: np.ndarray, beat_frames: 
 
 def parse_pattern(spec: str) -> List[Tuple[str, int]]:
     """A named pattern, or an inline one like 'Punch:6,Kick:5,Jump:4,PunchHold:2'."""
-    if spec == "intense-v2":
-        return [(KICK, 1)]      # planned by plan_sets_v2, not cycled
+    if spec == "intense-v2" or spec in CHARACTER_PLANS:
+        return [(KICK, 1)]      # planned by plan_sets_v2 / plan_sets_character, not cycled
     if spec in SET_PATTERNS:
         return SET_PATTERNS[spec]
 
@@ -1110,6 +1110,121 @@ def plan_sets_v2(bar_lines: np.ndarray, bar_map: List[str], rest_beats: float, b
                                rest_end=min(boundary, track_end), bar=bar))
         history.append(ex)
         bar += bars
+    return sets
+
+
+# --------------------------------------------------------------------------------------
+# Video 6 ("Neon Prism"): one character of movement per track
+# --------------------------------------------------------------------------------------
+# --pattern intense-v2-arms / -legs / -combo / -finale. Same machinery as intense-v2 (sets on bar
+# lines, notes on the grid, the exercises written out by expand_compound), but the routine is
+# composed in PHRASES - 4 or 8 bars - rather than cycled exercise by exercise:
+#   * a phrase is a short list of (exercise, bars) with a motif that comes back (A B A C);
+#   * the normal phrases take turns, one after another;
+#   * after a drop the "drop" phrases play for drop_bars (the brightest links of the track);
+#   * a phrase that starts in a stretch without drums is a "calm" one (holds - a breather).
+# This table is the whole policy: to change what a track asks for, edit it, nothing else.
+CHARACTER_PLANS: Dict[str, dict] = {
+    # Arms: punches on the beats, two levels, the star; the legs only come in for a bar-pair now and then.
+    "intense-v2-arms": {
+        "normal": [
+            [(PUNCH, 2), (HIGH_LOW, 2), (PUNCH, 2), (HIGH_LOW, 2)],
+            [(PUNCH, 2), ("PunchHold", 2), (PUNCH, 2), (CROSS, 2)],
+            [(HIGH_LOW, 2), (PUNCH, 2), (HIGH_LOW, 2), ("PunchHold", 2)],
+            [(PUNCH, 2), (HIGH_LOW, 2), (PUNCH, 2), (KICK, 2)],
+        ],
+        "drop": [[(CROSS, 2), (HIGH_LOW, 2), (CROSS, 2), (PUNCH, 2)]],
+        "calm": [[("PunchHold", 2), (PUNCH, 2)]],
+        "fill": PUNCH, "drop_bars": 8,
+    },
+    # Legs and trunk: kicks, side jumps, steps (Shift), ducks, kerbs, one-leg balance.
+    "intense-v2-legs": {
+        "normal": [
+            [(KICK, 2), (SIDE_JUMP, 2), (KICK, 2), (SIDE_JUMP, 2)],
+            [(KICK, 2), (SHIFT, 2), (KICK, 2), (DUCK, 2)],
+            [("KickHold", 2), (KICK, 2), (SIDE_JUMP, 2), (BALANCE, 2)],
+            [(SHIFT, 2), (KICK, 2), (CURB, 2), (KICK, 2)],
+        ],
+        "drop": [[(JACK, 2), (SIDE_JUMP, 2), (SHIFT, 2), (KICK, 2)]],
+        "calm": [[("KickHold", 2), (KICK, 2)], [("KickHold", 2), (DUCK, 2)],
+                 [(KICK, 2), (BALANCE, 2)], [("KickHold", 2), (CURB, 2)]],
+        "fill": KICK, "drop_bars": 8,
+    },
+    # Combinations: two-foot chords with a punch, jacks, shifts under punches, changing every 4/8 bars.
+    "intense-v2-combo": {
+        "normal": [
+            [(CHORD, 2), (HIGH_LOW, 2), (CHORD, 2), (HIGH_LOW, 2)],
+            [(JACK, 2), (PUNCH, 2), (JACK, 2), (KICK, 2)],
+            [(SHIFT, 2), (HIGH_LOW, 2), (SIDE_JUMP, 2), (PUNCH, 2)],
+            [(CROSS, 2), (JACK, 2)],
+        ],
+        "drop": [[(CHORD, 2), (JACK, 2), (CROSS, 2), (HIGH_LOW, 2)]],
+        "calm": [[("PunchHold", 2), ("KickHold", 2)]],
+        "fill": PUNCH, "drop_bars": 8,
+    },
+    # Finale: a mix of everything, one-bar changes in the first phrase, two drop phrases in a row.
+    "intense-v2-finale": {
+        "normal": [
+            [(PUNCH, 1), (KICK, 1), (HIGH_LOW, 1), (SIDE_JUMP, 1), (PUNCH, 1), (KICK, 1), (JACK, 1), (CHORD, 1)],
+            [(HIGH_LOW, 2), (SHIFT, 2), (CHORD, 2), (CROSS, 2)],
+            [(JACK, 2), (PUNCH, 2), (SIDE_JUMP, 2), (HIGH_LOW, 2)],
+            [(KICK, 2), (DUCK, 2), (HIGH_LOW, 2), (CURB, 2)],
+        ],
+        "drop": [[(CROSS, 2), (CHORD, 2), (JACK, 2), (HIGH_LOW, 2)],
+                 [(CHORD, 2), (CROSS, 2), (SIDE_JUMP, 2), (HIGH_LOW, 2)]],
+        "calm": [[("PunchHold", 2), (KICK, 2)]],
+        "fill": PUNCH, "drop_bars": 16,
+    },
+}
+
+
+def plan_sets_character(bar_lines: np.ndarray, bar_map: List[str], rest_beats: float, beat: float,
+                        track_end: float, plan_name: str) -> List[WorkoutSet]:
+    """Sets for a CHARACTER_PLANS routine, laid bar line to bar line like plan_sets."""
+    plan = CHARACTER_PLANS[plan_name]
+    drops = drops_from_bar_map(bar_map)
+    cursor = {"normal": 0, "drop": 0, "calm": 0}
+    sets: List[WorkoutSet] = []
+    history: List[str] = []
+
+    def emit(ex: str, bar: int, bars: int) -> bool:
+        if bar + bars >= len(bar_lines):
+            return False
+        start, boundary = float(bar_lines[bar]), float(bar_lines[bar + bars])
+        if start >= track_end:
+            return False
+        if ex in OBSTACLE_SETS and history and history[-1] in OBSTACLE_SETS:
+            ex = plan["fill"]          # the camera has to come home between two obstacle sets
+        end = max(start, boundary - rest_beats * beat)
+        sets.append(WorkoutSet(index=len(sets), exercise=ex, start=start, end=min(end, track_end),
+                               rest_end=min(boundary, track_end), bar=bar))
+        history.append(ex)
+        return True
+
+    bar = 0
+    while bar < len(bar_lines):
+        in_drop = any(0 <= bar - d < plan["drop_bars"] for d in drops)
+        if in_drop:
+            kind = "drop"
+        elif bar < len(bar_map) and bar_map[bar] != "#":
+            kind = "calm"
+        else:
+            kind = "normal"
+        phrases = plan[kind]
+        phrase = phrases[cursor[kind] % len(phrases)]
+        cursor[kind] += 1
+        # The next drop starts a phrase of its own: this one stops at the last set that ends on or
+        # before it, and one-bar sets of the plan's filler exercise cover whatever is left.
+        ahead = [d for d in drops if bar < d < bar + sum(b for _, b in phrase)]
+        limit = ahead[0] if (ahead and kind != "drop") else None
+        for ex, bars in phrase:
+            if limit is not None and bar + bars > limit:
+                while bar < limit:
+                    if not emit(plan["fill"], bar, 1): return sets
+                    bar += 1
+                break
+            if not emit(ex, bar, bars): return sets
+            bar += bars
     return sets
 
 
@@ -1525,7 +1640,9 @@ def analyse(path: Path, cfg) -> Tuple[List[Event], float, float, int, List[Worko
 
         set_bars_for = parse_mapping(cfg.set_bars_for, {}, "--set-bars-for",
                                      lambda raw, name, chunk: _positive_int(raw, name, chunk))
-        if cfg.pattern == "intense-v2":
+        if cfg.pattern in CHARACTER_PLANS:
+            sets = plan_sets_character(bar_lines, cfg.bar_map, cfg.rest_beats, beat, track_end, cfg.pattern)
+        elif cfg.pattern == "intense-v2":
             sets = plan_sets_v2(bar_lines, cfg.bar_map, cfg.rest_beats, beat, track_end, cfg.v2_rotation)
         else:
             sets = plan_sets(bar_lines, pattern, cfg.set_bars, cfg.rest_beats, beat, track_end, set_bars_for)

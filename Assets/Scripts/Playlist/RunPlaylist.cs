@@ -103,4 +103,7 @@ public class RunPlaylist : ScriptableObject
     // Keep the scene's own trainer as it is (Jennifer's cyan contour) but light its panel - the
     // backdrop and the frame's glow - in each segment's colours.
     public bool trainerPanelInThemeColors;
+    // No trainer panel at all in this playlist: the silhouette on the left is not built. The panel
+    // stays in the scene, so other playlists and single-track profiles keep it.
+    public bool hideTrainer;
 }

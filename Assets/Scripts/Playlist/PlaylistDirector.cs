@@ -66,7 +66,8 @@ public class PlaylistDirector : MonoBehaviour
         string name = list.title + (solo >= 0 ? "_" + (solo + 1) + "_" + timeline.spans[0].segment.label : "");
         spawner.SetTrackInfo(name.Replace(' ', '_'), timeline.Length);
         if (themeApplier != null) themeApplier.SetTheme(timeline.spans[0].segment.theme);
-        if (trainer != null && list.trainerMotionSet != null) trainer.UseMotionSet(list.trainerMotionSet, list.trainerTextured);
+        if (trainer != null && list.hideTrainer) trainer.enabled = false;     // before its Start: the panel is never built
+        else if (trainer != null && list.trainerMotionSet != null) trainer.UseMotionSet(list.trainerMotionSet, list.trainerTextured);
         if (trainer != null && list.trainerPanelInThemeColors) trainer.UsePanelPalette();
 
         BuildAudio();

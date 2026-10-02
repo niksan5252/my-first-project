@@ -38,6 +38,11 @@ public class RunProfileSelector : MonoBehaviour
         if (cueSpawner != null && profile.overrideIntro)
             cueSpawner.SetIntro(profile.introBars, profile.introSkipsPartialSet, profile.preRoll);
         if (themeApplier != null && profile.theme != null) themeApplier.SetTheme(profile.theme);
+        if (profile.hideTrainer)
+        {
+            if (trainer == null) trainer = FindAnyObjectByType<SilhouetteTrainer>();
+            if (trainer != null) trainer.enabled = false;     // before its Start: the panel is never built
+        }
         Debug.Log("[RunProfile] " + profile.name + ": track " + (profile.track != null ? profile.track.name : "-")
                 + ", chart " + profile.beatmapFileName + ", theme " + (profile.theme != null ? profile.theme.name : "-"), this);
     }

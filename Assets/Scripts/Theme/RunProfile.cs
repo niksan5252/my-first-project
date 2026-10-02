@@ -23,4 +23,8 @@ public class RunProfile : ScriptableObject
     // from the spawn point - instead of dropping every note that would have to be born before the
     // music starts. The music then starts so that the first note lands on its beat.
     public bool preRoll = true;
+
+    [Header("Trainer")]
+    // No trainer panel for this video (the scene's silhouette is not built). Off keeps it as before.
+    public bool hideTrainer;
 }

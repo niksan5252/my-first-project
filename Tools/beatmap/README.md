@@ -561,3 +561,17 @@ one note a beat at 2.0 notes/s (under the ~2.3 limit), 240 would ask for 4/s, 60
 1/s. The phase checks out: 36% of the detected kicks land on its beats against 6% on the
 off-beat eighths; the claps at 0.25 s are its eighths. beat_track and the tempogram say 117.45
 (their bin). 321 events.
+
+## Per-track character: `--pattern intense-v2-arms | -legs | -combo | -finale`
+
+Video 6 (Neon Prism) wants every chart to feel different. These patterns use the intense-v2
+machinery but compose the routine in 4/8-bar **phrases** (a motif that comes back: A B A C) from
+the `CHARACTER_PLANS` table in `generate_beatmap.py` - that table is the whole policy. Drops get
+their own "drop" phrases, stretches without drums get "calm" ones (holds, balance, ducks).
+`arms`: Punch/HighLow/PunchHold/Cross, a little Kick. `legs`: Kick/SideJump/Shift/Jack, Duck/Curb/
+Balance in the calm stretches. `combo`: Chord/Jack/Shift under HighLow, Cross. `finale`: everything,
+one-bar changes in the first phrase, 16 bars of "drop" phrases after a drop.
+
+```powershell
+.venv\Scripts\python generate_beatmap.py ..\..\Assets\Audio\Tracks\prism_club_energy_1.wav --detector grid --pattern intense-v2-arms --rest-beats 1 --spacing-tolerance 0.05 --grid-quiet-every 2 --fill-gaps-dodge
+```
