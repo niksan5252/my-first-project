@@ -603,9 +603,19 @@ The three plans differ on purpose - no phrase is shared:
 notes follow the melody instead of the grid - HPSS harmonic part, onset detection
 (`--intro-melody-delta`, `--intro-melody-min`), no closer than an eighth note (the stronger of two
 wins), the stronger half Punches, the rest steps, alternating hands/feet. No chords, no holds.
+Each onset is then moved to its attack in the full mix (`refine_onset`, the drums' rule; search
+`--intro-melody-search`, 60 ms): the onset-strength peak trails the attack by ~32 ms median on
+track7_1. Measured against backtracked mix onsets, notes within 15 ms went from 1/42 to 41/46
+(track7_1) and 0/44 to 26/38 (track7_2). "Drums in" is the first of two drum bars in a row
+(`first_drum_bar`) - a lone drum bar in an intro is a fill.
+
+**`--intro-arcs`**: instead, the intro before the drums is a chain of ArcHolds, one per 4-bar
+phrase (the remainder goes to the last), each to one beat before the next phrase, one turn a bar;
+hands L, R, L...; the last phrase both hands mirrored. **`--intro-rest S`**: no notes before the
+phrase (else bar) line nearest S seconds, within +-15%.
 
 ```powershell
-.venv\Scripts\python generate_beatmap.py ..\..\Assets\Audio\Tracks\track7_1.wav --detector grid --pattern carnival-rio --rest-beats 1 --spacing-tolerance 0.05 --grid-quiet-every 2 --fill-gaps-dodge --intro-melody-onsets
+.venv\Scripts\python generate_beatmap.py ..\..\Assets\Audio\Tracks\track7_1.wav --detector grid --pattern carnival-rio --rest-beats 1 --spacing-tolerance 0.05 --grid-quiet-every 2 --fill-gaps-dodge --intro-melody-onsets --intro-rest 7
 .venv\Scripts\python generate_beatmap.py ..\..\Assets\Audio\Tracks\track7_2.wav --detector grid --pattern carnival-arcs --rest-beats 1 --spacing-tolerance 0.05 --grid-quiet-every 2 --fill-gaps-dodge --intro-melody-onsets
-.venv\Scripts\python generate_beatmap.py ..\..\Assets\Audio\Tracks\track7_3.wav --detector grid --pattern carnival-copa --rest-beats 1 --spacing-tolerance 0.05 --grid-quiet-every 2 --fill-gaps-dodge --intro-melody-onsets
+.venv\Scripts\python generate_beatmap.py ..\..\Assets\Audio\Tracks\track7_3.wav --detector grid --pattern carnival-copa --rest-beats 1 --spacing-tolerance 0.05 --grid-quiet-every 2 --fill-gaps-dodge --intro-arcs
 ```

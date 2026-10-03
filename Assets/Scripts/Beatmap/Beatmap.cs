@@ -28,7 +28,7 @@ public class BeatmapEvent
     public float intensity; // 0..1 onset strength; scales the hit flash and camera shake
     // ArcHold only (absent = 0 elsewhere). The hand is the lane's half of the road, like a Dodge's
     // side. `arc`: degrees the fist travels round the circle, signed - positive is clockwise as the
-    // player sees it - and 270-540 in practice, up to two turns. `radius`: metres; 0 = the spawner's default.
+    // player sees it - and 270-540 in practice; an intro spiral turns once a bar, up to ten turns. `radius`: metres; 0 = the spawner's default.
     public float arc;
     public float radius;
 }

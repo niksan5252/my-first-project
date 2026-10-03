@@ -80,7 +80,7 @@ JACK = "Jack"                # both feet: outer 0+3, inner 1+2, alternating (jum
 SHIFT = "Shift"              # both feet: a pair sliding one lane per beat, 0+1 -> 1+2 -> 2+3 -> back
 BALANCE = "Balance"          # a CurbGap or CurbSplit held for the set: one leg, or a wide stance
 # Video 7 ("Neon Carnival"):
-ARC_HOLD = "ArcHold"         # JSON type: a PunchHold bent into a circle - the fist is led round it.
+ARC_HOLD = "ArcHold"         # JSON type: a PunchHold bent into a circle (or a spiral of several turns).
                              # Carries `arc` (degrees, signed, + clockwise as the player sees it) and
                              # `radius` (metres, 0 = the game's default); the lane's half is the hand.
 ARC = "Arc"                  # set: one mirrored pair of ArcHolds (both hands) on the set's first beat,
@@ -1455,6 +1455,12 @@ def melody_onset_events(y: np.ndarray, sr: int, hop: int, start: float, end: flo
     detector instead, and its onsets become light notes: no closer than an eighth note at the
     track's tempo (of two too close, the stronger stays), the stronger half Punches and the rest
     steps (Kick), each alternating left/right. No chords, no holds.
+
+    The detector says WHICH note, not exactly WHEN: the onset-strength peak trails the attack (on
+    track7_1 by a median 32 ms, up to 60 ms, measured against the mix's RMS rise). So every onset
+    is moved to its attack in the full mix with refine_onset - the same envelope rule, windows
+    and rise fraction the drum notes are timed with - and one the envelope cannot place is kept
+    where the detector put it.
     """
     if end - start < beat:
         return []
@@ -1466,10 +1472,16 @@ def melody_onset_events(y: np.ndarray, sr: int, hop: int, start: float, end: flo
     env = env / env.max()
     frames = librosa.onset.onset_detect(onset_envelope=env, sr=sr, hop_length=hop, units="frames",
                                         delta=cfg.intro_melody_delta, wait=1, normalize=False)
+    refine_hop = max(1, int(round(cfg.refine_hop * sr)))
+    attack_env = rms_envelope(y[a:b], max(2, int(round(cfg.refine_high_window * sr))), refine_hop)
+    attack_rate = sr / refine_hop
     gap = beat / 2.0
     picked: List[Tuple[float, float]] = []
     for f in frames:
         t, strength = start + float(f) * hop / sr, float(env[f])
+        refined = refine_onset(attack_env, attack_rate, t - start, cfg.intro_melody_search, cfg.refine_rise)
+        if refined is not None:
+            t = start + float(np.clip(refined, t - start - cfg.intro_melody_search, t - start + cfg.intro_melody_search))
         if strength < cfg.intro_melody_min:
             continue
         if picked and t - picked[-1][0] < gap:
@@ -1490,6 +1502,52 @@ def melody_onset_events(y: np.ndarray, sr: int, hop: int, start: float, end: flo
             steps += 1
         out.append(Event(time=t, type=type_, intensity=float(np.clip(0.3 + 0.5 * strength, 0.0, 1.0)), lane=lane,
                          frame=int(round(t * sr / hop)), acoustic=type_))
+    return out
+
+
+def first_drum_bar(bar_map: List[str]) -> Optional[int]:
+    """Where the drums really come in: the first of two drum bars in a row. A single drum bar on
+    its own in an intro is a fill or a riser, not the beat starting - track7_1 has one at bar 8,
+    four bars before its kicks, and taking it as the start put grid notes on the melody."""
+    for i in range(len(bar_map) - 1):
+        if bar_map[i] == "#" and bar_map[i + 1] == "#":
+            return i
+    return bar_map.index("#") if "#" in bar_map else None
+
+
+def intro_arc_events(bar_lines: np.ndarray, drums_bar: int, beat: float) -> List[Event]:
+    """--intro-arcs: the intro before the drums as a chain of long ArcHolds, one per phrase.
+
+    Phrases are four bars from the first bar line; what does not divide goes to the last phrase
+    (up to seven bars). Each ArcHold starts on its phrase's bar line and runs to one beat before
+    the next phrase - whole beats, so it ends on a beat and leaves a one-beat breath - turning at
+    one revolution a bar (360 degrees x its length in bars). Hands alternate L, R, L...; the
+    last phrase before the drums is both hands at once, mirrored (each turning outward).
+    """
+    bars = drums_bar
+    if bars < 2:
+        return []
+    sizes = [4] * (bars // 4)
+    rest = bars % 4
+    if not sizes: sizes = [bars]
+    elif rest: sizes[-1] += rest
+    out: List[Event] = []
+    bar = 0
+    for k, size in enumerate(sizes):
+        start = float(bar_lines[bar])
+        end = float(bar_lines[bar + size]) if bar + size < len(bar_lines) else start + size * 4 * beat
+        beats = int(round((end - start) / beat)) - 1
+        bar += size
+        if beats < 2: continue
+        length = beats * beat
+        degrees = 360.0 * beats / 4.0
+        last = k == len(sizes) - 1
+        hands = (1, 2) if last else ((1,) if k % 2 == 0 else (2,))
+        for lane in hands:
+            ev = Event(time=start, type=ARC_HOLD, intensity=0.6, lane=lane, duration=length, acoustic=PUNCH)
+            ev.arc = -degrees if lane == 1 else degrees      # outward: left anticlockwise, right clockwise
+            ev.radius = 0.0
+            out.append(ev)
     return out
 
 
@@ -1853,19 +1911,33 @@ def analyse(path: Path, cfg) -> Tuple[List[Event], float, float, int, List[Worko
         events = expand_chords(events, sets, cfg.chord_punch_every, pairs[CHORD], cfg.lanes)
         arc_shapes = CHARACTER_PLANS[cfg.pattern].get("arcs") if cfg.pattern in CHARACTER_PLANS else None
         events = expand_compound(events, sets, beat, cfg.lanes, random.Random(cfg.seed), arc_shapes)
-        if cfg.intro_melody_onsets and cfg.bar_map and "#" in cfg.bar_map:
-            # Before the drums come in, the notes follow the melody instead of the grid.
-            first = cfg.bar_map.index("#")
-            if 0 < first < len(bar_lines):
-                drums_at = float(bar_lines[first]) - 0.25 * beat
-                events = [e for e in events if e.time >= drums_at]
-                sets[:] = [b for b in sets if b.start >= drums_at]
-                intro = melody_onset_events(y, sr, hop, 0.0, drums_at - 0.25 * beat, beat, cfg)
-                cfg.intro_notes = len(intro)
-                events = sorted(intro + events, key=lambda e: e.time)
         if cfg.fill_gaps_dodge:
             cfg.gap_walls = fill_gaps_with_dodges(events, bar_lines, beat, track_end, cfg)
             events = sorted(events + cfg.gap_walls, key=lambda e: e.time)
+        first = first_drum_bar(cfg.bar_map)
+        if (cfg.intro_melody_onsets or cfg.intro_arcs) and first is not None and 0 < first < len(bar_lines):
+            # Before the drums come in: everything the grid put there goes, and the intro is
+            # either the melody's onsets or one long ArcHold per phrase.
+            drums_at = float(bar_lines[first]) - 0.25 * beat
+            events = [e for e in events if e.time >= drums_at]
+            sets[:] = [b for b in sets if b.start >= drums_at]
+            if cfg.intro_arcs:
+                intro = intro_arc_events(bar_lines, first, beat)
+            else:
+                intro = melody_onset_events(y, sr, hop, 0.0, drums_at - 0.25 * beat, beat, cfg)
+            cfg.intro_notes = len(intro)
+            events = sorted(intro + events, key=lambda e: e.time)
+        if cfg.intro_rest > 0:
+            # A clean opening: no note before the bar line nearest --intro-rest seconds (one inside
+            # 6..8 s when there is one), so the intro plays out on its own.
+            # A phrase line (every fourth bar) is preferred to a bar line when one is in range.
+            lines = [float(t) for t in bar_lines]
+            lo, hi = 0.85 * cfg.intro_rest, 1.15 * cfg.intro_rest
+            phrases = [t for t in lines[::4] if lo <= t <= hi]
+            inside = phrases or [t for t in lines if lo <= t <= hi]
+            cut = min(inside or lines, key=lambda t: abs(t - cfg.intro_rest))
+            cfg.intro_rest_at = cut
+            events = [e for e in events if e.time >= cut - 0.25 * beat]
         return events, bpm, track_end, int(sr), sets, bar_lines
 
     if not cfg.no_holds:
@@ -2223,6 +2295,13 @@ def build_parser() -> argparse.ArgumentParser:
                    help="peak-picking threshold for --intro-melody-onsets (onset envelope normalised to 1)")
     g.add_argument("--intro-melody-min", type=float, default=0.12,
                    help="weakest melody onset kept by --intro-melody-onsets (0..1 of the strongest)")
+    g.add_argument("--intro-melody-search", type=float, default=0.06,
+                   help="seconds either side of a melody onset in which its attack is looked for")
+    g.add_argument("--intro-arcs", action="store_true",
+                   help="before the drums first come in, a chain of long ArcHolds instead of notes: one per "
+                        "4-bar phrase, one turn a bar, hands alternating, the last phrase both hands")
+    g.add_argument("--intro-rest", type=float, default=0.0,
+                   help="seconds of music at the start with no notes at all, rounded to the nearest bar line")
     g.add_argument("--show-sets", action="store_true",
                    help="print the planned routine: one line per set with its timecode")
 
