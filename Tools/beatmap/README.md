@@ -605,7 +605,7 @@ notes follow the melody instead of the grid - HPSS harmonic part, onset detectio
 wins), the stronger half Punches, the rest steps, alternating hands/feet. No chords, no holds.
 
 ```powershell
-.venv\Scripts\python generate_beatmap.py ..\..\Assets\Audio\Tracks	rack7_1.wav --detector grid --pattern carnival-rio --rest-beats 1 --spacing-tolerance 0.05 --grid-quiet-every 2 --fill-gaps-dodge --intro-melody-onsets
-.venv\Scripts\python generate_beatmap.py ..\..\Assets\Audio\Tracks	rack7_2.wav --detector grid --pattern carnival-arcs --rest-beats 1 --spacing-tolerance 0.05 --grid-quiet-every 2 --fill-gaps-dodge --intro-melody-onsets
-.venv\Scripts\python generate_beatmap.py ..\..\Assets\Audio\Tracks	rack7_3.wav --detector grid --pattern carnival-copa --rest-beats 1 --spacing-tolerance 0.05 --grid-quiet-every 2 --fill-gaps-dodge --intro-melody-onsets
+.venv\Scripts\python generate_beatmap.py ..\..\Assets\Audio\Tracks\track7_1.wav --detector grid --pattern carnival-rio --rest-beats 1 --spacing-tolerance 0.05 --grid-quiet-every 2 --fill-gaps-dodge --intro-melody-onsets
+.venv\Scripts\python generate_beatmap.py ..\..\Assets\Audio\Tracks\track7_2.wav --detector grid --pattern carnival-arcs --rest-beats 1 --spacing-tolerance 0.05 --grid-quiet-every 2 --fill-gaps-dodge --intro-melody-onsets
+.venv\Scripts\python generate_beatmap.py ..\..\Assets\Audio\Tracks\track7_3.wav --detector grid --pattern carnival-copa --rest-beats 1 --spacing-tolerance 0.05 --grid-quiet-every 2 --fill-gaps-dodge --intro-melody-onsets
 ```
