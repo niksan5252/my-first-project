@@ -895,6 +895,13 @@ MonoBehaviour:
   sweepTailEndXRatio: 0.15
   sweepTailEndHeight: 1.25
   sweepBeamPlateScale: 0.8
+  arcCenterHeight: 2.2
+  arcCenterLanes: 1
+  arcDefaultRadius: 0.75
+  arcStartAngle: 90
+  arcTubeRadius: 0.12
+  arcHeadScale: 0.7
+  arcSegmentsPerTurn: 72
   obstacleEdgeThickness: 0.22
   obstacleFillAlpha: 0.55
   obstacleChevronThickness: 0.26
@@ -1335,7 +1342,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::RunProfileSelector
   profile: {fileID: 11400000, guid: b1604fb0cc4caf442871a594bb1f0fe6, type: 2}
-  playlist: {fileID: 11400000, guid: d41754bd7f7221c4d8b9a3182e4cd800, type: 2}
+  playlist: {fileID: 11400000, guid: 820b04955cd281b4696a683b1eb60cd5, type: 2}
   playlistSolo: -1
   cueSpawner: {fileID: 350241776}
   themeApplier: {fileID: 268705387}

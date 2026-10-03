@@ -575,3 +575,28 @@ one-bar changes in the first phrase, 16 bars of "drop" phrases after a drop.
 ```powershell
 .venv\Scripts\python generate_beatmap.py ..\..\Assets\Audio\Tracks\prism_club_energy_1.wav --detector grid --pattern intense-v2-arms --rest-beats 1 --spacing-tolerance 0.05 --grid-quiet-every 2 --fill-gaps-dodge
 ```
+
+## Video 7 (Neon Carnival): `ArcHold`, the punch fan, `--pattern carnival-*`
+
+**`ArcHold`** is a new JSON type: a PunchHold bent into a circle. The hand is the lane's half of
+the road (lanes 0-1 left, 2-3 right), and two extra fields describe the circle:
+`arc` - degrees the fist travels, signed, positive = clockwise as the player sees it (90/180/270/360) -
+and `radius` in metres (0 = the game's default, 0.75). The fist starts at the top of the circle.
+
+Two new SET exercises write it and the "fan" out (`expand_compound`):
+
+* `Arc` - one mirrored pair of ArcHolds (left and right hand together) on the set's first beat,
+  2-4 beats long, then steps (Kick) once it ends. The circles cycle through `ARC_SHAPES`
+  (180/360/90/270 deg); directions alternate pair by pair, outward then inward. Placed by the plans
+  at phrase changes and in stretches without drums - at most one pair per 4 bars.
+* `Fan` - mirrored Punch/PunchHigh pairs on the even beats, thrown at different heights and
+  out to the outer lanes like rays (`FAN_RAYS`), a step (Kick) left/right on the odd beats.
+
+`carnival-rio`, `carnival-arcs` (the most arcs) and `carnival-copa` are the three character plans
+in `CHARACTER_PLANS`:
+
+```powershell
+.venv\Scripts\python generate_beatmap.py ..\..\Assets\Audio\Tracks\track7_1.wav --detector grid --pattern carnival-rio --rest-beats 1 --spacing-tolerance 0.05 --grid-quiet-every 2 --fill-gaps-dodge
+.venv\Scripts\python generate_beatmap.py ..\..\Assets\Audio\Tracks\track7_2.wav --detector grid --pattern carnival-arcs --rest-beats 1 --spacing-tolerance 0.05 --grid-quiet-every 2 --fill-gaps-dodge
+.venv\Scripts\python generate_beatmap.py ..\..\Assets\Audio\Tracks\track7_3.wav --detector grid --pattern carnival-copa --rest-beats 1 --spacing-tolerance 0.05 --grid-quiet-every 2 --fill-gaps-dodge
+```

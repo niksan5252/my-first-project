@@ -8,7 +8,7 @@ offending event index:
 
   * `version` must equal `BeatmapReader.SupportedVersion` (1).
   * `type` is matched case-sensitively against the C# `CueType` enum:
-    Kick | Punch | KickHold | PunchHold | Dodge | Curb | Duck. (`Jump` is retired: the
+    Kick | Punch | KickHold | PunchHold | ArcHold | Dodge | Curb | Duck. (`Jump` is retired: the
     reader still accepts the name and loads it as `Curb`, but nothing here writes one.)
   * a hold type must carry `duration > 0`, and a one-shot type must carry exactly `0`.
     "Absent" is not an option - JsonUtility fills a missing field with 0, which is right
@@ -79,9 +79,17 @@ HIGH_LOW = "HighLow"         # punches on two levels, alternating hands, sometim
 JACK = "Jack"                # both feet: outer 0+3, inner 1+2, alternating (jumping jacks)
 SHIFT = "Shift"              # both feet: a pair sliding one lane per beat, 0+1 -> 1+2 -> 2+3 -> back
 BALANCE = "Balance"          # a CurbGap or CurbSplit held for the set: one leg, or a wide stance
-COMPOUND = {CROSS, WALL_RUN, SIDE_JUMP, HIGH_LOW, JACK, SHIFT, BALANCE}
+# Video 7 ("Neon Carnival"):
+ARC_HOLD = "ArcHold"         # JSON type: a PunchHold bent into a circle - the fist is led round it.
+                             # Carries `arc` (degrees, signed, + clockwise as the player sees it) and
+                             # `radius` (metres, 0 = the game's default); the lane's half is the hand.
+ARC = "Arc"                  # set: one mirrored pair of ArcHolds (both hands) on the set's first beat,
+                             # then light steps for the rest of the set - a breather at a phrase change
+FAN = "Fan"                  # set: the punch fan - mirrored Punch/PunchHigh pairs thrown out like rays
+                             # on the even beats, a step (Kick) left/right on the odd ones: a dance
+COMPOUND = {CROSS, WALL_RUN, SIDE_JUMP, HIGH_LOW, JACK, SHIFT, BALANCE, ARC, FAN}
 # Types that may carry a duration in the JSON: the holds, a long Dodge wall, the balance kerbs.
-DURATION_TYPES = {"KickHold", "PunchHold", "PunchSweep", "Dodge", CURB_GAP, CURB_SPLIT}
+DURATION_TYPES = {"KickHold", "PunchHold", "PunchSweep", "Dodge", CURB_GAP, CURB_SPLIT, ARC_HOLD}
 
 # The three obstacles. Unlike the note types these are not something to strike at the hit zone -
 # they are pieces of road furniture to get around, over or under, and in the game the camera
@@ -127,6 +135,8 @@ class Event:
     # because the set happens to be a Kick set would put the note tens of milliseconds off.
     acoustic: str = PUNCH
     set_index: int = -1
+    arc: float = 0.0       # ArcHold only: signed degrees, + clockwise as the player sees it
+    radius: float = 0.0    # ArcHold only: metres, 0 = the game's default
 
     @property
     def is_hold(self) -> bool:
@@ -671,7 +681,7 @@ def measure_hold(energy: np.ndarray, start_frame: int, limit_frame: int, cfg,
 # movement that lands mid-bar reads as a mistake even to someone who cannot name what is wrong.
 
 ALL_EXERCISES = (PUNCH, KICK, "PunchHold", "KickHold", SWEEP, CHORD, DODGE, CURB, DUCK,
-                 CROSS, WALL_RUN, SIDE_JUMP, HIGH_LOW, JACK, SHIFT, BALANCE)
+                 CROSS, WALL_RUN, SIDE_JUMP, HIGH_LOW, JACK, SHIFT, BALANCE, ARC, FAN)
 
 # Named set orders. A pattern is a list of (exercise, how many sets in a row), cycled until the
 # track runs out. This is the one place the shape of the workout lives: changing the routine
@@ -737,6 +747,9 @@ DEFAULT_SPACING_BEATS: Dict[str, float] = {
     # The variety set: jumps and punches on every beat, the star once a bar, the long wall's and
     # the balance kerb's single note at the set's start (spacing = the whole set).
     SIDE_JUMP: 1.0, JACK: 1.0, SHIFT: 1.0, HIGH_LOW: 1.0, CROSS: 4.0, WALL_RUN: 1.0, BALANCE: 64.0,
+    # Video 7: the fan moves on every beat (punch pair, step, punch pair, step); an Arc set's notes
+    # are written from its own bar lines by expand_compound, so its spacing only thins the grid.
+    FAN: 1.0, ARC: 1.0,
     # Obstacles are spaced far wider than any note, and the number is not a taste judgement: the
     # camera performs the movement and has to be back at centre before the next one starts. The
     # longest reaction is the dodge, whose lead-in, hold and return together run 1.59 s - so at
@@ -1175,7 +1188,60 @@ CHARACTER_PLANS: Dict[str, dict] = {
         "calm": [[("PunchHold", 2), (KICK, 2)]],
         "fill": PUNCH, "drop_bars": 16,
     },
+
+    # Video 7 ("Neon Carnival"). Every track dances: the punch fan (Fan) is the motif, steps and
+    # jumps answer it, and an Arc set - one mirrored pair of circles - sits at phrase changes and in
+    # the stretches without drums. At most one Arc per 4 bars; the second track has the most.
+    #
+    # 1, RioNight - samba groove: fan and steps, jumps on the drop, an arc closing every other phrase.
+    "carnival-rio": {
+        "normal": [
+            [(FAN, 2), (KICK, 2), (FAN, 2), (SIDE_JUMP, 2)],
+            [(FAN, 2), (HIGH_LOW, 2), (SHIFT, 2), (ARC, 2)],
+            [(KICK, 2), (FAN, 2), (JACK, 2), (FAN, 2)],
+            [(FAN, 2), (SIDE_JUMP, 2), (FAN, 2), (ARC, 2)],
+        ],
+        "drop": [[(FAN, 2), (JACK, 2), (FAN, 2), (CHORD, 2)]],
+        "calm": [[(ARC, 2), (PUNCH, 2)]],
+        "fill": PUNCH, "drop_bars": 8,
+    },
+    # 2, Carnaval - the circles track: an arc opening or closing every 4 bars, fans between.
+    "carnival-arcs": {
+        "normal": [
+            [(ARC, 2), (FAN, 2), (HIGH_LOW, 2), (FAN, 2)],
+            [(FAN, 2), (KICK, 2), (FAN, 2), (ARC, 2)],
+            [(FAN, 2), (ARC, 2), (SHIFT, 2), (FAN, 2)],
+            [(HIGH_LOW, 2), (FAN, 2), (KICK, 2), (ARC, 2)],
+        ],
+        "drop": [[(FAN, 2), (CROSS, 2), (FAN, 2), (ARC, 2)]],
+        "calm": [[(ARC, 2), (KICK, 2)]],
+        "fill": PUNCH, "drop_bars": 8,
+    },
+    # 3, Copacabana - the finale: legs and fans at speed, two drop phrases, arcs at the turns.
+    "carnival-copa": {
+        "normal": [
+            [(KICK, 2), (FAN, 2), (SIDE_JUMP, 2), (FAN, 2)],
+            [(SHIFT, 2), (FAN, 2), (KICK, 2), (ARC, 2)],
+            [(FAN, 2), (JACK, 2), (HIGH_LOW, 2), (DUCK, 2)],
+            [(FAN, 2), (SIDE_JUMP, 2), (CHORD, 2), (ARC, 2)],
+        ],
+        "drop": [[(FAN, 2), (JACK, 2), (FAN, 2), (CROSS, 2)],
+                 [(CHORD, 2), (FAN, 2), (SIDE_JUMP, 2), (FAN, 2)]],
+        "calm": [[(ARC, 2), (KICK, 2)]],
+        "fill": PUNCH, "drop_bars": 16,
+    },
 }
+
+# The Arc set's circles, in turn: (degrees, beats, radius m). The degrees cycle through the four
+# sizes, the beats are how long the hand takes round (2-4, capped by the set), and the bigger
+# turns get the bigger circle. Directions alternate pair by pair: outward (left hand anticlockwise,
+# right hand clockwise, both starting at the top), then inward. This table is the whole policy.
+ARC_SHAPES = [(180.0, 3.0, 0.7), (360.0, 4.0, 0.8), (90.0, 2.0, 0.6), (270.0, 4.0, 0.75)]
+
+# The fan's rays, in turn, one per punch pair: (type, left lane, right lane). Inner lanes punch
+# forward, outer lanes throw the arms out wide; low and high take turns, so the four pairs of a
+# two-bar set draw a fan opening and closing.
+FAN_RAYS = [(PUNCH, 1, 2), (PUNCH_HIGH, 0, 3), (PUNCH_HIGH, 1, 2), (PUNCH, 0, 3)]
 
 
 def plan_sets_character(bar_lines: np.ndarray, bar_map: List[str], rest_beats: float, beat: float,
@@ -1253,12 +1319,43 @@ def expand_compound(events: List[Event], sets: List[WorkoutSet], beat: float, la
     shift_path = [(0, 1), (1, 2), (2, 3), (1, 2)]
     wall_side = 0
     balance_count = 0
+    arc_count = 0
     for block in sets:
         members = sorted(by_set.get(block.index, []), key=lambda e: e.time)
-        if not members: continue
         ex = block.exercise
+        if not members and ex != ARC: continue
         made: List[Event] = []
-        if ex == WALL_RUN:
+        if ex == ARC:
+            # One mirrored pair on the set's first beat (its bar line - on the beat even where the
+            # drums are silent), then steps on the beats after it ends, one per beat, left/right.
+            first = members[0] if members and members[0].time - block.start < 0.25 * beat else None
+            src = first or Event(time=block.start, type=ARC, intensity=0.6, set_index=block.index)
+            src.time = block.start
+            degrees, beats, radius = ARC_SHAPES[arc_count % len(ARC_SHAPES)]
+            outward = arc_count % 2 == 0
+            arc_count += 1
+            length = min(beats * beat, block.end - block.start - 0.08)
+            if length >= 1.5 * beat:
+                left_sweep = -degrees if outward else degrees      # + = clockwise as the player sees it
+                for lane, sweep in ((1, left_sweep), (2, -left_sweep)):
+                    ev = note(src, ARC_HOLD, lane, length)
+                    ev.arc, ev.radius = sweep, radius
+                    made.append(ev)
+                resume = block.start + length + 0.5 * beat
+                for n, ev in enumerate(m for m in members if m.time >= resume):
+                    made.append(note(ev, KICK, 1 + n % 2))
+            else:
+                for n, ev in enumerate(members):
+                    made.append(note(ev, PUNCH, 1 + n % 2))
+        elif ex == FAN:
+            for n, ev in enumerate(members):
+                if n % 2 == 0:
+                    kind, left, right = FAN_RAYS[(n // 2) % len(FAN_RAYS)]
+                    made.append(note(ev, kind, left))
+                    made.append(note(ev, kind, right))
+                else:
+                    made.append(note(ev, KICK, 1 if (n // 2) % 2 == 0 else 2))
+        elif ex == WALL_RUN:
             first = members[0]
             wall_left = wall_side % 2 == 0
             wall_side += 1
@@ -1820,6 +1917,9 @@ def to_document(events: List[Event], bpm: float, track: str, audio_offset: float
             "duration": round(ev.duration, 3) if hold else 0.0,
             "intensity": round(float(np.clip(ev.intensity, 0.0, 1.0)), 3),
         })
+        if ev.type == ARC_HOLD:
+            payload[-1]["arc"] = round(float(ev.arc), 1)
+            payload[-1]["radius"] = round(float(ev.radius), 3)
     document = {
         "version": BEATMAP_VERSION,
         "track": track,

@@ -1,0 +1,56 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3bb9640588ee8e744972f872bcd42a92, type: 3}
+  m_Name: Playlist_NeonCarnival
+  m_EditorClassIdentifier: Assembly-CSharp::RunPlaylist
+  title: NeonCarnival
+  segments:
+  - label: RioNight
+    track: {fileID: 8300000, guid: cb873fde0006dbe43b84c0eadd697fb8, type: 3}
+    beatmapFileName: track7_1.json
+    theme: {fileID: 11400000, guid: 6ee2a0c8243c75a41ac85f53612284a1, type: 2}
+    clipStart: 0
+    clipEnd: 0
+    transitionIn: 0
+    transitionSeconds: 3.5
+    transitionLook: 0
+  - label: Carnaval
+    track: {fileID: 8300000, guid: 6663104ee57d4994894e705e82a2e03c, type: 3}
+    beatmapFileName: track7_2.json
+    theme: {fileID: 11400000, guid: 0151b101e65bac948a67f6c0d7e72f66, type: 2}
+    clipStart: 0
+    clipEnd: 0
+    transitionIn: 0
+    transitionSeconds: 3.5
+    transitionLook: 0
+  - label: Copacabana
+    track: {fileID: 8300000, guid: 4234d3f190d5db04dbb19975240fb97e, type: 3}
+    beatmapFileName: track7_3.json
+    theme: {fileID: 11400000, guid: 5f09beab0ff067a48bea9adcea96c2c1, type: 2}
+    clipStart: 0
+    clipEnd: 0
+    transitionIn: 1
+    transitionSeconds: 3.5
+    transitionLook: 0
+  preRoll: 1
+  noteMarginBeats: 1
+  wallsInTransition: 0
+  veilFogEnd: 22
+  thunderFlash: 0.8
+  thunderVolume: 1
+  thunderTrackStartVolume: 0.55
+  thunderRiseSeconds: 0.8
+  finalFadeSeconds: 2.5
+  trainerMotionSet: {fileID: 0}
+  trainerTextured: 0
+  trainerPanelInThemeColors: 0
+  hideTrainer: 1

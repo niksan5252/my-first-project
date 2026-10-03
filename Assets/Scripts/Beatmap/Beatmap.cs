@@ -26,6 +26,11 @@ public class BeatmapEvent
     public int lane;
     public float duration;  // seconds of sustain; 0 (or absent) for one-shot notes
     public float intensity; // 0..1 onset strength; scales the hit flash and camera shake
+    // ArcHold only (absent = 0 elsewhere). The hand is the lane's half of the road, like a Dodge's
+    // side. `arc`: degrees the fist travels round the circle, signed - positive is clockwise as the
+    // player sees it - and 90/180/270/360 in practice. `radius`: metres; 0 = the spawner's default.
+    public float arc;
+    public float radius;
 }
 
 /// One workout set: a run of bars doing one exercise, followed by its rest. Written by the

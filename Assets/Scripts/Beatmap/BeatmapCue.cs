@@ -9,14 +9,20 @@ public readonly struct BeatmapCue
     public readonly int lane;
     public readonly float duration;  // seconds of sustain; 0 for one-shot notes
     public readonly float intensity; // 0..1
+    // ArcHold only: degrees of arc the fist travels, signed (+ clockwise as the player sees it), and
+    // the circle's radius in metres (0 = CueSpawner's default). 0 for every other type.
+    public readonly float arc;
+    public readonly float radius;
 
-    public BeatmapCue(float time, CueType type, int lane, float duration, float intensity)
+    public BeatmapCue(float time, CueType type, int lane, float duration, float intensity, float arc = 0f, float radius = 0f)
     {
         this.time = time;
         this.type = type;
         this.lane = lane;
         this.duration = duration;
         this.intensity = intensity;
+        this.arc = arc;
+        this.radius = radius;
     }
 
     public bool IsHold => duration > 0f;

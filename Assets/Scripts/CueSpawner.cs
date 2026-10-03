@@ -27,7 +27,12 @@ using UnityEngine.Rendering;
 // (stand on one leg in the free lane), CurbSplit covers the two inner lanes (a wide stance on the
 // outer ones). Both carry a duration: they run along the road for as long as the pose is held.
 // A Dodge may carry one too now: a long wall, 2-4 bars, with notes on the free side.
-public enum CueType { Kick, Punch, Jump, PunchHold, KickHold, Dodge, Curb, Duck, PunchSweep, PunchHigh, CurbGap, CurbSplit }
+//
+// ArcHold (video 7) is the newest: a PunchHold whose body is bent into a circle. It is a helix
+// along the road - seen from the camera, an arc of a circle in front of one shoulder - and the
+// fist at its head is carried round that circle as the arc is consumed. The lane picks the hand
+// (left half = left hand); the chart's `arc` and `radius` fields give the sweep and the size.
+public enum CueType { Kick, Punch, Jump, PunchHold, KickHold, Dodge, Curb, Duck, PunchSweep, PunchHigh, CurbGap, CurbSplit, ArcHold }
 
 /// Spawns pooled cue markers across the tunnel's lanes at a height matching their type
 /// (Kick = floor, Punch = chest, Jump = a low hurdle bar), colors each cue instance
@@ -185,6 +190,19 @@ public class CueSpawner : MonoBehaviour
     // Its beam against the plate: thinner than a PunchHold's, because it is seen side-on.
     [SerializeField, Range(0.3f, 1.5f)] private float sweepBeamPlateScale = 0.8f;
 
+    // ArcHold: the circle's centre - in front of one shoulder, at this height and this far out
+    // from the middle of the road (as a multiple of a lane's width) - and its default radius when
+    // the chart leaves `radius` at 0. The fist starts at the top of the circle and goes round.
+    [SerializeField] private float arcCenterHeight = 2.2f;
+    [SerializeField, Range(0f, 2f)] private float arcCenterLanes = 1f;
+    [SerializeField, Range(0.2f, 1.5f)] private float arcDefaultRadius = 0.75f;
+    [SerializeField] private float arcStartAngle = 90f;
+    [SerializeField, Range(0.03f, 0.3f)] private float arcTubeRadius = 0.12f;
+    [SerializeField, Range(0.3f, 1.2f)] private float arcHeadScale = 0.7f;
+    // Rings of the tube per full turn; a quarter arc gets a quarter of them (never fewer than 8).
+    [SerializeField, Range(16, 160)] private int arcSegmentsPerTurn = 72;
+    private const int ArcTubeSides = 10;
+
     // --- Obstacles ---------------------------------------------------------------------
     //
     // Three pieces of road furniture rather than three more notes. They are built to one recipe,
@@ -255,6 +273,10 @@ public class CueSpawner : MonoBehaviour
     // sensibly if used without ever calling Configure().
     private Color cueColorA = new Color(1f, 0.05f, 0.65f);
     private Color cueColorB = new Color(0f, 0.85f, 1f);
+    // A theme may colour the notes by hand instead: left half of the road one colour, right the other.
+    private bool colorsByHand;
+    private Color leftHandColor = new Color(0f, 0.85f, 1f);
+    private Color rightHandColor = new Color(1f, 0.05f, 0.65f);
     private float cueEmissionIntensity = 1.7f;
 
     // Obstacles do NOT roll their colour per instance the way notes do. A note is one of a
@@ -476,6 +498,14 @@ public class CueSpawner : MonoBehaviour
         // for a PunchSweep, whose tail runs diagonally and is longer than its extent along Z.
         public float holdStripScale;
         public Transform holdTailPivot; // PunchSweep only: aims the tail at its far end
+        // ArcHold only: the head (plate, border, fist) that rides round the circle, the tube's own
+        // mesh (rebuilt as it is consumed), and this instance's circle.
+        public Transform arcHead;
+        public Mesh arcMesh;
+        public Vector2 arcCenter;   // local x/y of the circle's centre relative to the root
+        public float arcRadius;
+        public float arcStart;      // degrees, where the fist starts
+        public float arcSweep;      // degrees, signed: + clockwise as the player sees it
         // Obstacles with a length of their own (a long Dodge, the balance kerbs): the part that is
         // stretched along the road, and how long it is when its scale is 1.
         public Transform stretch;
@@ -502,7 +532,7 @@ public class CueSpawner : MonoBehaviour
     // What gets a pool, and therefore what can spawn. Jump is deliberately not here; see CueType.
     private static readonly CueType[] CueTypes = { CueType.Kick, CueType.Punch, CueType.PunchHold, CueType.KickHold,
                                                    CueType.Dodge, CueType.Curb, CueType.Duck, CueType.PunchSweep,
-                                                   CueType.PunchHigh, CueType.CurbGap, CueType.CurbSplit };
+                                                   CueType.PunchHigh, CueType.CurbGap, CueType.CurbSplit, CueType.ArcHold };
 
     // The border/tail color every cue's accent parts are blended toward — a deep ink-blue, so a
     // cyan cue gets a navy border and a magenta cue a dark plum one. Contrast, not bloom, is
@@ -654,6 +684,9 @@ public class CueSpawner : MonoBehaviour
 
         cueColorA = theme.primaryColor;
         cueColorB = theme.secondaryColor;
+        colorsByHand = theme.cueColorsByHand;
+        leftHandColor = theme.leftHandColor;
+        rightHandColor = theme.rightHandColor;
         cueEmissionIntensity = theme.accentEmissionIntensity;
 
         obstacleBodyColor = theme.secondaryColor;
@@ -1029,7 +1062,7 @@ public class CueSpawner : MonoBehaviour
             {
                 var t = sequencer[i].type;
                 if (t == CueType.Kick || t == CueType.Punch || t == CueType.KickHold || t == CueType.PunchHold || t == CueType.PunchSweep
-                    || t == CueType.PunchHigh)
+                    || t == CueType.PunchHigh || t == CueType.ArcHold)
                     return sequencer[i].time;
             }
             return -1f;
@@ -1209,6 +1242,7 @@ public class CueSpawner : MonoBehaviour
     {
         CueType type = CueTypes[Random.Range(0, CueTypes.Length)];
         int lane = Random.Range(0, tunnel.LaneCount);
+        float arc = type == CueType.ArcHold ? (Random.value < 0.5f ? 180f : -180f) : 0f;
 
         // Obstacles are a whole-body movement and the camera needs time to come back to centre
         // between them, so an obstacle rolled too soon after the last one degrades to an ordinary
@@ -1223,7 +1257,7 @@ public class CueSpawner : MonoBehaviour
             duration = cells * holdCellSize / Mathf.Max(0.01f, tunnel.ScrollSpeed);
         }
 
-        SpawnCue(type, lane, duration, 1f, Now + FlightTime);
+        SpawnCue(type, lane, duration, 1f, Now + FlightTime, arc);
     }
 
     /// Releases every chart note whose spawn moment has arrived. Looped rather than taken one per
@@ -1235,13 +1269,13 @@ public class CueSpawner : MonoBehaviour
 
         float flight = FlightTime;
         while (sequencer.TryDequeue(now, flight, out BeatmapCue cue))
-            SpawnCue(cue.type, cue.lane, cue.duration, cue.intensity, cue.time);
+            SpawnCue(cue.type, cue.lane, cue.duration, cue.intensity, cue.time, cue.arc, cue.radius);
     }
 
     /// The single place a note is brought to life, shared by both modes so they cannot drift
     /// apart. `dueTime` is when this note must be AT the hit zone, on the active clock; the
     /// caller decides it — Random from now plus a flight, Beatmap from the chart.
-    private void SpawnCue(CueType type, int lane, float duration, float intensity, float dueTime)
+    private void SpawnCue(CueType type, int lane, float duration, float intensity, float dueTime, float arc = 0f, float radius = 0f)
     {
         int slotIndex = FindFreeSlot(type);
         if (slotIndex < 0)
@@ -1265,8 +1299,7 @@ public class CueSpawner : MonoBehaviour
                 : 0f;
         float extent = obstacle ? ObstacleExtent(type, duration) : 0f;
         float y = HeightForType(type);
-        Color color = obstacle ? obstacleBodyColor
-                              : (Random.value < 0.5f) ? cueColorA : cueColorB;
+        Color color = obstacle ? obstacleBodyColor : NoteColor(type, lane);
 
         Transform t = slots[slotIndex].transform;
         t.gameObject.SetActive(true);
@@ -1279,6 +1312,7 @@ public class CueSpawner : MonoBehaviour
 
         // Length is resolved before the colour is applied, because ApplyCueColor is also what
         // wipes the spent tint left on this pooled object by its previous use.
+        if (type == CueType.ArcHold) SetupArc(slotIndex, lane, arc, radius);
         SetupHoldInstance(slotIndex, type, duration, lane);
         if (type == CueType.Dodge) AimDodgeChevrons(slotIndex, side);
         if (obstacle) SetupObstacleInstance(slotIndex, type, lane, extent);
@@ -1299,12 +1333,105 @@ public class CueSpawner : MonoBehaviour
         slots[slotIndex].color = color;
     }
 
-    private static bool IsHold(CueType type) => type == CueType.KickHold || type == CueType.PunchHold || type == CueType.PunchSweep;
+    private static bool IsHold(CueType type) => type == CueType.KickHold || type == CueType.PunchHold || type == CueType.PunchSweep
+                                             || type == CueType.ArcHold;
+
+    /// A note's colour. The two accents at random (the original look), except: an ArcHold always
+    /// takes its HAND's colour, and with colorsByHand (a theme's choice) every note does - left
+    /// half of the road the left-hand colour, right half the right-hand one.
+    private Color NoteColor(CueType type, int lane)
+    {
+        bool left = lane < tunnel.LaneCount * 0.5f;
+        if (colorsByHand) return left ? leftHandColor : rightHandColor;
+        if (type == CueType.ArcHold) return left ? cueColorB : cueColorA;
+        return Random.value < 0.5f ? cueColorA : cueColorB;
+    }
+
+    /// Which circle this ArcHold rides: in front of its hand's shoulder, the fist starting at the
+    /// top. The root stays where SpawnCue put it (the lane's centre, arc-centre height), so the
+    /// centre is stored relative to it.
+    private void SetupArc(int slotIndex, int lane, float arc, float radius)
+    {
+        float laneWidth = tunnel.FloorWidth / tunnel.LaneCount;
+        float side = lane < tunnel.LaneCount * 0.5f ? -1f : 1f;
+        float centerX = side * laneWidth * arcCenterLanes;
+        slots[slotIndex].arcCenter = new Vector2(centerX - tunnel.GetLaneCenterX(lane), 0f);
+        slots[slotIndex].arcRadius = radius > 0.01f ? radius : arcDefaultRadius;
+        slots[slotIndex].arcStart = arcStartAngle;
+        slots[slotIndex].arcSweep = Mathf.Abs(arc) < 1f ? 180f * side : Mathf.Clamp(arc, -360f, 360f);
+    }
+
+    /// Rebuilds an ArcHold's tube from `progress` (0..1 of its sweep already played) to its end,
+    /// and puts the head at the point the fist has reached. The remaining arc starts at the root
+    /// (z 0) and runs back down the road, so before the hold starts it is the whole helix flying
+    /// in, and while held it shrinks from the head, the fist going round the circle.
+    private void RebuildArc(int slotIndex, float progress)
+    {
+        var slot = slots[slotIndex];
+        if (slot.arcMesh == null) return;
+        progress = Mathf.Clamp01(progress);
+        float rest = 1f - progress;
+        float r = slot.arcRadius;
+        Vector3 Point(float s, out float angle)
+        {
+            angle = (slot.arcStart - slot.arcSweep * s) * Mathf.Deg2Rad;
+            return new Vector3(slot.arcCenter.x + Mathf.Cos(angle) * r, slot.arcCenter.y + Mathf.Sin(angle) * r,
+                               (s - progress) * slot.holdLength);
+        }
+
+        if (slot.arcHead != null) slot.arcHead.localPosition = Point(progress, out _);
+
+        var mesh = slot.arcMesh;
+        mesh.Clear();
+        if (rest <= 0.0001f) return;
+
+        int rings = Mathf.Max(2, Mathf.CeilToInt(Mathf.Max(8f, arcSegmentsPerTurn * Mathf.Abs(slot.arcSweep) / 360f) * rest) + 1);
+        int sides = ArcTubeSides;
+        var verts = new Vector3[rings * (sides + 1)];
+        var norms = new Vector3[verts.Length];
+        var uvs = new Vector2[verts.Length];
+        var tris = new int[(rings - 1) * sides * 6];
+        const float ds = 1e-3f;
+        for (int i = 0; i < rings; i++)
+        {
+            float s = Mathf.Lerp(progress, 1f, i / (float)(rings - 1));
+            Vector3 c = Point(s, out float a);
+            Vector3 t = Point(Mathf.Min(1f, s + ds), out _) - Point(Mathf.Max(0f, s - ds), out _);
+            if (t.sqrMagnitude < 1e-10f) t = Vector3.forward;
+            t.Normalize();
+            Vector3 radial = new Vector3(Mathf.Cos(a), Mathf.Sin(a), 0f);
+            Vector3 n = (radial - Vector3.Dot(radial, t) * t).normalized;
+            Vector3 b = Vector3.Cross(t, n);
+            for (int k = 0; k <= sides; k++)
+            {
+                float phi = k * Mathf.PI * 2f / sides;
+                Vector3 dir = n * Mathf.Cos(phi) + b * Mathf.Sin(phi);
+                int v = i * (sides + 1) + k;
+                verts[v] = c + dir * arcTubeRadius;
+                norms[v] = dir;
+                uvs[v] = new Vector2(k / (float)sides, s);
+            }
+        }
+        int q = 0;
+        for (int i = 0; i < rings - 1; i++)
+            for (int k = 0; k < sides; k++)
+            {
+                int v0 = i * (sides + 1) + k, v1 = v0 + 1, v2 = v0 + sides + 1, v3 = v2 + 1;
+                tris[q++] = v0; tris[q++] = v2; tris[q++] = v1;
+                tris[q++] = v1; tris[q++] = v2; tris[q++] = v3;
+            }
+        mesh.vertices = verts;
+        mesh.normals = norms;
+        mesh.uv = uvs;
+        mesh.triangles = tris;
+        mesh.RecalculateBounds();
+    }
 
     /// The distance at which this cue resolves. One number for almost everything, and a second
     /// for the punches; see punchHitZoneZ.
     private float HitZoneZFor(CueType type) =>
-        (type == CueType.Punch || type == CueType.PunchHold || type == CueType.PunchSweep || type == CueType.PunchHigh) ? punchHitZoneZ : hitZoneZ;
+        (type == CueType.Punch || type == CueType.PunchHold || type == CueType.PunchSweep || type == CueType.PunchHigh
+         || type == CueType.ArcHold) ? punchHitZoneZ : hitZoneZ;
 
     private static bool IsObstacle(CueType type) =>
         type == CueType.Dodge || type == CueType.Curb || type == CueType.Duck || IsBalance(type);
@@ -1356,13 +1483,14 @@ public class CueSpawner : MonoBehaviour
             slots[slotIndex].holdStripScale = toFar.magnitude / Mathf.Max(0.01f, length);
         }
 
-        // The length lives entirely in the transform: one mesh, stretched. Nothing is hidden or
-        // rebuilt, so there is no join anywhere along it for the player to see.
-        SetHoldStripLength(slotIndex, length);
-
         slots[slotIndex].holdCells = Mathf.Max(1, Mathf.RoundToInt(length / Mathf.Max(0.01f, holdCellSize)));
         slots[slotIndex].holdLength = length;
         slots[slotIndex].holdDuration = duration;
+
+        // The length lives entirely in the transform: one mesh, stretched. Nothing is hidden or
+        // rebuilt, so there is no join anywhere along it for the player to see. (An ArcHold is the
+        // exception: its tube is a helix, rebuilt for whatever is left of it - see RebuildArc.)
+        SetHoldStripLength(slotIndex, length);
         slots[slotIndex].holding = false;
         slots[slotIndex].holdProgress = 0f;
         slots[slotIndex].holdFinishing = false;
@@ -1409,6 +1537,12 @@ public class CueSpawner : MonoBehaviour
     /// cannot disagree about which end of the strip is anchored.
     private void SetHoldStripLength(int slotIndex, float length)
     {
+        if (slots[slotIndex].type == CueType.ArcHold)
+        {
+            float full = Mathf.Max(0.0001f, slots[slotIndex].holdLength);
+            RebuildArc(slotIndex, 1f - Mathf.Clamp01(length / full));
+            return;
+        }
         var strip = slots[slotIndex].holdStrip;
         if (strip == null) return;
 
@@ -1435,6 +1569,8 @@ public class CueSpawner : MonoBehaviour
             holdHeadRenderers = visual.head,
             holdIcon = visual.icon,
             holdTailPivot = visual.tailPivot,
+            arcHead = visual.arcHead,
+            arcMesh = visual.arcMesh,
             holdStripScale = 1f,
             fillRenderers = visual.fill,
             chevronRenderers = visual.chevron,
@@ -1503,6 +1639,7 @@ public class CueSpawner : MonoBehaviour
             case CueType.PunchHold:
             case CueType.PunchSweep: return punchHoldHeight; // sustained punches fly high, out of the one-shot lane
             case CueType.PunchHigh: return punchHighHeight;
+            case CueType.ArcHold: return arcCenterHeight; // the root is the circle's height; the head rides round it
             // Jump's posts and every obstacle's box are authored from their own floor-level root.
             default: return 0f;
         }
@@ -1576,9 +1713,11 @@ public class CueSpawner : MonoBehaviour
         slots[slotIndex].holdFinishing = true;
         slots[slotIndex].holdFinishTimer = Mathf.Max(0.01f, holdFinishFade);
 
-        Vector3 worldPos = transform.TransformPoint(
-            new Vector3(tunnel.GetLaneCenterX(slots[slotIndex].lane), HeightForType(slots[slotIndex].type),
-                        HitZoneZFor(slots[slotIndex].type)));
+        Vector3 worldPos = slots[slotIndex].type == CueType.ArcHold && slots[slotIndex].arcHead != null
+            ? slots[slotIndex].arcHead.position
+            : transform.TransformPoint(
+                new Vector3(tunnel.GetLaneCenterX(slots[slotIndex].lane), HeightForType(slots[slotIndex].type),
+                            HitZoneZFor(slots[slotIndex].type)));
 
         float punch = IntensityScale(slots[slotIndex].intensity);
         PlayHitEffect(worldPos, slots[slotIndex].color);
@@ -2075,6 +2214,8 @@ public class CueSpawner : MonoBehaviour
         public MeshRenderer[] chevron; // obstacle only: the contrasting direction marks
         public Transform[] chevronRoots; // obstacle only: re-aimed per instance (a Dodge wall)
         public Transform tailPivot;    // PunchSweep only: the strip's parent, aimed per instance
+        public Transform arcHead;      // ArcHold only: the head that rides round the circle
+        public Mesh arcMesh;           // ArcHold only: the tube, rebuilt per instance
         public Transform stretch;      // long obstacles: scaled along Z per instance
         public float stretchBase;
         public GameObject[] laneBlocks;
@@ -2187,6 +2328,46 @@ public class CueSpawner : MonoBehaviour
                     head = new[] { plate, frame },
                     icon = icon,
                     tailPivot = pivot,
+                };
+            }
+            case CueType.ArcHold:
+            {
+                // PunchHold's head - plate, border, fist - made a little smaller and hung on its own
+                // transform so it can ride round the circle, and instead of a stretched beam a tube
+                // whose mesh belongs to this instance and is rebuilt as the arc is played out.
+                var root = new GameObject("Cue_ArcHold");
+                root.transform.SetParent(transform, false);
+
+                var head = new GameObject("Head").transform;
+                head.SetParent(root.transform, false);
+                head.localScale = Vector3.one * arcHeadScale;
+                float plateZ = -(frameThickness * 0.5f + plateThickness * 0.5f - plateThickness * 0.55f);
+                var frame = CreateChevronPart(head, "Frame", punchFrameMesh, Vector3.zero, cueHoldMat);
+                var plate = CreateChevronPart(head, "Plate", punchPlateMesh, new Vector3(0f, 0f, plateZ), cueHoldMat);
+                var icon = AttachIcon(head, punchIconQuad, fistIconMat, new Vector3(0f, 0f, plateZ - plateThickness * 0.5f - IconLift));
+
+                var tube = new GameObject("ArcTube");
+                tube.transform.SetParent(root.transform, false);
+                var mesh = new Mesh { name = "ArcTube" };
+                mesh.MarkDynamic();
+                tube.AddComponent<MeshFilter>().sharedMesh = mesh;
+                var tubeRenderer = tube.AddComponent<MeshRenderer>();
+                tubeRenderer.sharedMaterial = cueHoldMat;
+                tubeRenderer.shadowCastingMode = ShadowCastingMode.Off;
+                tubeRenderer.receiveShadows = false;
+
+                return new CueVisual
+                {
+                    root = root.transform,
+                    bright = new[] { plate, tubeRenderer },
+                    frame = new[] { frame },
+                    strip = tube.transform,
+                    stripRenderer = tubeRenderer,
+                    stripZStart = 0f,
+                    head = new[] { plate, frame },
+                    icon = icon,
+                    arcHead = head,
+                    arcMesh = mesh,
                 };
             }
             case CueType.KickHold:

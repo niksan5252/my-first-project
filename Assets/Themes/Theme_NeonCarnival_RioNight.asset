@@ -1,0 +1,43 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 94c0c3a29fbf85f4a89ff12e7504245b, type: 3}
+  m_Name: Theme_NeonCarnival_RioNight
+  m_EditorClassIdentifier: Assembly-CSharp::TunnelTheme
+  primaryColor: {r: 0.1, g: 1, b: 0.35, a: 1}
+  secondaryColor: {r: 1, g: 0.85, b: 0.05, a: 1}
+  accentEmissionIntensity: 1.3
+  cueColorsByHand: 1
+  leftHandColor: {r: 0, g: 0.85, b: 1, a: 1}
+  rightHandColor: {r: 1, g: 0.05, b: 0.65, a: 1}
+  ringArchPrefab: {fileID: 7468915794044056389, guid: 7eb0a14708134124ba0d68ed306bbe9d, type: 3}
+  floorMaterialOverride: {fileID: 0}
+  floorColor: {r: 0.004, g: 0.015, b: 0.006, a: 1}
+  floorMetallic: 0.5
+  floorSmoothness: 0.9
+  floorGridLineColor: {r: 0.08, g: 0.6, b: 0.2, a: 1}
+  floorGridGlintIntensity: 0.3
+  laneLineColor: {r: 1, g: 0.85, b: 0.2, a: 1}
+  laneLineEmissionIntensity: 0.5
+  fogColor: {r: 0.01, g: 0.05, b: 0.03, a: 1}
+  fogStartRatio: 0.3
+  fogEndRatio: 0.9
+  ambientOverride: {r: 0, g: 0, b: 0, a: 0}
+  lightIntensity: 0
+  lightColor: {r: 0.7, g: 1, b: 0.6, a: 1}
+  skyboxMaterial: {fileID: 0}
+  cameraBackgroundColor: {r: 0.003, g: 0.012, b: 0.01, a: 1}
+  environmentPrefab: {fileID: 3676578648310961681, guid: b90394794c18dcc45acb7c77dd26bd72, type: 3}
+  gatePrefab: {fileID: 0}
+  airParticles: {fileID: 11400000, guid: a2456cf686eaa7746b8ce43f55d166cc, type: 2}
+  postProcessingProfile: {fileID: 11400000, guid: 9ce81a23bf83b2e4e9b81b09fe02e447, type: 2}
+  hudComboTextColor: {r: 0.1, g: 1, b: 0.35, a: 1}
+  hudBannerBorderColor: {r: 1, g: 0.85, b: 0.05, a: 1}

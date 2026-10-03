@@ -14,6 +14,14 @@ public class TunnelTheme : ScriptableObject
     public Color secondaryColor = new Color(0f, 0.898f, 1f);
     [Range(0f, 2.5f)] public float accentEmissionIntensity = 1.5f;
 
+    [Header("Notes by Hand (optional)")]
+    // Off = notes take the two accents at random (the original look). On = every note is coloured
+    // by its hand: the left half of the road leftHandColor, the right half rightHandColor, so a
+    // mirrored pair of punches reads as two hands at a glance.
+    public bool cueColorsByHand;
+    public Color leftHandColor = new Color(0f, 0.85f, 1f);
+    public Color rightHandColor = new Color(1f, 0.05f, 0.65f);
+
     [Header("Ring / Arch Style")]
     // Null = the tunnel's own procedural octagon-beam generator (default look). Set this to a
     // prefab to swap the ring shape/mesh entirely; the prefab root should implement IThemeAccent

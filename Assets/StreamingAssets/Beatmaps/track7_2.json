@@ -1,0 +1,2253 @@
+{
+  "version": 1,
+  "track": "track7_2.wav",
+  "bpm": 130.03,
+  "audioOffset": 0.0,
+  "generator": "Tools/beatmap/generate_beatmap.py (librosa)",
+  "events": [
+    {
+      "time": 0.244,
+      "type": "ArcHold",
+      "lane": 1,
+      "duration": 1.384,
+      "intensity": 0.6,
+      "arc": -180.0,
+      "radius": 0.7
+    },
+    {
+      "time": 0.244,
+      "type": "ArcHold",
+      "lane": 2,
+      "duration": 1.384,
+      "intensity": 0.6,
+      "arc": 180.0,
+      "radius": 0.7
+    },
+    {
+      "time": 2.083,
+      "type": "Kick",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 0.45
+    },
+    {
+      "time": 3.006,
+      "type": "Kick",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 0.45
+    },
+    {
+      "time": 4.852,
+      "type": "Kick",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 0.45
+    },
+    {
+      "time": 5.775,
+      "type": "Kick",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 0.45
+    },
+    {
+      "time": 6.698,
+      "type": "Kick",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 0.45
+    },
+    {
+      "time": 7.627,
+      "type": "ArcHold",
+      "lane": 1,
+      "duration": 1.846,
+      "intensity": 0.6,
+      "arc": 360.0,
+      "radius": 0.8
+    },
+    {
+      "time": 7.627,
+      "type": "ArcHold",
+      "lane": 2,
+      "duration": 1.846,
+      "intensity": 0.6,
+      "arc": -360.0,
+      "radius": 0.8
+    },
+    {
+      "time": 10.389,
+      "type": "Kick",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 0.45
+    },
+    {
+      "time": 12.235,
+      "type": "Kick",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 0.45
+    },
+    {
+      "time": 13.158,
+      "type": "Kick",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 0.45
+    },
+    {
+      "time": 14.081,
+      "type": "Kick",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 0.45
+    },
+    {
+      "time": 15.465,
+      "type": "Punch",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 15.465,
+      "type": "Punch",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 15.926,
+      "type": "Kick",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 16.388,
+      "type": "PunchHigh",
+      "lane": 0,
+      "duration": 0.0,
+      "intensity": 0.949
+    },
+    {
+      "time": 16.388,
+      "type": "PunchHigh",
+      "lane": 3,
+      "duration": 0.0,
+      "intensity": 0.949
+    },
+    {
+      "time": 16.849,
+      "type": "Kick",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 0.991
+    },
+    {
+      "time": 17.311,
+      "type": "PunchHigh",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 17.311,
+      "type": "PunchHigh",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 17.772,
+      "type": "Kick",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 18.234,
+      "type": "Punch",
+      "lane": 0,
+      "duration": 0.0,
+      "intensity": 0.878
+    },
+    {
+      "time": 18.234,
+      "type": "Punch",
+      "lane": 3,
+      "duration": 0.0,
+      "intensity": 0.878
+    },
+    {
+      "time": 19.156,
+      "type": "PunchHold",
+      "lane": 0,
+      "duration": 1.384,
+      "intensity": 1.0
+    },
+    {
+      "time": 19.156,
+      "type": "KickHold",
+      "lane": 0,
+      "duration": 1.384,
+      "intensity": 1.0
+    },
+    {
+      "time": 19.156,
+      "type": "PunchHold",
+      "lane": 3,
+      "duration": 1.384,
+      "intensity": 1.0
+    },
+    {
+      "time": 19.156,
+      "type": "KickHold",
+      "lane": 3,
+      "duration": 1.384,
+      "intensity": 1.0
+    },
+    {
+      "time": 21.002,
+      "type": "PunchHold",
+      "lane": 0,
+      "duration": 0.468,
+      "intensity": 1.0
+    },
+    {
+      "time": 21.002,
+      "type": "KickHold",
+      "lane": 0,
+      "duration": 0.468,
+      "intensity": 1.0
+    },
+    {
+      "time": 21.002,
+      "type": "PunchHold",
+      "lane": 3,
+      "duration": 0.468,
+      "intensity": 1.0
+    },
+    {
+      "time": 21.002,
+      "type": "KickHold",
+      "lane": 3,
+      "duration": 0.468,
+      "intensity": 1.0
+    },
+    {
+      "time": 22.848,
+      "type": "Punch",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 22.848,
+      "type": "Punch",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 23.309,
+      "type": "Kick",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 23.771,
+      "type": "PunchHigh",
+      "lane": 0,
+      "duration": 0.0,
+      "intensity": 0.929
+    },
+    {
+      "time": 23.771,
+      "type": "PunchHigh",
+      "lane": 3,
+      "duration": 0.0,
+      "intensity": 0.929
+    },
+    {
+      "time": 24.232,
+      "type": "Kick",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 0.897
+    },
+    {
+      "time": 24.694,
+      "type": "PunchHigh",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 0.946
+    },
+    {
+      "time": 24.694,
+      "type": "PunchHigh",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 0.946
+    },
+    {
+      "time": 25.155,
+      "type": "Kick",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 0.964
+    },
+    {
+      "time": 25.617,
+      "type": "Punch",
+      "lane": 0,
+      "duration": 0.0,
+      "intensity": 0.804
+    },
+    {
+      "time": 25.617,
+      "type": "Punch",
+      "lane": 3,
+      "duration": 0.0,
+      "intensity": 0.804
+    },
+    {
+      "time": 26.084,
+      "type": "ArcHold",
+      "lane": 1,
+      "duration": 0.923,
+      "intensity": 0.6,
+      "arc": -90.0,
+      "radius": 0.6
+    },
+    {
+      "time": 26.084,
+      "type": "ArcHold",
+      "lane": 2,
+      "duration": 0.923,
+      "intensity": 0.6,
+      "arc": 90.0,
+      "radius": 0.6
+    },
+    {
+      "time": 27.462,
+      "type": "Kick",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 0.901
+    },
+    {
+      "time": 27.924,
+      "type": "Kick",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 0.45
+    },
+    {
+      "time": 28.847,
+      "type": "Kick",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 0.45
+    },
+    {
+      "time": 29.775,
+      "type": "ArcHold",
+      "lane": 1,
+      "duration": 1.846,
+      "intensity": 0.6,
+      "arc": 270.0,
+      "radius": 0.75
+    },
+    {
+      "time": 29.775,
+      "type": "ArcHold",
+      "lane": 2,
+      "duration": 1.846,
+      "intensity": 0.6,
+      "arc": -270.0,
+      "radius": 0.75
+    },
+    {
+      "time": 32.077,
+      "type": "Kick",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 0.914
+    },
+    {
+      "time": 32.538,
+      "type": "Kick",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 0.926
+    },
+    {
+      "time": 32.999,
+      "type": "Kick",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 0.845
+    },
+    {
+      "time": 33.922,
+      "type": "Punch",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 0.858
+    },
+    {
+      "time": 33.922,
+      "type": "Punch",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 0.858
+    },
+    {
+      "time": 34.384,
+      "type": "Kick",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 0.886
+    },
+    {
+      "time": 34.845,
+      "type": "PunchHigh",
+      "lane": 0,
+      "duration": 0.0,
+      "intensity": 0.898
+    },
+    {
+      "time": 34.845,
+      "type": "PunchHigh",
+      "lane": 3,
+      "duration": 0.0,
+      "intensity": 0.898
+    },
+    {
+      "time": 35.307,
+      "type": "Kick",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 35.768,
+      "type": "PunchHigh",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 35.768,
+      "type": "PunchHigh",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 36.229,
+      "type": "Kick",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 36.691,
+      "type": "Punch",
+      "lane": 0,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 36.691,
+      "type": "Punch",
+      "lane": 3,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 37.614,
+      "type": "Punch",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 38.075,
+      "type": "Punch",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 38.537,
+      "type": "PunchHigh",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 38.998,
+      "type": "Punch",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 38.998,
+      "type": "PunchHigh",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 39.459,
+      "type": "Punch",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 39.921,
+      "type": "Punch",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 40.382,
+      "type": "PunchHigh",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 41.305,
+      "type": "Punch",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 41.305,
+      "type": "Punch",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 41.767,
+      "type": "Kick",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 42.228,
+      "type": "PunchHigh",
+      "lane": 0,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 42.228,
+      "type": "PunchHigh",
+      "lane": 3,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 42.69,
+      "type": "Kick",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 0.45
+    },
+    {
+      "time": 43.612,
+      "type": "PunchHigh",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 0.45
+    },
+    {
+      "time": 43.612,
+      "type": "PunchHigh",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 0.45
+    },
+    {
+      "time": 44.997,
+      "type": "Punch",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 44.997,
+      "type": "Punch",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 45.458,
+      "type": "Kick",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 0.978
+    },
+    {
+      "time": 45.92,
+      "type": "PunchHigh",
+      "lane": 0,
+      "duration": 0.0,
+      "intensity": 0.957
+    },
+    {
+      "time": 45.92,
+      "type": "PunchHigh",
+      "lane": 3,
+      "duration": 0.0,
+      "intensity": 0.957
+    },
+    {
+      "time": 46.381,
+      "type": "Kick",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 0.945
+    },
+    {
+      "time": 46.842,
+      "type": "PunchHigh",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 46.842,
+      "type": "PunchHigh",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 47.304,
+      "type": "Kick",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 47.765,
+      "type": "Punch",
+      "lane": 0,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 47.765,
+      "type": "Punch",
+      "lane": 3,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 48.688,
+      "type": "Kick",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 49.15,
+      "type": "Kick",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 49.611,
+      "type": "Kick",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 0.977
+    },
+    {
+      "time": 50.072,
+      "type": "Kick",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 0.973
+    },
+    {
+      "time": 50.534,
+      "type": "Kick",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 50.995,
+      "type": "Kick",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 0.987
+    },
+    {
+      "time": 51.457,
+      "type": "Kick",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 0.942
+    },
+    {
+      "time": 52.38,
+      "type": "Punch",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 52.38,
+      "type": "Punch",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 52.841,
+      "type": "Kick",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 53.302,
+      "type": "PunchHigh",
+      "lane": 0,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 53.302,
+      "type": "PunchHigh",
+      "lane": 3,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 53.764,
+      "type": "Kick",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 54.225,
+      "type": "PunchHigh",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 54.225,
+      "type": "PunchHigh",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 54.687,
+      "type": "Kick",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 55.148,
+      "type": "Punch",
+      "lane": 0,
+      "duration": 0.0,
+      "intensity": 0.994
+    },
+    {
+      "time": 55.148,
+      "type": "Punch",
+      "lane": 3,
+      "duration": 0.0,
+      "intensity": 0.994
+    },
+    {
+      "time": 55.616,
+      "type": "ArcHold",
+      "lane": 1,
+      "duration": 1.384,
+      "intensity": 0.6,
+      "arc": -180.0,
+      "radius": 0.7
+    },
+    {
+      "time": 55.616,
+      "type": "ArcHold",
+      "lane": 2,
+      "duration": 1.384,
+      "intensity": 0.6,
+      "arc": 180.0,
+      "radius": 0.7
+    },
+    {
+      "time": 57.455,
+      "type": "Kick",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 0.45
+    },
+    {
+      "time": 58.378,
+      "type": "Kick",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 0.45
+    },
+    {
+      "time": 59.307,
+      "type": "ArcHold",
+      "lane": 1,
+      "duration": 1.846,
+      "intensity": 0.6,
+      "arc": 360.0,
+      "radius": 0.8
+    },
+    {
+      "time": 59.307,
+      "type": "ArcHold",
+      "lane": 2,
+      "duration": 1.846,
+      "intensity": 0.6,
+      "arc": -360.0,
+      "radius": 0.8
+    },
+    {
+      "time": 62.07,
+      "type": "Kick",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 0.45
+    },
+    {
+      "time": 63.915,
+      "type": "Kick",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 0.45
+    },
+    {
+      "time": 64.838,
+      "type": "Kick",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 0.45
+    },
+    {
+      "time": 65.761,
+      "type": "Kick",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 0.45
+    },
+    {
+      "time": 66.69,
+      "type": "ArcHold",
+      "lane": 1,
+      "duration": 0.923,
+      "intensity": 0.6,
+      "arc": -90.0,
+      "radius": 0.6
+    },
+    {
+      "time": 66.69,
+      "type": "ArcHold",
+      "lane": 2,
+      "duration": 0.923,
+      "intensity": 0.6,
+      "arc": 90.0,
+      "radius": 0.6
+    },
+    {
+      "time": 68.53,
+      "type": "Kick",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 0.45
+    },
+    {
+      "time": 69.453,
+      "type": "Kick",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 0.45
+    },
+    {
+      "time": 71.298,
+      "type": "Kick",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 0.45
+    },
+    {
+      "time": 72.221,
+      "type": "Kick",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 0.45
+    },
+    {
+      "time": 73.144,
+      "type": "Kick",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 0.45
+    },
+    {
+      "time": 74.528,
+      "type": "Punch",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 74.528,
+      "type": "Punch",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 74.99,
+      "type": "Kick",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 75.451,
+      "type": "PunchHigh",
+      "lane": 0,
+      "duration": 0.0,
+      "intensity": 0.909
+    },
+    {
+      "time": 75.451,
+      "type": "PunchHigh",
+      "lane": 3,
+      "duration": 0.0,
+      "intensity": 0.909
+    },
+    {
+      "time": 75.913,
+      "type": "Kick",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 0.916
+    },
+    {
+      "time": 76.374,
+      "type": "PunchHigh",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 76.374,
+      "type": "PunchHigh",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 76.836,
+      "type": "Kick",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 77.297,
+      "type": "Punch",
+      "lane": 0,
+      "duration": 0.0,
+      "intensity": 0.883
+    },
+    {
+      "time": 77.297,
+      "type": "Punch",
+      "lane": 3,
+      "duration": 0.0,
+      "intensity": 0.883
+    },
+    {
+      "time": 78.22,
+      "type": "PunchHold",
+      "lane": 0,
+      "duration": 1.384,
+      "intensity": 1.0
+    },
+    {
+      "time": 78.22,
+      "type": "KickHold",
+      "lane": 0,
+      "duration": 1.384,
+      "intensity": 1.0
+    },
+    {
+      "time": 78.22,
+      "type": "PunchHold",
+      "lane": 3,
+      "duration": 1.384,
+      "intensity": 1.0
+    },
+    {
+      "time": 78.22,
+      "type": "KickHold",
+      "lane": 3,
+      "duration": 1.384,
+      "intensity": 1.0
+    },
+    {
+      "time": 80.066,
+      "type": "PunchHold",
+      "lane": 0,
+      "duration": 0.468,
+      "intensity": 0.978
+    },
+    {
+      "time": 80.066,
+      "type": "KickHold",
+      "lane": 0,
+      "duration": 0.468,
+      "intensity": 0.978
+    },
+    {
+      "time": 80.066,
+      "type": "PunchHold",
+      "lane": 3,
+      "duration": 0.468,
+      "intensity": 0.978
+    },
+    {
+      "time": 80.066,
+      "type": "KickHold",
+      "lane": 3,
+      "duration": 0.468,
+      "intensity": 0.978
+    },
+    {
+      "time": 81.911,
+      "type": "Punch",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 0.977
+    },
+    {
+      "time": 81.911,
+      "type": "Punch",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 0.977
+    },
+    {
+      "time": 82.373,
+      "type": "Kick",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 82.834,
+      "type": "PunchHigh",
+      "lane": 0,
+      "duration": 0.0,
+      "intensity": 0.942
+    },
+    {
+      "time": 82.834,
+      "type": "PunchHigh",
+      "lane": 3,
+      "duration": 0.0,
+      "intensity": 0.942
+    },
+    {
+      "time": 83.296,
+      "type": "Kick",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 0.892
+    },
+    {
+      "time": 83.757,
+      "type": "PunchHigh",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 0.985
+    },
+    {
+      "time": 83.757,
+      "type": "PunchHigh",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 0.985
+    },
+    {
+      "time": 84.218,
+      "type": "Kick",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 84.68,
+      "type": "Punch",
+      "lane": 0,
+      "duration": 0.0,
+      "intensity": 0.845
+    },
+    {
+      "time": 84.68,
+      "type": "Punch",
+      "lane": 3,
+      "duration": 0.0,
+      "intensity": 0.845
+    },
+    {
+      "time": 85.147,
+      "type": "ArcHold",
+      "lane": 1,
+      "duration": 1.846,
+      "intensity": 0.6,
+      "arc": 270.0,
+      "radius": 0.75
+    },
+    {
+      "time": 85.147,
+      "type": "ArcHold",
+      "lane": 2,
+      "duration": 1.846,
+      "intensity": 0.6,
+      "arc": -270.0,
+      "radius": 0.75
+    },
+    {
+      "time": 87.91,
+      "type": "Kick",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 0.45
+    },
+    {
+      "time": 89.294,
+      "type": "Punch",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 89.294,
+      "type": "Punch",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 89.756,
+      "type": "Kick",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 90.217,
+      "type": "PunchHigh",
+      "lane": 0,
+      "duration": 0.0,
+      "intensity": 0.834
+    },
+    {
+      "time": 90.217,
+      "type": "PunchHigh",
+      "lane": 3,
+      "duration": 0.0,
+      "intensity": 0.834
+    },
+    {
+      "time": 90.678,
+      "type": "Kick",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 0.866
+    },
+    {
+      "time": 91.14,
+      "type": "PunchHigh",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 91.14,
+      "type": "PunchHigh",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 91.601,
+      "type": "Kick",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 92.063,
+      "type": "Punch",
+      "lane": 0,
+      "duration": 0.0,
+      "intensity": 0.863
+    },
+    {
+      "time": 92.063,
+      "type": "Punch",
+      "lane": 3,
+      "duration": 0.0,
+      "intensity": 0.863
+    },
+    {
+      "time": 92.53,
+      "type": "ArcHold",
+      "lane": 1,
+      "duration": 1.384,
+      "intensity": 0.6,
+      "arc": -180.0,
+      "radius": 0.7
+    },
+    {
+      "time": 92.53,
+      "type": "ArcHold",
+      "lane": 2,
+      "duration": 1.384,
+      "intensity": 0.6,
+      "arc": 180.0,
+      "radius": 0.7
+    },
+    {
+      "time": 94.37,
+      "type": "Kick",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 0.856
+    },
+    {
+      "time": 94.831,
+      "type": "Kick",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 95.293,
+      "type": "Kick",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 0.993
+    },
+    {
+      "time": 95.754,
+      "type": "Kick",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 0.867
+    },
+    {
+      "time": 96.677,
+      "type": "Kick",
+      "lane": 0,
+      "duration": 0.0,
+      "intensity": 0.956
+    },
+    {
+      "time": 96.677,
+      "type": "Kick",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 0.956
+    },
+    {
+      "time": 97.139,
+      "type": "Kick",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 0.975
+    },
+    {
+      "time": 97.139,
+      "type": "Kick",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 0.975
+    },
+    {
+      "time": 97.6,
+      "type": "Kick",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 0.912
+    },
+    {
+      "time": 97.6,
+      "type": "Kick",
+      "lane": 3,
+      "duration": 0.0,
+      "intensity": 0.912
+    },
+    {
+      "time": 98.061,
+      "type": "Kick",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 0.883
+    },
+    {
+      "time": 98.061,
+      "type": "Kick",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 0.883
+    },
+    {
+      "time": 98.523,
+      "type": "Kick",
+      "lane": 0,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 98.523,
+      "type": "Kick",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 98.984,
+      "type": "Kick",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 98.984,
+      "type": "Kick",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 99.446,
+      "type": "Kick",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 0.901
+    },
+    {
+      "time": 99.446,
+      "type": "Kick",
+      "lane": 3,
+      "duration": 0.0,
+      "intensity": 0.901
+    },
+    {
+      "time": 100.369,
+      "type": "Punch",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 100.369,
+      "type": "Punch",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 100.83,
+      "type": "Kick",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 101.291,
+      "type": "PunchHigh",
+      "lane": 0,
+      "duration": 0.0,
+      "intensity": 0.906
+    },
+    {
+      "time": 101.291,
+      "type": "PunchHigh",
+      "lane": 3,
+      "duration": 0.0,
+      "intensity": 0.906
+    },
+    {
+      "time": 101.753,
+      "type": "Kick",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 0.964
+    },
+    {
+      "time": 102.214,
+      "type": "PunchHigh",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 102.214,
+      "type": "PunchHigh",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 102.676,
+      "type": "Kick",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 103.137,
+      "type": "Punch",
+      "lane": 0,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 103.137,
+      "type": "Punch",
+      "lane": 3,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 103.605,
+      "type": "ArcHold",
+      "lane": 1,
+      "duration": 1.846,
+      "intensity": 0.6,
+      "arc": 360.0,
+      "radius": 0.8
+    },
+    {
+      "time": 103.605,
+      "type": "ArcHold",
+      "lane": 2,
+      "duration": 1.846,
+      "intensity": 0.6,
+      "arc": -360.0,
+      "radius": 0.8
+    },
+    {
+      "time": 106.367,
+      "type": "Kick",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 0.45
+    },
+    {
+      "time": 108.213,
+      "type": "Kick",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 0.45
+    },
+    {
+      "time": 109.136,
+      "type": "Kick",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 0.45
+    },
+    {
+      "time": 110.059,
+      "type": "Kick",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 0.45
+    },
+    {
+      "time": 111.443,
+      "type": "Punch",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 111.443,
+      "type": "Punch",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 111.904,
+      "type": "Kick",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 0.975
+    },
+    {
+      "time": 112.366,
+      "type": "PunchHigh",
+      "lane": 0,
+      "duration": 0.0,
+      "intensity": 0.904
+    },
+    {
+      "time": 112.366,
+      "type": "PunchHigh",
+      "lane": 3,
+      "duration": 0.0,
+      "intensity": 0.904
+    },
+    {
+      "time": 112.827,
+      "type": "Kick",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 0.953
+    },
+    {
+      "time": 113.289,
+      "type": "PunchHigh",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 113.289,
+      "type": "PunchHigh",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 113.75,
+      "type": "Kick",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 0.985
+    },
+    {
+      "time": 114.212,
+      "type": "Punch",
+      "lane": 0,
+      "duration": 0.0,
+      "intensity": 0.892
+    },
+    {
+      "time": 114.212,
+      "type": "Punch",
+      "lane": 3,
+      "duration": 0.0,
+      "intensity": 0.892
+    },
+    {
+      "time": 115.134,
+      "type": "PunchHold",
+      "lane": 0,
+      "duration": 1.846,
+      "intensity": 0.978
+    },
+    {
+      "time": 115.134,
+      "type": "KickHold",
+      "lane": 0,
+      "duration": 1.846,
+      "intensity": 0.978
+    },
+    {
+      "time": 115.134,
+      "type": "PunchHold",
+      "lane": 3,
+      "duration": 1.846,
+      "intensity": 0.978
+    },
+    {
+      "time": 115.134,
+      "type": "KickHold",
+      "lane": 3,
+      "duration": 1.846,
+      "intensity": 0.978
+    },
+    {
+      "time": 117.442,
+      "type": "PunchHold",
+      "lane": 0,
+      "duration": 0.231,
+      "intensity": 0.45
+    },
+    {
+      "time": 117.442,
+      "type": "KickHold",
+      "lane": 0,
+      "duration": 0.231,
+      "intensity": 0.45
+    },
+    {
+      "time": 117.442,
+      "type": "PunchHold",
+      "lane": 3,
+      "duration": 0.231,
+      "intensity": 0.45
+    },
+    {
+      "time": 117.442,
+      "type": "KickHold",
+      "lane": 3,
+      "duration": 0.231,
+      "intensity": 0.45
+    },
+    {
+      "time": 118.826,
+      "type": "Punch",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 118.826,
+      "type": "Punch",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 119.287,
+      "type": "Kick",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 119.749,
+      "type": "PunchHigh",
+      "lane": 0,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 119.749,
+      "type": "PunchHigh",
+      "lane": 3,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 120.21,
+      "type": "Kick",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 120.672,
+      "type": "PunchHigh",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 120.672,
+      "type": "PunchHigh",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 121.133,
+      "type": "Kick",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 121.594,
+      "type": "Punch",
+      "lane": 0,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 121.594,
+      "type": "Punch",
+      "lane": 3,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 122.062,
+      "type": "ArcHold",
+      "lane": 1,
+      "duration": 0.923,
+      "intensity": 0.6,
+      "arc": -90.0,
+      "radius": 0.6
+    },
+    {
+      "time": 122.062,
+      "type": "ArcHold",
+      "lane": 2,
+      "duration": 0.923,
+      "intensity": 0.6,
+      "arc": 90.0,
+      "radius": 0.6
+    },
+    {
+      "time": 123.44,
+      "type": "Kick",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 123.902,
+      "type": "Kick",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 124.363,
+      "type": "Kick",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 124.824,
+      "type": "Kick",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 125.286,
+      "type": "Kick",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 126.209,
+      "type": "Punch",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 0.727
+    },
+    {
+      "time": 126.67,
+      "type": "Punch",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 0.864
+    },
+    {
+      "time": 127.132,
+      "type": "PunchHigh",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 0.864
+    },
+    {
+      "time": 127.593,
+      "type": "Punch",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 0.45
+    },
+    {
+      "time": 127.593,
+      "type": "PunchHigh",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 0.45
+    },
+    {
+      "time": 128.516,
+      "type": "Punch",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 0.45
+    },
+    {
+      "time": 130.362,
+      "type": "Punch",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 0.45
+    },
+    {
+      "time": 130.362,
+      "type": "Punch",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 0.45
+    },
+    {
+      "time": 131.285,
+      "type": "Kick",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 131.746,
+      "type": "PunchHigh",
+      "lane": 0,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 131.746,
+      "type": "PunchHigh",
+      "lane": 3,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 132.207,
+      "type": "Kick",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 132.669,
+      "type": "PunchHigh",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 0.957
+    },
+    {
+      "time": 132.669,
+      "type": "PunchHigh",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 0.957
+    },
+    {
+      "time": 133.592,
+      "type": "Kick",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 134.053,
+      "type": "Kick",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 134.515,
+      "type": "Kick",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 0.951
+    },
+    {
+      "time": 134.976,
+      "type": "Kick",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 0.98
+    },
+    {
+      "time": 135.437,
+      "type": "Kick",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 135.899,
+      "type": "Kick",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 136.36,
+      "type": "Kick",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 0.998
+    },
+    {
+      "time": 136.828,
+      "type": "ArcHold",
+      "lane": 1,
+      "duration": 1.846,
+      "intensity": 0.6,
+      "arc": 270.0,
+      "radius": 0.75
+    },
+    {
+      "time": 136.828,
+      "type": "ArcHold",
+      "lane": 2,
+      "duration": 1.846,
+      "intensity": 0.6,
+      "arc": -270.0,
+      "radius": 0.75
+    },
+    {
+      "time": 139.129,
+      "type": "Kick",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 139.59,
+      "type": "Kick",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 140.052,
+      "type": "Kick",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 1.0
+    }
+  ],
+  "sets": [
+    {
+      "index": 0,
+      "exercise": "Arc",
+      "start": 0.244,
+      "end": 3.474,
+      "restEnd": 3.935,
+      "notes": 4
+    },
+    {
+      "index": 1,
+      "exercise": "Kick",
+      "start": 3.935,
+      "end": 7.165,
+      "restEnd": 7.627,
+      "notes": 3
+    },
+    {
+      "index": 2,
+      "exercise": "Arc",
+      "start": 7.627,
+      "end": 10.857,
+      "restEnd": 11.318,
+      "notes": 3
+    },
+    {
+      "index": 3,
+      "exercise": "Kick",
+      "start": 11.318,
+      "end": 14.548,
+      "restEnd": 15.01,
+      "notes": 3
+    },
+    {
+      "index": 4,
+      "exercise": "Fan",
+      "start": 15.01,
+      "end": 18.24,
+      "restEnd": 18.701,
+      "notes": 11
+    },
+    {
+      "index": 5,
+      "exercise": "Cross",
+      "start": 18.701,
+      "end": 21.931,
+      "restEnd": 22.393,
+      "notes": 8
+    },
+    {
+      "index": 6,
+      "exercise": "Fan",
+      "start": 22.393,
+      "end": 25.623,
+      "restEnd": 26.084,
+      "notes": 11
+    },
+    {
+      "index": 7,
+      "exercise": "Arc",
+      "start": 26.084,
+      "end": 29.314,
+      "restEnd": 29.775,
+      "notes": 5
+    },
+    {
+      "index": 8,
+      "exercise": "Arc",
+      "start": 29.775,
+      "end": 33.006,
+      "restEnd": 33.467,
+      "notes": 5
+    },
+    {
+      "index": 9,
+      "exercise": "Fan",
+      "start": 33.467,
+      "end": 36.697,
+      "restEnd": 37.158,
+      "notes": 11
+    },
+    {
+      "index": 10,
+      "exercise": "HighLow",
+      "start": 37.158,
+      "end": 40.388,
+      "restEnd": 40.85,
+      "notes": 8
+    },
+    {
+      "index": 11,
+      "exercise": "Fan",
+      "start": 40.85,
+      "end": 44.08,
+      "restEnd": 44.541,
+      "notes": 8
+    },
+    {
+      "index": 12,
+      "exercise": "Fan",
+      "start": 44.541,
+      "end": 47.771,
+      "restEnd": 48.233,
+      "notes": 11
+    },
+    {
+      "index": 13,
+      "exercise": "Kick",
+      "start": 48.233,
+      "end": 51.463,
+      "restEnd": 51.924,
+      "notes": 7
+    },
+    {
+      "index": 14,
+      "exercise": "Fan",
+      "start": 51.924,
+      "end": 55.154,
+      "restEnd": 55.616,
+      "notes": 11
+    },
+    {
+      "index": 15,
+      "exercise": "Arc",
+      "start": 55.616,
+      "end": 58.846,
+      "restEnd": 59.307,
+      "notes": 4
+    },
+    {
+      "index": 16,
+      "exercise": "Arc",
+      "start": 59.307,
+      "end": 62.537,
+      "restEnd": 62.999,
+      "notes": 3
+    },
+    {
+      "index": 17,
+      "exercise": "Kick",
+      "start": 62.999,
+      "end": 66.229,
+      "restEnd": 66.69,
+      "notes": 3
+    },
+    {
+      "index": 18,
+      "exercise": "Arc",
+      "start": 66.69,
+      "end": 69.92,
+      "restEnd": 70.382,
+      "notes": 4
+    },
+    {
+      "index": 19,
+      "exercise": "Kick",
+      "start": 70.382,
+      "end": 73.612,
+      "restEnd": 74.073,
+      "notes": 3
+    },
+    {
+      "index": 20,
+      "exercise": "Fan",
+      "start": 74.073,
+      "end": 77.303,
+      "restEnd": 77.764,
+      "notes": 11
+    },
+    {
+      "index": 21,
+      "exercise": "Cross",
+      "start": 77.764,
+      "end": 80.994,
+      "restEnd": 81.456,
+      "notes": 8
+    },
+    {
+      "index": 22,
+      "exercise": "Fan",
+      "start": 81.456,
+      "end": 84.686,
+      "restEnd": 85.147,
+      "notes": 11
+    },
+    {
+      "index": 23,
+      "exercise": "Arc",
+      "start": 85.147,
+      "end": 88.377,
+      "restEnd": 88.839,
+      "notes": 3
+    },
+    {
+      "index": 24,
+      "exercise": "Fan",
+      "start": 88.839,
+      "end": 92.069,
+      "restEnd": 92.53,
+      "notes": 11
+    },
+    {
+      "index": 25,
+      "exercise": "Arc",
+      "start": 92.53,
+      "end": 95.76,
+      "restEnd": 96.222,
+      "notes": 6
+    },
+    {
+      "index": 26,
+      "exercise": "Shift",
+      "start": 96.222,
+      "end": 99.452,
+      "restEnd": 99.913,
+      "notes": 14
+    },
+    {
+      "index": 27,
+      "exercise": "Fan",
+      "start": 99.913,
+      "end": 103.143,
+      "restEnd": 103.605,
+      "notes": 11
+    },
+    {
+      "index": 28,
+      "exercise": "Arc",
+      "start": 103.605,
+      "end": 106.835,
+      "restEnd": 107.296,
+      "notes": 3
+    },
+    {
+      "index": 29,
+      "exercise": "Kick",
+      "start": 107.296,
+      "end": 110.526,
+      "restEnd": 110.988,
+      "notes": 3
+    },
+    {
+      "index": 30,
+      "exercise": "Fan",
+      "start": 110.988,
+      "end": 114.218,
+      "restEnd": 114.679,
+      "notes": 11
+    },
+    {
+      "index": 31,
+      "exercise": "Cross",
+      "start": 114.679,
+      "end": 117.909,
+      "restEnd": 118.371,
+      "notes": 8
+    },
+    {
+      "index": 32,
+      "exercise": "Fan",
+      "start": 118.371,
+      "end": 121.601,
+      "restEnd": 122.062,
+      "notes": 11
+    },
+    {
+      "index": 33,
+      "exercise": "Arc",
+      "start": 122.062,
+      "end": 125.292,
+      "restEnd": 125.753,
+      "notes": 7
+    },
+    {
+      "index": 34,
+      "exercise": "HighLow",
+      "start": 125.753,
+      "end": 128.983,
+      "restEnd": 129.445,
+      "notes": 6
+    },
+    {
+      "index": 35,
+      "exercise": "Fan",
+      "start": 129.445,
+      "end": 132.675,
+      "restEnd": 133.136,
+      "notes": 8
+    },
+    {
+      "index": 36,
+      "exercise": "Kick",
+      "start": 133.136,
+      "end": 136.366,
+      "restEnd": 136.828,
+      "notes": 7
+    },
+    {
+      "index": 37,
+      "exercise": "Arc",
+      "start": 136.828,
+      "end": 140.058,
+      "restEnd": 140.519,
+      "notes": 5
+    }
+  ]
+}

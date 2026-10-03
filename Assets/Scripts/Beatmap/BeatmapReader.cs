@@ -126,7 +126,7 @@ public static class BeatmapReader
             // a side for Dodge, ignored by Curb and Duck - is validated by exactly the same
             // range test as a note's, which is the point of carrying the direction in it.
             bool wantsHold = type == CueType.KickHold || type == CueType.PunchHold || type == CueType.PunchSweep
-                          || type == CueType.CurbGap || type == CueType.CurbSplit;
+                          || type == CueType.ArcHold || type == CueType.CurbGap || type == CueType.CurbSplit;
             // A Dodge may be long (a wall held for bars) or the ordinary one-shot wall.
             bool mayHold = wantsHold || type == CueType.Dodge;
             if (wantsHold && !(e.duration > 0f))
@@ -140,7 +140,24 @@ public static class BeatmapReader
                 return false;
             }
 
-            parsed.Add(new BeatmapCue(e.time, type, e.lane, mayHold ? Mathf.Max(0f, e.duration) : 0f, Mathf.Clamp01(e.intensity)));
+            float arc = 0f, radius = 0f;
+            if (type == CueType.ArcHold)
+            {
+                if (float.IsNaN(e.arc) || Mathf.Abs(e.arc) > 360.001f || Mathf.Abs(e.arc) < 1f)
+                {
+                    error = Where(i) + "ArcHold needs an arc of 1..360 degrees (signed), got " + e.arc.ToString(CultureInfo.InvariantCulture);
+                    return false;
+                }
+                if (float.IsNaN(e.radius) || e.radius < 0f || e.radius > 3f)
+                {
+                    error = Where(i) + "ArcHold radius " + e.radius.ToString(CultureInfo.InvariantCulture) + " is outside 0..3 m";
+                    return false;
+                }
+                arc = e.arc;
+                radius = e.radius;
+            }
+
+            parsed.Add(new BeatmapCue(e.time, type, e.lane, mayHold ? Mathf.Max(0f, e.duration) : 0f, Mathf.Clamp01(e.intensity), arc, radius));
         }
 
         // Sorted here rather than trusted from the file: the sequencer walks a cursor forward and
