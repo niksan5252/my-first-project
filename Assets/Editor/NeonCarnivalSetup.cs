@@ -18,6 +18,8 @@ public static class NeonCarnivalSetup
     private const string Settings = "Assets/Settings/";
     public const string PlaylistPath = Themes + "Playlists/Playlist_NeonCarnival.asset";
     private const string ImportTemplate = "Assets/Audio/Tracks/irokz_goodbye_my_love.wav";
+    // Kenney Light Masks: the soft round dot every glowing particle of the carnival uses.
+    private const string GlowMask = "Assets/SharedAssets/VFX/kenney_light-masks-1.0/Default/circle_a.png";
 
     // The fan of punches reads as two hands: left cyan, right magenta, in every look.
     private static readonly Color LeftHand = new Color(0f, 0.85f, 1f);
@@ -130,6 +132,7 @@ public static class NeonCarnivalSetup
             so.FindProperty("thirdColor").colorValue = s.third;
             so.FindProperty("dropBloom").floatValue = s.dropBloom;
             so.FindProperty("bloomPeak").floatValue = s.bloomPeak;
+            so.FindProperty("glowTexture").objectReferenceValue = AssetDatabase.LoadAssetAtPath<Texture2D>(GlowMask);
         });
 
         var air = CopyAsset<ParticlePreset>(Themes + "Presets/ParticlePreset_PhonkEmbers.asset", Themes + "Presets/ParticlePreset_NeonCarnival_" + s.name + ".asset");

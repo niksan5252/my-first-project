@@ -8,11 +8,16 @@ using UnityEngine.Rendering.Universal;
 ///
 ///   * RioNight: the hills and the city in neon outline down both sides - sugar-loaf peaks with
 ///     blocks of buildings at their feet and lit windows - and garlands of bulbs strung over the
-///     road, the odd and the even bulbs taking the beats in turn;
+///     road, the odd and the even bulbs taking the beats in turn; searchlights sweeping the sky
+///     over eight beats, and fireworks over the hills on the drops (one on every strong beat);
 ///   * Carnaval: feather fans standing at the sides, which spring open on the strong beats and
-///     fold back (every beat in a drop), and a burst of confetti on every drop;
+///     fold back (every beat in a drop), and a burst of confetti on every drop; streamers of
+///     serpentine flying high over the road, neon pinwheels turning a step per beat, and flashes
+///     on the strong beats of a drop;
 ///   * Copacabana: the promenade floor - wavy lines down the whole road, like the Copacabana
-///     pavement - with a wave of light running down it every bar, and neon palms whose fronds sway;
+///     pavement - with a wave of light running down it every bar, and neon palms whose fronds sway
+///     and whose crowns throw rays of light up; rolling neon waves of the sea beyond the palms,
+///     splashes off them on the strong beats, and fireflies drifting over everything;
 ///   * every skin: two edge lines along the road and a global Volume that swells the bloom on a drop.
 ///
 /// Everything scrolls with the tunnel and wraps behind the camera. Time and energy come from
@@ -24,6 +29,9 @@ public class NeonCarnivalEnvironment : MonoBehaviour, IEnvironmentDecorator, ITh
     [SerializeField] private Color thirdColor = Color.white;
     [SerializeField, Range(0f, 1f)] private float dropBloom = 0.4f;
     [SerializeField] private float bloomPeak = 5f;
+    // A soft round mask (Kenney Light Masks circle_a) for every glowing particle: fireworks,
+    // splashes, fireflies, streamers. Null = square particles.
+    [SerializeField] private Texture2D glowTexture;
 
     private const float Behind = 12f;
     private const float MaxLevel = 2.4f;
@@ -60,10 +68,23 @@ public class NeonCarnivalEnvironment : MonoBehaviour, IEnvironmentDecorator, ITh
     private float lastBeatsSinceDrop = float.PositiveInfinity;
     private struct WaveLine { public MeshRenderer r; public Transform root; public int color; }
     private readonly List<WaveLine> waveLines = new List<WaveLine>();
-    private struct Palm { public Transform crown; public MeshRenderer[] trunk, fronds; public float seed; }
+    private struct Palm { public Transform crown, rays; public MeshRenderer[] trunk, fronds, rayRenderers; public float seed; }
     private readonly List<Palm> palms = new List<Palm>();
     private Volume bloomVolume;
     private VolumeProfile bloomProfile;
+
+    // The second round of decorations, one set per look.
+    private Material glowMat;
+    private ParticleSystem fireworks, streamers, splashes, fireflies;
+    private readonly List<Transform> searchlights = new List<Transform>();
+    private readonly List<MeshRenderer> searchlightRenderers = new List<MeshRenderer>();
+    private struct Pinwheel { public Transform spin; public MeshRenderer[] blades; public int dir; }
+    private readonly List<Pinwheel> pinwheels = new List<Pinwheel>();
+    private struct SeaRow { public Transform root; public Transform[] segs; public MeshRenderer[] rends; public float x, baseY, phase; }
+    private readonly List<SeaRow> sea = new List<SeaRow>();
+    private const float SeaChunk = 24f, SeaStep = 1.5f;
+    private int lastStrongBeat = int.MinValue;
+    private float sweep, spinStep, flash;
 
     public void ApplyPalette(Color primaryColor, Color secondaryColor, float emissionIntensity)
     {
@@ -89,13 +110,18 @@ public class NeonCarnivalEnvironment : MonoBehaviour, IEnvironmentDecorator, ITh
             .Append(DOTween.To(x => fanOpen = x, 0f, 1f, 0.4f).SetEase(Ease.OutBack))
             .Append(DOTween.To(x => fanOpen = x, 1f, 0f, 1.6f).SetEase(Ease.InOutSine)), 2f);
         tweens.Loop(DOTween.To(x => palmSway = x, -1f, 1f, 2f).SetEase(Ease.InOutSine).SetLoops(2, LoopType.Yoyo), 4f);
+        // Searchlights sweep out and back over eight beats; pinwheels step 45 degrees a beat.
+        tweens.Loop(DOTween.To(x => sweep = x, -1f, 1f, 4f).SetEase(Ease.InOutSine).SetLoops(2, LoopType.Yoyo), 8f);
+        tweens.Loop(DOTween.To(x => spinStep = x, 0f, 1f, 0.6f).SetEase(Ease.OutBack), 1f);
+        // A flash: up at once on the beat, gone within half a beat.
+        tweens.Loop(DOTween.Sequence().Append(DOTween.To(x => flash = x, 1f, 0f, 0.5f).SetEase(Ease.OutQuad)).AppendInterval(0.5f), 1f);
 
         BuildEdgeLines(tunnelLength);
         switch (skin)
         {
-            case CarnivalSkin.RioNight: BuildHills(); BuildGarlands(); break;
-            case CarnivalSkin.Carnaval: BuildFans(); BuildConfetti(); break;
-            case CarnivalSkin.Copacabana: BuildPromenade(); BuildPalms(); break;
+            case CarnivalSkin.RioNight: BuildHills(); BuildGarlands(); BuildSearchlights(tunnelLength); BuildFireworks(); break;
+            case CarnivalSkin.Carnaval: BuildFans(); BuildConfetti(); BuildStreamers(); BuildPinwheels(); break;
+            case CarnivalSkin.Copacabana: BuildPromenade(); BuildPalms(); BuildSea(); BuildSplashes(); BuildFireflies(); break;
         }
         BuildBloomVolume();
     }
@@ -382,7 +408,18 @@ public class NeonCarnivalEnvironment : MonoBehaviour, IEnvironmentDecorator, ITh
                         a = b;
                     }
                 }
-                palms.Add(new Palm { crown = crown, trunk = trunk.ToArray(), fronds = fronds.ToArray(), seed = Rand(0f, 6.28f) });
+                // Rays: three long beams fanning up out of the crown, away from the road.
+                var rays = new GameObject("Rays").transform;
+                rays.SetParent(root, false);
+                rays.localPosition = prev;
+                var rayList = new List<MeshRenderer>();
+                for (int k = 0; k < 3; k++)
+                {
+                    var dir = Quaternion.Euler(0f, 0f, side * (12f + k * 16f)) * Vector3.up;
+                    rayList.Add(RemixGeo.Beam(rays, "Ray", cube, frondMat, Vector3.zero, dir * 11f, 0.05f));
+                }
+                palms.Add(new Palm { crown = crown, rays = rays, trunk = trunk.ToArray(), fronds = fronds.ToArray(),
+                                     rayRenderers = rayList.ToArray(), seed = Rand(0f, 6.28f) });
             }
     }
 
@@ -427,15 +464,346 @@ public class NeonCarnivalEnvironment : MonoBehaviour, IEnvironmentDecorator, ITh
 
         switch (skin)
         {
-            case CarnivalSkin.RioNight: UpdateRio(energy); break;
-            case CarnivalSkin.Carnaval: UpdateCarnaval(energy); break;
-            case CarnivalSkin.Copacabana: UpdateCopacabana(energy, baseZ); break;
+            case CarnivalSkin.RioNight: UpdateRio(energy); UpdateSky(energy); break;
+            case CarnivalSkin.Carnaval: UpdateCarnaval(energy); UpdateParade(energy); break;
+            case CarnivalSkin.Copacabana: UpdateCopacabana(energy, baseZ); UpdateSea(energy, baseZ); break;
         }
 
         if (bloomVolume != null)
         {
             float drop = Mathf.Clamp01((ClubBeat.Energy - 1f) / 0.6f);
             bloomVolume.weight = dropBloom * drop * (0.55f + 0.45f * kick);
+            // Carnaval's flashes: a short swell of the bloom on the strong beats of a drop.
+            if (skin == CarnivalSkin.Carnaval && CarnivalLook.InDrop && CarnivalLook.StrongBeat)
+                bloomVolume.weight = Mathf.Max(bloomVolume.weight, 0.7f * flash);
+        }
+    }
+
+    /// True once per strong beat (beats one and three), on the frame it starts.
+    private bool NewStrongBeat()
+    {
+        if (!CarnivalLook.StrongBeat || ClubBeat.BeatIndex == lastStrongBeat) return false;
+        lastStrongBeat = ClubBeat.BeatIndex;
+        return true;
+    }
+
+    // --- the second round: particles ---
+
+    private Material GlowMat()
+    {
+        if (glowMat != null) return glowMat;
+        glowMat = new Material(Shader.Find("Universal Render Pipeline/Particles/Unlit")) { name = "CarnivalGlow" };
+        if (glowTexture != null) glowMat.SetTexture("_BaseMap", glowTexture);
+        glowMat.SetColor("_BaseColor", Color.white);
+        glowMat.SetFloat("_Surface", 1f);
+        glowMat.SetFloat("_Blend", 2f);
+        glowMat.SetOverrideTag("RenderType", "Transparent");
+        glowMat.SetInt("_SrcBlend", (int)BlendMode.One);
+        glowMat.SetInt("_DstBlend", (int)BlendMode.One);
+        glowMat.SetInt("_ZWrite", 0);
+        glowMat.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+        glowMat.renderQueue = (int)RenderQueue.Transparent;
+        mats.Add(glowMat);
+        return glowMat;
+    }
+
+    // A glowing particle system: world space, nothing emitted until asked, additive soft dots.
+    private ParticleSystem Glow(string name, Vector3 pos, int max, bool trails)
+    {
+        var go = new GameObject(name);
+        go.transform.SetParent(transform, false);
+        go.transform.localPosition = pos;
+        var ps = go.AddComponent<ParticleSystem>();
+        ps.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+        var main = ps.main;
+        main.loop = true;
+        main.duration = 1f;
+        main.maxParticles = max;
+        main.simulationSpace = ParticleSystemSimulationSpace.World;
+        var em = ps.emission;
+        em.rateOverTime = 0f;
+        var r = go.GetComponent<ParticleSystemRenderer>();
+        r.sharedMaterial = GlowMat();
+        r.shadowCastingMode = ShadowCastingMode.Off;
+        r.receiveShadows = false;
+        if (trails)
+        {
+            r.trailMaterial = GlowMat();
+            var t = ps.trails;
+            t.enabled = true;
+            t.ratio = 1f;
+            t.dieWithParticles = true;
+            t.inheritParticleColor = true;
+            t.widthOverTrail = new ParticleSystem.MinMaxCurve(1f, AnimationCurve.Linear(0f, 1f, 1f, 0f));
+        }
+        // Fade out over the life.
+        var col = ps.colorOverLifetime;
+        col.enabled = true;
+        var g = new Gradient();
+        g.SetKeys(new[] { new GradientColorKey(Color.white, 0f), new GradientColorKey(Color.white, 1f) },
+                  new[] { new GradientAlphaKey(1f, 0f), new GradientAlphaKey(1f, 0.6f), new GradientAlphaKey(0f, 1f) });
+        col.color = g;
+        return ps;
+    }
+
+    private void RoadVelocity(ParticleSystem ps, float share)
+    {
+        var vel = ps.velocityOverLifetime;
+        vel.enabled = true;
+        vel.space = ParticleSystemSimulationSpace.World;
+        vel.x = new ParticleSystem.MinMaxCurve(0f, 0f);
+        vel.y = new ParticleSystem.MinMaxCurve(0f, 0f);
+        vel.z = new ParticleSystem.MinMaxCurve(-scrollSpeed * share, -scrollSpeed * share);
+    }
+
+    // RioNight: searchlights behind the hills, long faint beams that sweep the sky.
+    private void BuildSearchlights(float tunnelLength)
+    {
+        var m = Mat(thirdColor, 0.4f);
+        float[] xs = { -30f, -22f, 22f, 30f };
+        float[] zs = { tunnelLength * 0.45f, tunnelLength * 0.7f, tunnelLength * 0.55f, tunnelLength * 0.8f };
+        for (int i = 0; i < xs.Length; i++)
+        {
+            var pivot = new GameObject("Searchlight").transform;
+            pivot.SetParent(transform, false);
+            pivot.localPosition = new Vector3(xs[i], 0f, zs[i]);
+            searchlightRenderers.Add(RemixGeo.Beam(pivot, "Beam", cube, m, Vector3.zero, Vector3.up * 70f, 0.6f));
+            searchlights.Add(pivot);
+        }
+    }
+
+    // RioNight: fireworks - a burst of sparks with short trails, high over the hills.
+    private void BuildFireworks()
+    {
+        fireworks = Glow("Fireworks", new Vector3(0f, 18f, 60f), 3000, true);
+        var main = fireworks.main;
+        main.startLifetime = new ParticleSystem.MinMaxCurve(1.1f, 1.8f);
+        main.startSpeed = new ParticleSystem.MinMaxCurve(7f, 11f);
+        main.startSize = new ParticleSystem.MinMaxCurve(0.25f, 0.4f);
+        main.gravityModifier = 0.5f;
+        var shape = fireworks.shape;
+        shape.shapeType = ParticleSystemShapeType.Sphere;
+        shape.radius = 0.2f;
+        var t = fireworks.trails;
+        t.lifetime = new ParticleSystem.MinMaxCurve(0.25f);
+        t.widthOverTrail = new ParticleSystem.MinMaxCurve(0.12f, AnimationCurve.Linear(0f, 1f, 1f, 0f));
+        fireworks.Play();
+    }
+
+    private void LaunchFirework(int count)
+    {
+        float side = rng.NextDouble() < 0.5 ? -1f : 1f;
+        fireworks.transform.localPosition = new Vector3(side * Rand(12f, 26f), Rand(14f, 22f), Rand(45f, 95f));
+        var main = fireworks.main;
+        main.startColor = CarnivalLook.Of(rng.Next(3), primary, secondary, thirdColor) * 2.5f;
+        fireworks.Emit(count);
+    }
+
+    // Carnaval: serpentine - long trails curling high over the road and the sides.
+    private void BuildStreamers()
+    {
+        streamers = Glow("Serpentine", new Vector3(0f, 9f, 40f), 120, true);
+        var main = streamers.main;
+        main.startLifetime = new ParticleSystem.MinMaxCurve(3f, 4.5f);
+        main.startSpeed = new ParticleSystem.MinMaxCurve(1.5f, 3.5f);
+        main.startSize = new ParticleSystem.MinMaxCurve(0.08f, 0.12f);
+        main.gravityModifier = 0.08f;
+        main.startColor = new ParticleSystem.MinMaxGradient(Gradient3(primary * 2f, secondary * 2f, thirdColor * 2f)) { mode = ParticleSystemGradientMode.RandomColor };
+        var shape = streamers.shape;
+        shape.shapeType = ParticleSystemShapeType.Box;
+        shape.scale = new Vector3(30f, 3f, 50f);
+        var noise = streamers.noise;
+        noise.enabled = true;
+        noise.strength = 2.5f;
+        noise.frequency = 0.25f;
+        noise.scrollSpeed = 0.4f;
+        var t = streamers.trails;
+        t.lifetime = new ParticleSystem.MinMaxCurve(1.3f);
+        t.widthOverTrail = new ParticleSystem.MinMaxCurve(0.14f, AnimationCurve.Linear(0f, 1f, 1f, 0.3f));
+        RoadVelocity(streamers, 0.5f);
+        var em = streamers.emission;
+        em.rateOverTime = 5f;
+        streamers.Play();
+    }
+
+    // Carnaval: big neon pinwheels high at the sides, eight blades each, turning a step per beat.
+    private void BuildPinwheels()
+    {
+        var m = Mat(primary);
+        float spacing = Even(30f, out int count);
+        for (int k = 0; k < count; k++)
+            for (int side = -1; side <= 1; side += 2)
+            {
+                var root = Scroller("Pinwheel", -Behind + k * spacing + (side > 0 ? spacing * 0.5f : 0f));
+                var spin = new GameObject("Spin").transform;
+                spin.SetParent(root, false);
+                spin.localPosition = new Vector3(side * 13f, 9.5f, 0f);
+                spin.localRotation = Quaternion.Euler(0f, side * 35f, 0f);     // turned a little toward the road
+                var hub = new GameObject("Hub").transform;
+                hub.SetParent(spin, false);
+                const int bladesN = 8;
+                var blades = new MeshRenderer[bladesN * 2];
+                for (int b = 0; b < bladesN; b++)
+                {
+                    var dir = Quaternion.Euler(0f, 0f, b * 360f / bladesN) * Vector3.up;
+                    var dir2 = Quaternion.Euler(0f, 0f, b * 360f / bladesN + 22f) * Vector3.up;
+                    blades[b * 2] = RemixGeo.Beam(hub, "Blade", cube, m, Vector3.zero, dir * 2.8f, 0.1f);
+                    blades[b * 2 + 1] = RemixGeo.Beam(hub, "Edge", cube, m, dir * 2.8f, dir2 * 1.6f, 0.08f);
+                }
+                pinwheels.Add(new Pinwheel { spin = hub, blades = blades, dir = side });
+            }
+    }
+
+    // Copacabana: the sea beyond the palms - rows of neon waves rolling toward the camera.
+    private void BuildSea()
+    {
+        var m = Mat(primary, 0.7f);
+        int chunks = Mathf.RoundToInt(span / SeaChunk);
+        int per = Mathf.RoundToInt(SeaChunk / SeaStep);
+        for (int c = 0; c < chunks; c++)
+            for (int side = -1; side <= 1; side += 2)
+                for (int row = 0; row < 2; row++)
+                {
+                    var root = Scroller("Sea", -Behind + c * SeaChunk, SeaChunk);
+                    var segs = new Transform[per];
+                    var rends = new MeshRenderer[per];
+                    for (int i = 0; i < per; i++)
+                    {
+                        rends[i] = RemixGeo.Beam(root, "Wave", cube, m, Vector3.zero, Vector3.forward, 0.08f);
+                        segs[i] = rends[i].transform;
+                    }
+                    sea.Add(new SeaRow { root = root, segs = segs, rends = rends, x = side * (15f + row * 3.5f),
+                                         baseY = 0.4f + row * 0.5f, phase = row * 1.7f });
+                }
+    }
+
+    // Copacabana: spray thrown up off the waves on the strong beats.
+    private void BuildSplashes()
+    {
+        splashes = Glow("Splashes", new Vector3(16f, 0.8f, 30f), 1500, false);
+        var main = splashes.main;
+        main.startLifetime = new ParticleSystem.MinMaxCurve(0.7f, 1.2f);
+        main.startSpeed = new ParticleSystem.MinMaxCurve(3f, 7f);
+        main.startSize = new ParticleSystem.MinMaxCurve(0.15f, 0.35f);
+        main.gravityModifier = 1f;
+        main.startColor = new ParticleSystem.MinMaxGradient(Gradient3(secondary * 2f, primary * 2f, secondary * 2f)) { mode = ParticleSystemGradientMode.RandomColor };
+        var shape = splashes.shape;
+        shape.shapeType = ParticleSystemShapeType.Cone;
+        shape.angle = 25f;
+        shape.radius = 0.6f;
+        shape.rotation = new Vector3(-90f, 0f, 0f);
+        RoadVelocity(splashes, 1f);
+        splashes.Play();
+    }
+
+    // Copacabana: fireflies - small warm lights drifting high over the road and the beach.
+    private void BuildFireflies()
+    {
+        fireflies = Glow("Fireflies", new Vector3(0f, 6.5f, 45f), 400, false);
+        var main = fireflies.main;
+        main.startLifetime = new ParticleSystem.MinMaxCurve(4f, 6f);
+        main.startSpeed = new ParticleSystem.MinMaxCurve(0.1f, 0.4f);
+        main.startSize = new ParticleSystem.MinMaxCurve(0.1f, 0.2f);
+        main.startColor = new ParticleSystem.MinMaxGradient(Color.Lerp(thirdColor, Color.white, 0.5f) * 2f, secondary * 1.6f);
+        var shape = fireflies.shape;
+        shape.shapeType = ParticleSystemShapeType.Box;
+        shape.scale = new Vector3(34f, 5f, 80f);
+        var noise = fireflies.noise;
+        noise.enabled = true;
+        noise.strength = 0.8f;
+        noise.frequency = 0.5f;
+        var size = fireflies.sizeOverLifetime;
+        size.enabled = true;
+        size.size = new ParticleSystem.MinMaxCurve(1f, new AnimationCurve(
+            new Keyframe(0f, 0f), new Keyframe(0.2f, 1f), new Keyframe(0.4f, 0.4f), new Keyframe(0.6f, 1f), new Keyframe(0.8f, 0.4f), new Keyframe(1f, 0f)));
+        RoadVelocity(fireflies, 1f);
+        var em = fireflies.emission;
+        em.rateOverTime = 30f;
+        fireflies.Play();
+    }
+
+    // --- the second round: every frame ---
+
+    private void UpdateSky(float energy)
+    {
+        bool strong = NewStrongBeat();
+        for (int i = 0; i < searchlights.Count; i++)
+        {
+            float dir = i % 2 == 0 ? 1f : -1f;
+            searchlights[i].localRotation = Quaternion.Euler(sweep * 10f * dir - 8f, 0f, sweep * 28f * dir + (searchlights[i].localPosition.x < 0 ? -12f : 12f));
+            float level = 0.25f + 0.35f * (CarnivalLook.StrongBeat ? kick : 0f) * Mathf.Min(energy, 1.3f);
+            mpb.SetColor(RemixGeo.EmissionId, (i % 2 == 0 ? thirdColor : secondary) * Mathf.Min(MaxLevel, emission * level));
+            searchlightRenderers[i].SetPropertyBlock(mpb);
+        }
+        if (fireworks == null) return;
+        // The drop opens with a salvo; while it lasts, one firework every strong beat.
+        float since = ClubBeat.BeatsSinceDrop;
+        if (since < lastBeatsSinceDrop && since < 1f) for (int k = 0; k < 4; k++) LaunchFirework(140);
+        else if (strong && CarnivalLook.InDrop) LaunchFirework(110);
+        lastBeatsSinceDrop = since;
+    }
+
+    private void UpdateParade(float energy)
+    {
+        bool drop = CarnivalLook.InDrop;
+        float turn = (Mathf.Floor(CarnivalLook.Beats) + spinStep) * 45f;
+        for (int i = 0; i < pinwheels.Count; i++)
+        {
+            var p = pinwheels[i];
+            p.spin.localRotation = Quaternion.Euler(0f, 0f, turn * p.dir);
+            float level = 0.45f + 0.5f * kick * energy + (drop && CarnivalLook.StrongBeat ? 1.2f * flash : 0f);
+            for (int b = 0; b < p.blades.Length; b++)
+            {
+                mpb.SetColor(RemixGeo.EmissionId, CarnivalLook.Of(b / 2 + i, primary, secondary, thirdColor) * Mathf.Min(MaxLevel, emission * level));
+                p.blades[b].SetPropertyBlock(mpb);
+            }
+        }
+        if (streamers != null)
+        {
+            var em = streamers.emission;
+            em.rateOverTime = drop ? 12f : 5f;
+        }
+    }
+
+    private void UpdateSea(float energy, float baseZ)
+    {
+        float t = ClubBeat.SongTime;
+        float beat = Mathf.Max(0.2f, ClubBeat.SecondsPerBeat);
+        const float k = Mathf.PI * 2f / 9f;                    // a crest every nine metres
+        float w = Mathf.PI * 2f / (beat * 4f) * 1f;            // rolling one wavelength a bar
+        foreach (var row in sea)
+        {
+            float rootZ = row.root.localPosition.z;
+            Vector3 prev = Vector3.zero;
+            for (int i = 0; i <= row.segs.Length; i++)
+            {
+                float z = i * SeaStep;
+                float y = row.baseY + 0.55f * Mathf.Sin(k * (z + rootZ + baseZ) + w * t + row.phase) * (0.8f + 0.25f * Mathf.Min(energy, 1.4f));
+                var p = new Vector3(row.x, y, z);
+                if (i > 0)
+                {
+                    var seg = row.segs[i - 1];
+                    Vector3 edge = p - prev;
+                    seg.localPosition = (p + prev) * 0.5f;
+                    seg.localRotation = Quaternion.FromToRotation(Vector3.up, edge.normalized);
+                    seg.localScale = new Vector3(0.08f, edge.magnitude + 0.08f, 0.08f);
+                }
+                prev = p;
+            }
+            float level = 0.35f + 0.5f * kick * energy;
+            mpb.SetColor(RemixGeo.EmissionId, primary * Mathf.Min(MaxLevel, emission * level));
+            foreach (var r in row.rends) r.SetPropertyBlock(mpb);
+        }
+
+        if (splashes != null && NewStrongBeat())
+        {
+            int bursts = CarnivalLook.InDrop ? 4 : 2;
+            for (int b = 0; b < bursts; b++)
+            {
+                float side = b % 2 == 0 ? -1f : 1f;
+                splashes.transform.localPosition = new Vector3(side * Rand(15f, 19f), 1f, Rand(12f, 60f));
+                splashes.Emit(CarnivalLook.InDrop ? 45 : 25);
+            }
         }
     }
 
@@ -508,6 +876,10 @@ public class NeonCarnivalEnvironment : MonoBehaviour, IEnvironmentDecorator, ITh
             foreach (var r in p.fronds) r.SetPropertyBlock(mpb);
             mpb.SetColor(RemixGeo.EmissionId, thirdColor * Mathf.Min(MaxLevel, emission * (0.4f + 0.2f * kick)));
             foreach (var r in p.trunk) r.SetPropertyBlock(mpb);
+            p.rays.localRotation = Quaternion.Euler(0f, 0f, palmSway * 10f * (i % 2 == 0 ? 1f : -1f));
+            float rayLevel = 0.15f + 0.6f * kick * Mathf.Min(energy, 1.3f) + (CarnivalLook.InDrop ? 0.3f : 0f);
+            mpb.SetColor(RemixGeo.EmissionId, Color.Lerp(primary, Color.white, 0.3f) * Mathf.Min(MaxLevel, emission * rayLevel));
+            foreach (var r in p.rayRenderers) r.SetPropertyBlock(mpb);
         }
     }
 }

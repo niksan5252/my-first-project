@@ -143,9 +143,9 @@ public static class BeatmapReader
             float arc = 0f, radius = 0f;
             if (type == CueType.ArcHold)
             {
-                if (float.IsNaN(e.arc) || Mathf.Abs(e.arc) > 360.001f || Mathf.Abs(e.arc) < 1f)
+                if (float.IsNaN(e.arc) || Mathf.Abs(e.arc) > 720.001f || Mathf.Abs(e.arc) < 1f)
                 {
-                    error = Where(i) + "ArcHold needs an arc of 1..360 degrees (signed), got " + e.arc.ToString(CultureInfo.InvariantCulture);
+                    error = Where(i) + "ArcHold needs an arc of 1..720 degrees (signed), got " + e.arc.ToString(CultureInfo.InvariantCulture);
                     return false;
                 }
                 if (float.IsNaN(e.radius) || e.radius < 0f || e.radius > 3f)

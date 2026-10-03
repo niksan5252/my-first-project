@@ -1358,7 +1358,7 @@ public class CueSpawner : MonoBehaviour
         slots[slotIndex].arcCenter = new Vector2(centerX - tunnel.GetLaneCenterX(lane), 0f);
         slots[slotIndex].arcRadius = radius > 0.01f ? radius : arcDefaultRadius;
         slots[slotIndex].arcStart = arcStartAngle;
-        slots[slotIndex].arcSweep = Mathf.Abs(arc) < 1f ? 180f * side : Mathf.Clamp(arc, -360f, 360f);
+        slots[slotIndex].arcSweep = Mathf.Abs(arc) < 1f ? 180f * side : Mathf.Clamp(arc, -720f, 720f);
     }
 
     /// Rebuilds an ArcHold's tube from `progress` (0..1 of its sweep already played) to its end,
