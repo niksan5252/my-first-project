@@ -90,7 +90,16 @@ FAN = "Fan"                  # set: the punch fan - mirrored Punch/PunchHigh pai
 STEP_TAP = "StepTap"         # set: step left, jab right, step right, jab left - one limb per beat (light)
 MIRROR = "Mirror"            # set: both hands at once on every beat, low and high in turn (a dance pair)
 PUNCH_KICK = "PunchKick"     # set: a punch and the opposite foot together on every beat (dense combo)
-COMPOUND = {CROSS, WALL_RUN, SIDE_JUMP, HIGH_LOW, JACK, SHIFT, BALANCE, ARC, FAN, STEP_TAP, MIRROR, PUNCH_KICK}
+# Video 8 (Halloween 2). Each has a LEAD side - the left as written; a plan entry marked "R" mirrors
+# the whole set onto the other side (mirror_sets), so a motif can be repeated to the right.
+STEP_TOUCH = "StepTouch"     # set: step-touch, one foot every other beat, L/R (half time - the warm-up)
+JAB_CROSS = "JabCross"       # set: one punch every other beat, L/R (half time)
+JAB_KICK = "JabKick"         # set: jab (lead), cross (rear), jab (lead), kick with the rear foot - the 1-2-1-kick
+STEP_REACH = "StepReach"     # set: step lead foot + reach up with the rear hand, then the other side (contralateral)
+ARC_PUNCH = "ArcPunch"       # set: the lead hand circles (one ArcHold) while the rear hand punches every beat
+POWER_JUMP = "PowerJump"     # set: a two-foot jump with both fists overhead, every other beat
+COMPOUND = {CROSS, WALL_RUN, SIDE_JUMP, HIGH_LOW, JACK, SHIFT, BALANCE, ARC, FAN, STEP_TAP, MIRROR, PUNCH_KICK,
+            STEP_TOUCH, JAB_CROSS, JAB_KICK, STEP_REACH, ARC_PUNCH, POWER_JUMP}
 # Types that may carry a duration in the JSON: the holds, a long Dodge wall, the balance kerbs.
 DURATION_TYPES = {"KickHold", "PunchHold", "PunchSweep", "Dodge", CURB_GAP, CURB_SPLIT, ARC_HOLD}
 
@@ -685,7 +694,8 @@ def measure_hold(energy: np.ndarray, start_frame: int, limit_frame: int, cfg,
 
 ALL_EXERCISES = (PUNCH, KICK, "PunchHold", "KickHold", SWEEP, CHORD, DODGE, CURB, DUCK,
                  CROSS, WALL_RUN, SIDE_JUMP, HIGH_LOW, JACK, SHIFT, BALANCE, ARC, FAN,
-                 STEP_TAP, MIRROR, PUNCH_KICK)
+                 STEP_TAP, MIRROR, PUNCH_KICK, STEP_TOUCH, JAB_CROSS, JAB_KICK, STEP_REACH, ARC_PUNCH,
+                 POWER_JUMP)
 
 # Named set orders. A pattern is a list of (exercise, how many sets in a row), cycled until the
 # track runs out. This is the one place the shape of the workout lives: changing the routine
@@ -754,6 +764,8 @@ DEFAULT_SPACING_BEATS: Dict[str, float] = {
     # Video 7: the fan moves on every beat (punch pair, step, punch pair, step); an Arc set's notes
     # are written from its own bar lines by expand_compound, so its spacing only thins the grid.
     FAN: 1.0, ARC: 1.0, STEP_TAP: 1.0, MIRROR: 1.0, PUNCH_KICK: 1.0,
+    # Video 8: the half-time warm-up moves and the power jump take every other beat.
+    STEP_TOUCH: 2.0, JAB_CROSS: 2.0, JAB_KICK: 1.0, STEP_REACH: 1.0, ARC_PUNCH: 1.0, POWER_JUMP: 2.0,
     # Obstacles are spaced far wider than any note, and the number is not a taste judgement: the
     # camera performs the movement and has to be back at centre before the next one starts. The
     # longest reaction is the dodge, whose lead-in, hold and return together run 1.59 s - so at
@@ -791,6 +803,7 @@ class WorkoutSet:
     rest_end: float       # where the next set starts
     bar: int              # index of the first bar, for reporting
     notes: int = 0
+    mirror: bool = False  # lead with the right: every lane flipped, every circle turned the other way
 
 
 def find_bar_lines(beat_times: np.ndarray, low_onsets: np.ndarray, beat_frames: np.ndarray,
@@ -1240,6 +1253,63 @@ CHARACTER_PLANS: Dict[str, dict] = {
     },
 }
 
+CHARACTER_PLANS.update({
+    # Video 8 ("Halloween 2"): a cardio warm-up for a person in front of the screen, in three levels
+    # that each bring new moves rather than more of the same. Every phrase is 8 bars: a motif, the
+    # motif again on the other side (an "R" entry - mirror_sets), and a change of limb to close it.
+    # Sets end on a beat of rest, so every move starts from the centre.
+    #
+    # 1, WitchSwamp - the easy level: steps and single punches, half-time warm-up moves (one limb
+    # every other beat), a simple wall, a short hold; two-bar blocks that come back again and again;
+    # circles only now and then on the quiet stretches, and short.
+    "halloween2-swamp": {
+        "normal": [
+            [(STEP_TOUCH, 2), (JAB_CROSS, 2), (KICK, 2), (PUNCH, 2)],           # half time -> full time
+            [(STEP_TAP, 2), (PUNCH, 2), (STEP_TAP, 2, "R"), (DODGE, 2)],        # motif, mirrored, a wall
+            [(KICK, 2), (JAB_CROSS, 2), (KICK, 2, "R"), ("PunchHold", 2)],
+            [(STEP_TAP, 2, "R"), (PUNCH, 2, "R"), (STEP_TOUCH, 2), (DODGE, 2)],
+        ],
+        "drop": [[(PUNCH, 2), (STEP_TAP, 2), (PUNCH, 2, "R"), (STEP_TAP, 2, "R")]],
+        "calm": [[(STEP_TOUCH, 2), (JAB_CROSS, 2)], [(STEP_TOUCH, 2), (ARC, 2)],
+                 [("PunchHold", 2), (STEP_TOUCH, 2)], [(JAB_CROSS, 2), (STEP_TOUCH, 2)]],
+        "fill": STEP_TOUCH, "drop_bars": 8, "lead_in": False, "calm_first": True,
+        "arcs": [(270.0, 4, 0.7), (360.0, 4, 0.7)],
+    },
+    # 2, MadLab - the hard level: the 1-2-1-kick to both sides, step-and-reach, high/low punches, the
+    # punch fan, mirrored pairs, side jumps, the star, ducks and kerbs, the long circles before drops.
+    "halloween2-lab": {
+        "normal": [
+            [(JAB_KICK, 2), (JAB_KICK, 2, "R"), (HIGH_LOW, 2), (DUCK, 2)],
+            [(FAN, 2), (SIDE_JUMP, 2), (FAN, 2), (CURB, 2)],
+            [(STEP_REACH, 2), (STEP_REACH, 2, "R"), ("KickHold", 2), (CROSS, 2)],
+            [(MIRROR, 2), (JAB_KICK, 2, "R"), (SIDE_JUMP, 2), (ARC, 2)],
+        ],
+        "drop": [[(FAN, 2), (JAB_KICK, 2), (FAN, 2), (CROSS, 2)],
+                 [(HIGH_LOW, 2), (SIDE_JUMP, 2), (JAB_KICK, 2, "R"), (CROSS, 2)]],
+        "calm": [[(ARC, 4), (STEP_REACH, 2), ("KickHold", 2)], [("KickHold", 2), (DUCK, 2)],
+                 [(STEP_REACH, 2, "R"), (ARC, 2)]],
+        "fill": MIRROR, "drop_bars": 8, "lead_in": True, "calm_first": True,
+        "arcs": [(450.0, 6, 0.8), (540.0, 8, 0.85), (360.0, 6, 0.75), (720.0, 8, 0.85)],
+    },
+    # 3, VampireCastle - the very hard level: power jumps and two-foot chords with punches, jacks,
+    # shifts, punch+kick, one-bar 1-2-1 combos switching sides, a circle with punches from the other
+    # hand, the long wall, one-leg / wide-stance kerbs; 16 bars of drop phrases, short breathers.
+    "halloween2-castle": {
+        "normal": [
+            [(WALL_RUN, 4), (JAB_KICK, 1), (JAB_KICK, 1, "R"), (POWER_JUMP, 2)],
+            [(SHIFT, 2), (ARC_PUNCH, 2), (SHIFT, 2), (ARC_PUNCH, 2, "R")],
+            [(CHORD, 2), (BALANCE, 2), (PUNCH_KICK, 2, "R"), (JACK, 2)],
+            [(POWER_JUMP, 2), (JAB_KICK, 1), (JAB_KICK, 1, "R"), (JACK, 2), (PUNCH_KICK, 2)],
+        ],
+        "drop": [[(CHORD, 2), (PUNCH_KICK, 2), (JACK, 2), (SHIFT, 2)],
+                 [(JAB_KICK, 1), (JAB_KICK, 1, "R"), (POWER_JUMP, 2), (ARC_PUNCH, 2), (JACK, 2)],
+                 [(PUNCH_KICK, 2, "R"), (CHORD, 2), (SHIFT, 2), (ARC_PUNCH, 2, "R")]],
+        "calm": [[(ARC, 2), (STEP_TOUCH, 2)], [(BALANCE, 2), (KICK, 2)]],
+        "fill": PUNCH_KICK, "drop_bars": 16, "lead_in": False, "calm_first": True,
+        "arcs": [(360.0, 4, 0.75), (450.0, 6, 0.8)],
+    },
+})
+
 # ArcHold circles for a plan without its own `arcs`: (degrees, beats, radius m).
 ARC_SHAPES = [(360.0, 6, 0.75), (270.0, 4, 0.7), (450.0, 6, 0.8), (540.0, 8, 0.85)]
 # An ArcHold is never shorter than this many beats; an Arc set too short for it gets punches.
@@ -1260,7 +1330,7 @@ def plan_sets_character(bar_lines: np.ndarray, bar_map: List[str], rest_beats: f
     sets: List[WorkoutSet] = []
     history: List[str] = []
 
-    def emit(ex: str, bar: int, bars: int) -> bool:
+    def emit(ex: str, bar: int, bars: int, mirror: bool = False) -> bool:
         if bar + bars >= len(bar_lines):
             return False
         start, boundary = float(bar_lines[bar]), float(bar_lines[bar + bars])
@@ -1272,7 +1342,7 @@ def plan_sets_character(bar_lines: np.ndarray, bar_map: List[str], rest_beats: f
             ex = plan["fill"]          # a rest between two circles: never one straight after another
         end = max(start, boundary - rest_beats * beat)
         sets.append(WorkoutSet(index=len(sets), exercise=ex, start=start, end=min(end, track_end),
-                               rest_end=min(boundary, track_end), bar=bar))
+                               rest_end=min(boundary, track_end), bar=bar, mirror=mirror))
         history.append(ex)
         return True
 
@@ -1294,9 +1364,11 @@ def plan_sets_character(bar_lines: np.ndarray, bar_map: List[str], rest_beats: f
         cursor[kind] += 1
         # The next drop starts a phrase of its own: this one stops at the last set that ends on or
         # before it, and one-bar sets of the plan's filler exercise cover whatever is left.
-        ahead = [d for d in drops if bar < d < bar + sum(b for _, b in phrase)]
+        ahead = [d for d in drops if bar < d < bar + sum(item[1] for item in phrase)]
         limit = ahead[0] if (ahead and kind != "drop") else None
-        for ex, bars in phrase:
+        for item in phrase:
+            ex, bars = item[0], item[1]
+            mirror = len(item) > 2 and item[2] == "R"
             if limit is not None and bar + bars > limit:
                 # The run-up to the drop: fillers, then (with `lead_in`) an Arc set of up to four
                 # bars that ends on the drop.
@@ -1308,9 +1380,19 @@ def plan_sets_character(bar_lines: np.ndarray, bar_map: List[str], rest_beats: f
                     if not emit(ARC, bar, limit - bar): return sets
                     bar = limit
                 break
-            if not emit(ex, bar, bars): return sets
+            if not emit(ex, bar, bars, mirror): return sets
             bar += bars
     return sets
+
+
+def mirror_sets(events: List[Event], sets: List[WorkoutSet], lane_count: int) -> None:
+    """The sets planned with "R" lead with the right: lane l becomes lane_count-1-l and every
+    ArcHold turns the other way, so the motif is the same movement on the other side."""
+    mirrored = {b.index for b in sets if b.mirror}
+    for ev in events:
+        if ev.set_index in mirrored:
+            ev.lane = lane_count - 1 - ev.lane
+            ev.arc = -ev.arc
 
 
 def expand_compound(events: List[Event], sets: List[WorkoutSet], beat: float, lane_count: int,
@@ -1373,6 +1455,50 @@ def expand_compound(events: List[Event], sets: List[WorkoutSet], beat: float, la
             else:
                 for n, ev in enumerate(members):
                     made.append(note(ev, PUNCH, 1 + n % 2))
+        elif ex == ARC_PUNCH:
+            # The lead (left) hand circles - one ArcHold from the set's first beat, whole beats, a
+            # turn a bar - while the rear hand punches on every beat after the first, low and high
+            # in turn; once the circle ends, steps.
+            first = members[0] if members and members[0].time - block.start < 0.25 * beat else None
+            src = first or Event(time=block.start, type=ARC_PUNCH, intensity=0.6, set_index=block.index)
+            src.time = first.time if first else block.start
+            use = min(8, int(np.floor((block.end - src.time) / beat + 1e-3)))
+            if use >= ARC_MIN_BEATS:
+                length = use * beat
+                arc = note(src, ARC_HOLD, 1, length)
+                arc.arc, arc.radius = -360.0 * use / 4.0, 0.7          # outward: left anticlockwise
+                made.append(arc)
+                n = 0
+                for ev in members:
+                    if ev.time < src.time + 0.5 * beat: continue
+                    if ev.time <= src.time + length - 0.25 * beat:
+                        made.append(note(ev, PUNCH if n % 2 == 0 else PUNCH_HIGH, 2))
+                    elif ev.time >= src.time + length + 0.75 * beat:
+                        made.append(note(ev, KICK, 1 + n % 2))
+                    n += 1
+            else:
+                for n, ev in enumerate(members):
+                    made.append(note(ev, PUNCH, 1 + n % 2))
+        elif ex in (STEP_TOUCH, JAB_CROSS):
+            for n, ev in enumerate(members):
+                made.append(note(ev, KICK if ex == STEP_TOUCH else PUNCH, 1 + n % 2))
+        elif ex == JAB_KICK:
+            for n, ev in enumerate(members):
+                k = n % 4           # jab L, cross R, jab L, kick R - the rear foot after the rear hand
+                if k == 3: made.append(note(ev, KICK, 2))
+                else: made.append(note(ev, PUNCH, 2 if k == 1 else 1))
+        elif ex == STEP_REACH:
+            for n, ev in enumerate(members):
+                k = n % 4           # step L + reach R, step R + reach L: opposite hand and foot, one at a time
+                if k == 0: made.append(note(ev, KICK, 1))
+                elif k == 1: made.append(note(ev, PUNCH_HIGH, 2))
+                elif k == 2: made.append(note(ev, KICK, 2))
+                else: made.append(note(ev, PUNCH_HIGH, 1))
+        elif ex == POWER_JUMP:
+            for ev in members:
+                for lane in (1, 2):
+                    made.append(note(ev, KICK, lane))
+                    made.append(note(ev, PUNCH_HIGH, lane))
         elif ex == STEP_TAP:
             for n, ev in enumerate(members):
                 # step L, jab R, step R, jab L: one limb a beat, crossing the body.
@@ -1911,6 +2037,7 @@ def analyse(path: Path, cfg) -> Tuple[List[Event], float, float, int, List[Worko
         events = expand_chords(events, sets, cfg.chord_punch_every, pairs[CHORD], cfg.lanes)
         arc_shapes = CHARACTER_PLANS[cfg.pattern].get("arcs") if cfg.pattern in CHARACTER_PLANS else None
         events = expand_compound(events, sets, beat, cfg.lanes, random.Random(cfg.seed), arc_shapes)
+        mirror_sets(events, sets, cfg.lanes)
         if cfg.fill_gaps_dodge:
             cfg.gap_walls = fill_gaps_with_dodges(events, bar_lines, beat, track_end, cfg)
             events = sorted(events + cfg.gap_walls, key=lambda e: e.time)
@@ -1921,7 +2048,15 @@ def analyse(path: Path, cfg) -> Tuple[List[Event], float, float, int, List[Worko
             drums_at = float(bar_lines[first]) - 0.25 * beat
             events = [e for e in events if e.time >= drums_at]
             sets[:] = [b for b in sets if b.start >= drums_at]
-            if cfg.intro_arcs:
+            if cfg.intro_arcs and cfg.intro_melody_onsets:
+                # Both: the long intro opens with circles, whole phrases, and its last
+                # --intro-melody-bars follow the melody into the drums.
+                arc_bars = max(0, first - cfg.intro_melody_bars) // 4 * 4
+                intro = intro_arc_events(bar_lines, arc_bars, beat) if arc_bars >= 4 else []
+                tune_from = float(bar_lines[arc_bars]) - 0.1 * beat if arc_bars >= 4 else 0.0
+                intro += melody_onset_events(y, sr, hop, max(0.0, tune_from), drums_at - 0.25 * beat, beat, cfg)
+                intro.sort(key=lambda e: e.time)
+            elif cfg.intro_arcs:
                 intro = intro_arc_events(bar_lines, first, beat)
             else:
                 intro = melody_onset_events(y, sr, hop, 0.0, drums_at - 0.25 * beat, beat, cfg)
@@ -2300,6 +2435,9 @@ def build_parser() -> argparse.ArgumentParser:
     g.add_argument("--intro-arcs", action="store_true",
                    help="before the drums first come in, a chain of long ArcHolds instead of notes: one per "
                         "4-bar phrase, one turn a bar, hands alternating, the last phrase both hands")
+    g.add_argument("--intro-melody-bars", type=int, default=8,
+                   help="with both --intro-arcs and --intro-melody-onsets: the last N bars before the drums "
+                        "follow the melody, the whole phrases before them are circles (default 8)")
     g.add_argument("--intro-rest", type=float, default=0.0,
                    help="seconds of music at the start with no notes at all, rounded to the nearest bar line")
     g.add_argument("--show-sets", action="store_true",

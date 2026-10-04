@@ -1,0 +1,56 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3bb9640588ee8e744972f872bcd42a92, type: 3}
+  m_Name: Playlist_Halloween2
+  m_EditorClassIdentifier: Assembly-CSharp::RunPlaylist
+  title: Halloween2
+  segments:
+  - label: WitchSwamp
+    track: {fileID: 8300000, guid: c653f02e658bdf843b4f11ba8c24cce6, type: 3}
+    beatmapFileName: track8_1.json
+    theme: {fileID: 11400000, guid: 511dbb68e2978e54ea573cc77649739f, type: 2}
+    clipStart: 0
+    clipEnd: 0
+    transitionIn: 0
+    transitionSeconds: 3.5
+    transitionLook: 0
+  - label: MadLab
+    track: {fileID: 8300000, guid: cf3b3e6229839644c8e568b9fc99cfd9, type: 3}
+    beatmapFileName: track8_2.json
+    theme: {fileID: 11400000, guid: a16d35cf7ad034649b10dcff5c6c54a9, type: 2}
+    clipStart: 0
+    clipEnd: 0
+    transitionIn: 0
+    transitionSeconds: 3.5
+    transitionLook: 0
+  - label: VampireCastle
+    track: {fileID: 8300000, guid: 891b2c7daf16e5542b32d1176837d879, type: 3}
+    beatmapFileName: track8_3.json
+    theme: {fileID: 11400000, guid: 184b1e3027b7e864bb771ab478e6412b, type: 2}
+    clipStart: 0
+    clipEnd: 0
+    transitionIn: 1
+    transitionSeconds: 3.5
+    transitionLook: 0
+  preRoll: 1
+  noteMarginBeats: 1
+  wallsInTransition: 0
+  veilFogEnd: 22
+  thunderFlash: 0.8
+  thunderVolume: 1
+  thunderTrackStartVolume: 0.55
+  thunderRiseSeconds: 0.8
+  finalFadeSeconds: 2.5
+  trainerMotionSet: {fileID: 0}
+  trainerTextured: 0
+  trainerPanelInThemeColors: 0
+  hideTrainer: 1

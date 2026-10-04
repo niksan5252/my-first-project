@@ -619,3 +619,33 @@ phrase (else bar) line nearest S seconds, within +-15%.
 .venv\Scripts\python generate_beatmap.py ..\..\Assets\Audio\Tracks\track7_2.wav --detector grid --pattern carnival-arcs --rest-beats 1 --spacing-tolerance 0.05 --grid-quiet-every 2 --fill-gaps-dodge --intro-melody-onsets
 .venv\Scripts\python generate_beatmap.py ..\..\Assets\Audio\Tracks\track7_3.wav --detector grid --pattern carnival-copa --rest-beats 1 --spacing-tolerance 0.05 --grid-quiet-every 2 --fill-gaps-dodge --intro-arcs
 ```
+
+## Video 8 (Halloween 2): `halloween2-swamp | -lab | -castle`, mirrored sets, arcs + melody intro
+
+Three plans in `CHARACTER_PLANS`, composed as 8-bar phrases: a motif, the motif again on the
+other side, a change of limb. A plan entry may carry a third element `"R"` - the set is mirrored
+(`mirror_sets`: every lane flipped, every ArcHold turned the other way), so a combo that leads with
+the left is repeated leading with the right. New set exercises (`expand_compound`), each written
+for the left lead:
+
+| set | notes |
+|---|---|
+| StepTouch / JabCross | a step / a punch every other beat, L/R (half time - the warm-up) |
+| JabKick | jab L, cross R, jab L, kick with the rear (right) foot - the 1-2-1-kick |
+| StepReach | step L + PunchHigh R, step R + PunchHigh L, one limb a beat |
+| ArcPunch | the left hand circles (one ArcHold, a turn a bar, up to 8 beats) while the right punches every beat, low/high |
+| PowerJump | two Kicks + two PunchHighs together every other beat: a jump with both fists up |
+
+Levels: `swamp` (easy - steps, single punches, half-time sets, simple walls, two short circles),
+`lab` (hard - JabKick both sides, StepReach, HighLow, Fan, Mirror, SideJump, Cross, Duck, Curb,
+long circles before drops), `castle` (very hard - PowerJump, Chord, Jack, Shift, PunchKick,
+one-bar JabKick side switches, ArcPunch, WallRun, Balance; 16 bars of drop phrases).
+
+With both `--intro-arcs` and `--intro-melody-onsets`, the intro opens with ArcHold phrases and its
+last `--intro-melody-bars` (8) follow the melody into the drums.
+
+```powershell
+.venv\Scripts\python generate_beatmap.py ..\..\Assets\Audio\Tracks\track8_1.wav --detector grid --pattern halloween2-swamp --rest-beats 1 --spacing-tolerance 0.05 --grid-quiet-every 2 --fill-gaps-dodge --intro-melody-onsets --intro-rest 7
+.venv\Scripts\python generate_beatmap.py ..\..\Assets\Audio\Tracks\track8_2.wav --detector grid --pattern halloween2-lab --rest-beats 1 --spacing-tolerance 0.05 --grid-quiet-every 2 --fill-gaps-dodge --intro-melody-onsets --intro-arcs
+.venv\Scripts\python generate_beatmap.py ..\..\Assets\Audio\Tracks\track8_3.wav --detector grid --pattern halloween2-castle --rest-beats 1 --spacing-tolerance 0.05 --grid-quiet-every 2 --fill-gaps-dodge --intro-melody-onsets --intro-arcs
+```
