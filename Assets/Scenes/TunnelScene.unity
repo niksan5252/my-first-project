@@ -412,6 +412,7 @@ MonoBehaviour:
   backdropStrength: 0.55
   texturedHalo: 1.1
   syncReportNotes: 10
+  filmedTrail: 0.38
 --- !u!4 &181401618
 Transform:
   m_ObjectHideFlags: 0
@@ -1342,7 +1343,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::RunProfileSelector
   profile: {fileID: 11400000, guid: b1604fb0cc4caf442871a594bb1f0fe6, type: 2}
-  playlist: {fileID: 11400000, guid: f23bd5cc0548e87469e61a8d23c94d92, type: 2}
+  playlist: {fileID: 11400000, guid: 5b57e0b4bd4e4924498d180561e82d4c, type: 2}
   playlistSolo: -1
   cueSpawner: {fileID: 350241776}
   themeApplier: {fileID: 268705387}

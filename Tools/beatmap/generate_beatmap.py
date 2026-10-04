@@ -98,10 +98,24 @@ JAB_KICK = "JabKick"         # set: jab (lead), cross (rear), jab (lead), kick w
 STEP_REACH = "StepReach"     # set: step lead foot + reach up with the rear hand, then the other side (contralateral)
 ARC_PUNCH = "ArcPunch"       # set: the lead hand circles (one ArcHold) while the rear hand punches every beat
 POWER_JUMP = "PowerJump"     # set: a two-foot jump with both fists overhead, every other beat
+# Video 9 (the competitor's vocabulary, --competitor-style). Two new JSON types, both held poses
+# with a duration: Rails (rails over the two outer lanes - stand narrow) and SquatHold (floor
+# lasers and a bar over the road every beat - a wide squat, pulsing).
+RAILS_TYPE = "Rails"
+SQUAT_HOLD_TYPE = "SquatHold"
+STEP_PAIR = "StepPair"       # set: both feet together on the inner lanes every other beat (step together / small hop)
+PUNCH_PAIR = "PunchPair"     # set: the double punch - both fists together every other beat, low and high in turn
+SPEED_PUNCH = "SpeedPunch"   # set: punches on every beat AND the eighth after it, hands alternating
+SPEED_STEP = "SpeedStep"     # set: fast feet - a step on every beat and every eighth, feet alternating
+SQUAT = "Squat"              # set: one SquatHold for the whole set (4-8 s): a wide squat held, pulsing on the beat
+RAILS = "RailsSet"           # set: Rails for the set, a punch every other beat above them
+LUNGE = "Lunge"              # set: a long strip under the left foot held out (KickHold, lane 0), the right foot tapping every other beat
+WIDE = "Wide"                # set: two strips apart (feet wide, 1.5 beats), then both feet together - a slow jack of the legs
 COMPOUND = {CROSS, WALL_RUN, SIDE_JUMP, HIGH_LOW, JACK, SHIFT, BALANCE, ARC, FAN, STEP_TAP, MIRROR, PUNCH_KICK,
-            STEP_TOUCH, JAB_CROSS, JAB_KICK, STEP_REACH, ARC_PUNCH, POWER_JUMP}
+            STEP_TOUCH, JAB_CROSS, JAB_KICK, STEP_REACH, ARC_PUNCH, POWER_JUMP,
+            STEP_PAIR, PUNCH_PAIR, SPEED_PUNCH, SPEED_STEP, SQUAT, RAILS, LUNGE, WIDE}
 # Types that may carry a duration in the JSON: the holds, a long Dodge wall, the balance kerbs.
-DURATION_TYPES = {"KickHold", "PunchHold", "PunchSweep", "Dodge", CURB_GAP, CURB_SPLIT, ARC_HOLD}
+DURATION_TYPES = {"KickHold", "PunchHold", "PunchSweep", "Dodge", CURB_GAP, CURB_SPLIT, ARC_HOLD, "Rails", "SquatHold"}
 
 # The three obstacles. Unlike the note types these are not something to strike at the hit zone -
 # they are pieces of road furniture to get around, over or under, and in the game the camera
@@ -695,7 +709,7 @@ def measure_hold(energy: np.ndarray, start_frame: int, limit_frame: int, cfg,
 ALL_EXERCISES = (PUNCH, KICK, "PunchHold", "KickHold", SWEEP, CHORD, DODGE, CURB, DUCK,
                  CROSS, WALL_RUN, SIDE_JUMP, HIGH_LOW, JACK, SHIFT, BALANCE, ARC, FAN,
                  STEP_TAP, MIRROR, PUNCH_KICK, STEP_TOUCH, JAB_CROSS, JAB_KICK, STEP_REACH, ARC_PUNCH,
-                 POWER_JUMP)
+                 POWER_JUMP, STEP_PAIR, PUNCH_PAIR, SPEED_PUNCH, SPEED_STEP, SQUAT, RAILS, LUNGE, WIDE)
 
 # Named set orders. A pattern is a list of (exercise, how many sets in a row), cycled until the
 # track runs out. This is the one place the shape of the workout lives: changing the routine
@@ -766,6 +780,8 @@ DEFAULT_SPACING_BEATS: Dict[str, float] = {
     FAN: 1.0, ARC: 1.0, STEP_TAP: 1.0, MIRROR: 1.0, PUNCH_KICK: 1.0,
     # Video 8: the half-time warm-up moves and the power jump take every other beat.
     STEP_TOUCH: 2.0, JAB_CROSS: 2.0, JAB_KICK: 1.0, STEP_REACH: 1.0, ARC_PUNCH: 1.0, POWER_JUMP: 2.0,
+    # Video 9: pairs every other beat; the held poses take their notes from the set's own beats.
+    STEP_PAIR: 1.0, PUNCH_PAIR: 1.0, SPEED_PUNCH: 1.0, SPEED_STEP: 1.0, SQUAT: 1.0, RAILS: 1.0, LUNGE: 1.0, WIDE: 1.0,
     # Obstacles are spaced far wider than any note, and the number is not a taste judgement: the
     # camera performs the movement and has to be back at centre before the next one starts. The
     # longest reaction is the dodge, whose lead-in, hold and return together run 1.59 s - so at
@@ -1087,7 +1103,7 @@ INTENSE_V2_ROTATIONS = {
 }
 INTENSE_V2_BARS = {WALL_RUN: 4, CROSS: 2, BALANCE: 2, DUCK: 2, DODGE: 2}
 INTENSE_V2_HEAVY_BARS = 8        # bars after a drop that take the heavy rotation
-OBSTACLE_SETS = {WALL_RUN, BALANCE, DUCK, DODGE, CURB}
+OBSTACLE_SETS = {WALL_RUN, BALANCE, DUCK, DODGE, CURB, SQUAT}
 
 
 def drops_from_bar_map(bar_map: List[str]) -> List[int]:
@@ -1310,6 +1326,64 @@ CHARACTER_PLANS.update({
     },
 })
 
+CHARACTER_PLANS.update({
+    # Video 9: the competitor's system (Immersive Dance Mode), adapted. A small vocabulary:
+    # footprints (steps, single and paired), fists (alternating, paired, two heights), the RAYS
+    # (Cross: both fists high and out with two strips apart - the star) on the first bar of every
+    # drop and at the end of the level, the held squat (SquatHold) on build-ups and breaks, walls,
+    # rails (stand narrow), long strips (a lunge, both feet wide). Phrases of 8 bars: steps ->
+    # punches -> a big move on the phrase's edge; quiet stretches (no kick) get the big slow moves,
+    # drops the quick steps and punches. Each level adds moves to the one before; the ArcHold - our
+    # own signature - is limited to one or two per level.
+    "competitor-easy": {            # ~1.3 actions/s
+        "normal": [
+            [(STEP_TOUCH, 2), (PUNCH, 2), (KICK, 2), (DODGE, 2)],
+            [(KICK, 2), (JAB_CROSS, 2), (KICK, 2, "R"), (PUNCH, 2, "R")],
+            [(STEP_PAIR, 2), (PUNCH, 2), (STEP_TOUCH, 2), (DODGE, 2, "R")],
+            [(KICK, 2), (JAB_CROSS, 2), (STEP_PAIR, 2), (PUNCH, 2)],
+        ],
+        "drop": [[(CROSS, 1), (KICK, 2), (JAB_CROSS, 2), (STEP_PAIR, 2), (PUNCH, 1)]],
+        "calm": [[(SQUAT, 4), (STEP_TOUCH, 2), (JAB_CROSS, 2)],
+                 [(STEP_TOUCH, 2), (ARC, 2), (SQUAT, 4)],
+                 [(DODGE, 2), (STEP_TOUCH, 2), (JAB_CROSS, 2), (STEP_TOUCH, 2)]],
+        "fill": KICK, "drop_bars": 8, "lead_in": False, "calm_first": True,
+        "limits": {ARC: 1}, "finale": CROSS,
+        "arcs": [(360.0, 4, 0.75)],
+    },
+    "competitor-medium": {          # ~1.8 actions/s: + two heights, double punches, strips, rails, ducks
+        "normal": [
+            [(KICK, 2, "R"), (PUNCH_PAIR, 2), (KICK, 2), (DODGE, 2)],
+            [(KICK, 2), (HIGH_LOW, 2), (STEP_PAIR, 2), (DUCK, 2)],
+            [(KICK, 2), (MIRROR, 2), (LUNGE, 2), (LUNGE, 2, "R")],
+            [(STEP_PAIR, 2), (HIGH_LOW, 2), (RAILS, 2), (DODGE, 2, "R")],
+        ],
+        "drop": [[(CROSS, 1), (KICK, 2), (MIRROR, 2), (HIGH_LOW, 2), (PUNCH, 1)],
+                 [(CROSS, 1), (STEP_PAIR, 2), (PUNCH, 2), (KICK, 2), (HIGH_LOW, 1)]],
+        "calm": [[(SQUAT, 4), (WIDE, 2), (KICK, 2)],
+                 [(LUNGE, 2), (LUNGE, 2, "R"), (ARC, 2), (KICK, 2)],
+                 [(RAILS, 2), (STEP_TOUCH, 2), (SQUAT, 4)]],
+        "fill": KICK, "drop_bars": 8, "lead_in": False, "calm_first": True,
+        "limits": {ARC: 2}, "finale": CROSS,
+        "arcs": [(360.0, 6, 0.75), (450.0, 6, 0.8)],
+    },
+    "competitor-hard": {            # ~2.3 actions/s: + speed punches, jumps over kerbs, jacks, punch+kick, the long wall
+        "normal": [
+            [(WALL_RUN, 4), (SPEED_PUNCH, 2), (DUCK, 2)],
+            [(KICK, 2), (SPEED_PUNCH, 2), (JACK, 2), (CURB, 2)],
+            [(JACK, 2), (SPEED_PUNCH, 2), (PUNCH_KICK, 2), (DODGE, 2)],
+            [(PUNCH_KICK, 2), (SPEED_PUNCH, 2), (LUNGE, 2), (LUNGE, 2, "R")],
+        ],
+        "drop": [[(CROSS, 1), (SPEED_STEP, 2), (SPEED_PUNCH, 2), (JACK, 2), (SPEED_PUNCH, 1)],
+                 [(CROSS, 1), (SPEED_STEP, 2), (SPEED_PUNCH, 2), (PUNCH_KICK, 2), (SPEED_STEP, 1)]],
+        "calm": [[(SQUAT, 4), (RAILS, 2), (SPEED_PUNCH, 2)],
+                 [(LUNGE, 2), (LUNGE, 2, "R"), (ARC, 2), (SPEED_PUNCH, 2)],
+                 [(WIDE, 2), (PUNCH_PAIR, 2), (SQUAT, 4)]],
+        "fill": KICK, "drop_bars": 8, "lead_in": False, "calm_first": True,
+        "limits": {ARC: 2}, "finale": CROSS,
+        "arcs": [(360.0, 4, 0.75), (450.0, 6, 0.8)],
+    },
+})
+
 # ArcHold circles for a plan without its own `arcs`: (degrees, beats, radius m).
 ARC_SHAPES = [(360.0, 6, 0.75), (270.0, 4, 0.7), (450.0, 6, 0.8), (540.0, 8, 0.85)]
 # An ArcHold is never shorter than this many beats; an Arc set too short for it gets punches.
@@ -1329,6 +1403,7 @@ def plan_sets_character(bar_lines: np.ndarray, bar_map: List[str], rest_beats: f
     cursor = {"normal": 0, "drop": 0, "calm": 0}
     sets: List[WorkoutSet] = []
     history: List[str] = []
+    limits = dict(plan.get("limits", {}))     # exercise -> how many sets of it the track may have
 
     def emit(ex: str, bar: int, bars: int, mirror: bool = False) -> bool:
         if bar + bars >= len(bar_lines):
@@ -1340,13 +1415,16 @@ def plan_sets_character(bar_lines: np.ndarray, bar_map: List[str], rest_beats: f
             ex = plan["fill"]          # the camera has to come home between two obstacle sets
         if ex == ARC and history and history[-1] == ARC:
             ex = plan["fill"]          # a rest between two circles: never one straight after another
+        if ex in limits:
+            if limits[ex] <= 0: ex, mirror = plan["fill"], False
+            else: limits[ex] -= 1
         end = max(start, boundary - rest_beats * beat)
         sets.append(WorkoutSet(index=len(sets), exercise=ex, start=start, end=min(end, track_end),
                                rest_end=min(boundary, track_end), bar=bar, mirror=mirror))
         history.append(ex)
         return True
 
-    bar = 0
+    bar = _START_BAR[0]
     while bar < len(bar_lines):
         in_drop = any(0 <= bar - d < plan["drop_bars"] for d in drops)
         quiet = bar < len(bar_map) and bar_map[bar] != "#"
@@ -1380,9 +1458,23 @@ def plan_sets_character(bar_lines: np.ndarray, bar_map: List[str], rest_beats: f
                     if not emit(ARC, bar, limit - bar): return sets
                     bar = limit
                 break
-            if not emit(ex, bar, bars, mirror): return sets
+            if not emit(ex, bar, bars, mirror): return finale(sets)
             bar += bars
+    return finale(sets)
+
+
+def finale(sets: List[WorkoutSet]) -> List[WorkoutSet]:
+    """The competitor's last move of a level is the star; plans with a `finale` exercise end on it
+    (applied by plan_sets_character's caller through _FINALE)."""
+    if _FINALE[0] and sets:
+        sets[-1].exercise = _FINALE[0]
+        sets[-1].mirror = False
     return sets
+
+
+_FINALE: List[Optional[str]] = [None]
+# The bar a competitor-style plan starts on: the --intro-rest line, so a held pose there is not cut.
+_START_BAR: List[int] = [0]
 
 
 def mirror_sets(events: List[Event], sets: List[WorkoutSet], lane_count: int) -> None:
@@ -1424,7 +1516,7 @@ def expand_compound(events: List[Event], sets: List[WorkoutSet], beat: float, la
     for block in sets:
         members = sorted(by_set.get(block.index, []), key=lambda e: e.time)
         ex = block.exercise
-        if not members and ex != ARC: continue
+        if not members and ex not in (ARC, SQUAT, RAILS): continue
         made: List[Event] = []
         if ex == ARC:
             # One mirrored pair on the set's first beat (its bar line - on the beat even where the
@@ -1479,6 +1571,63 @@ def expand_compound(events: List[Event], sets: List[WorkoutSet], beat: float, la
             else:
                 for n, ev in enumerate(members):
                     made.append(note(ev, PUNCH, 1 + n % 2))
+        elif ex == STEP_PAIR:
+            # Together, step, together, step: both feet on the beat, then one foot, in turn.
+            for n, ev in enumerate(members):
+                if n % 2 == 0:
+                    made.append(note(ev, KICK, 1))
+                    made.append(note(ev, KICK, 2))
+                else:
+                    made.append(note(ev, KICK, 1 + (n // 2) % 2))
+        elif ex == PUNCH_PAIR:
+            # The double punch, then a single: low pair, jab, high pair, jab.
+            for n, ev in enumerate(members):
+                if n % 2 == 0:
+                    kind = PUNCH if n % 4 == 0 else PUNCH_HIGH
+                    made.append(note(ev, kind, 1))
+                    made.append(note(ev, kind, 2))
+                else:
+                    made.append(note(ev, PUNCH, 1 + (n // 2) % 2))
+        elif ex in (SPEED_PUNCH, SPEED_STEP):
+            # On the beat and the eighth after it, hands (feet) alternating: 1-2, 1-2...
+            kind = PUNCH if ex == SPEED_PUNCH else KICK
+            hand = 0
+            for ev in members:
+                made.append(note(ev, kind, 1 + hand % 2)); hand += 1
+                if ev.time + 0.5 * beat < block.end - 0.05 * beat:
+                    off = note(ev, kind, 1 + hand % 2); off.time = ev.time + 0.5 * beat
+                    made.append(off); hand += 1
+        elif ex in (SQUAT, RAILS):
+            # One held pose for the set, from its first beat to the end of its active part, whole beats.
+            t0 = members[0].time if members and members[0].time - block.start < 0.25 * beat else block.start
+            src = members[0] if members else Event(time=t0, type=ex, intensity=0.6, set_index=block.index)
+            beats_held = int(np.floor((block.end - t0) / beat + 1e-3))
+            if beats_held >= 2:
+                pose = note(src, SQUAT_HOLD_TYPE if ex == SQUAT else RAILS_TYPE, 1, beats_held * beat)
+                pose.time = t0
+                made.append(pose)
+                if ex == RAILS:
+                    for n, ev in enumerate(m for m in members if m.time >= t0 + 0.75 * beat):
+                        if n % 2 == 0: made.append(note(ev, PUNCH, 1 + (n // 2) % 2))
+        elif ex == LUNGE:
+            # The left foot out on its strip for the set; the right foot taps every other beat.
+            first = members[0]
+            beats_held = int(np.floor((block.end - first.time) / beat + 1e-3))
+            if beats_held >= 2:
+                made.append(note(first, "KickHold", 0, beats_held * beat - 0.25 * beat))
+                for ev in members[1:]:
+                    made.append(note(ev, KICK, 2))      # a lunge pulse on every beat
+            else:
+                for n, ev in enumerate(members): made.append(note(ev, KICK, 1 + n % 2))
+        elif ex == WIDE:
+            # Out (two strips apart, held a beat), in (both feet together), every two beats.
+            for n, ev in enumerate(members):
+                if n % 2 == 0:
+                    made.append(note(ev, "KickHold", 0, 0.75 * beat))
+                    made.append(note(ev, "KickHold", lane_count - 1, 0.75 * beat))
+                else:
+                    made.append(note(ev, KICK, 1))
+                    made.append(note(ev, KICK, 2))
         elif ex in (STEP_TOUCH, JAB_CROSS):
             for n, ev in enumerate(members):
                 made.append(note(ev, KICK if ex == STEP_TOUCH else PUNCH, 1 + n % 2))
@@ -2013,6 +2162,13 @@ def analyse(path: Path, cfg) -> Tuple[List[Event], float, float, int, List[Worko
         set_bars_for = parse_mapping(cfg.set_bars_for, {}, "--set-bars-for",
                                      lambda raw, name, chunk: _positive_int(raw, name, chunk))
         if cfg.pattern in CHARACTER_PLANS:
+            _FINALE[0] = CHARACTER_PLANS[cfg.pattern].get("finale")
+            if cfg.competitor_style and cfg.intro_rest > 0:
+                lines = [float(t) for t in bar_lines]
+                lo, hi = 0.85 * cfg.intro_rest, 1.15 * cfg.intro_rest
+                inside = [i for i in range(0, len(lines), 4) if lo <= lines[i] <= hi] or \
+                         [i for i in range(len(lines)) if lo <= lines[i] <= hi]
+                _START_BAR[0] = min(inside or range(len(lines)), key=lambda i: abs(lines[i] - cfg.intro_rest))
             sets = plan_sets_character(bar_lines, cfg.bar_map, cfg.rest_beats, beat, track_end, cfg.pattern)
         elif cfg.pattern == "intense-v2":
             sets = plan_sets_v2(bar_lines, cfg.bar_map, cfg.rest_beats, beat, track_end, cfg.v2_rotation)
@@ -2435,6 +2591,10 @@ def build_parser() -> argparse.ArgumentParser:
     g.add_argument("--intro-arcs", action="store_true",
                    help="before the drums first come in, a chain of long ArcHolds instead of notes: one per "
                         "4-bar phrase, one turn a bar, hands alternating, the last phrase both hands")
+    g.add_argument("--competitor-style", action="store_true",
+                   help="video 9: the competitor's vocabulary and phrase system; picks the plan competitor-<difficulty>")
+    g.add_argument("--difficulty", choices=("easy", "medium", "hard"), default="medium",
+                   help="with --competitor-style: easy ~1.3, medium ~1.8, hard ~2.3 actions a second")
     g.add_argument("--intro-melody-bars", type=int, default=8,
                    help="with both --intro-arcs and --intro-melody-onsets: the last N bars before the drums "
                         "follow the melody, the whole phrases before them are circles (default 8)")
@@ -2495,6 +2655,8 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main(argv: Optional[Sequence[str]] = None) -> int:
     cfg = build_parser().parse_args(argv)
+    if cfg.competitor_style:
+        cfg.pattern = "competitor-" + cfg.difficulty
 
     if not cfg.audio.is_file():
         sys.exit(f"input not found: {cfg.audio}")
