@@ -649,3 +649,28 @@ last `--intro-melody-bars` (8) follow the melody into the drums.
 .venv\Scripts\python generate_beatmap.py ..\..\Assets\Audio\Tracks\track8_2.wav --detector grid --pattern halloween2-lab --rest-beats 1 --spacing-tolerance 0.05 --grid-quiet-every 2 --fill-gaps-dodge --intro-melody-onsets --intro-arcs
 .venv\Scripts\python generate_beatmap.py ..\..\Assets\Audio\Tracks\track8_3.wav --detector grid --pattern halloween2-castle --rest-beats 1 --spacing-tolerance 0.05 --grid-quiet-every 2 --fill-gaps-dodge --intro-melody-onsets --intro-arcs
 ```
+
+## Video 9: `--competitor-style --difficulty easy|medium|hard`
+
+The competitor's system (Immersive Dance Mode, see Documents/Анализ_конкурента_DanceMode.md) as three
+plans, `competitor-easy|medium|hard`, chosen by the two flags. Footprints (steps, single and in
+pairs), fists (alternating, in pairs, two heights), the rays (Cross: both fists high and out over two
+strips apart - the star) on the first bar of every drop and as the level's last move (`finale`), the
+held squat on breaks, walls, rails, long strips. Phrases of 8 bars, steps -> punches -> a big move;
+quiet stretches get the big slow moves. `limits` caps ArcHold at 1-2 a level. The plan starts on the
+`--intro-rest` bar, so the first action comes at ~5 s and a held pose there is not cut.
+
+New JSON types (held poses, duration required): `Rails` (rails over the two outer lanes - stand
+narrow) and `SquatHold` (floor lasers and a bar over the road on every beat - a wide squat, pulsing).
+New sets: StepPair, PunchPair, SpeedPunch / SpeedStep (on the beat and the eighth after it), Squat,
+RailsSet, Lunge (a strip held under one foot, the other pulsing every beat), Wide (strips apart,
+then feet together).
+
+Measured (distinct moments a second, a squat's bars counted once a beat): track9_1 easy 1.35,
+track9_2 medium 1.74, track9_3 hard 2.39; every note on the eighth grid.
+
+```powershell
+.venv\Scripts\python generate_beatmap.py ..\..\Assets\Audio\Tracks\track9_1.wav --detector grid --rest-beats 1 --spacing-tolerance 0.05 --grid-quiet-every 2 --competitor-style --difficulty easy --intro-rest 5
+.venv\Scripts\python generate_beatmap.py ..\..\Assets\Audio\Tracks\track9_2.wav --detector grid --rest-beats 1 --spacing-tolerance 0.05 --grid-quiet-every 1 --competitor-style --difficulty medium --intro-rest 5
+.venv\Scripts\python generate_beatmap.py ..\..\Assets\Audio\Tracks\track9_3.wav --detector grid --rest-beats 1 --spacing-tolerance 0.05 --grid-quiet-every 1 --competitor-style --difficulty hard --intro-rest 5
+```
