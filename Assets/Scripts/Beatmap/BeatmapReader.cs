@@ -126,7 +126,8 @@ public static class BeatmapReader
             // a side for Dodge, ignored by Curb and Duck - is validated by exactly the same
             // range test as a note's, which is the point of carrying the direction in it.
             bool wantsHold = type == CueType.KickHold || type == CueType.PunchHold || type == CueType.PunchSweep
-                          || type == CueType.ArcHold || type == CueType.CurbGap || type == CueType.CurbSplit;
+                          || type == CueType.ArcHold || type == CueType.CurbGap || type == CueType.CurbSplit
+                          || type == CueType.Rails || type == CueType.SquatHold;
             // A Dodge may be long (a wall held for bars) or the ordinary one-shot wall.
             bool mayHold = wantsHold || type == CueType.Dodge;
             if (wantsHold && !(e.duration > 0f))

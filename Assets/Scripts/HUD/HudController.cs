@@ -103,6 +103,7 @@ public class HudController : MonoBehaviour
         secondaryColor = theme.secondaryColor;
 
         Restyle();
+        UpdateRating();
     }
 
     public HudBeatClock Beats => beats;
@@ -150,6 +151,39 @@ public class HudController : MonoBehaviour
         beats.Reset();
         if (comboNumber != null) comboNumber.text = skin != null ? skin.FormatCombo(0) : "0";
         if (skin != null) skin.SetNextMilestone(NextMilestoneCombo());
+        UpdateRating();
+    }
+
+    // --- the rating ladder (video 9): the label under the number names the combo's tier ---
+
+    private string[] ladderWords;
+    private int[] ladderCombos;
+    private string defaultLabel;
+    private int shownTier = -2;
+
+    /// Replaces the combo's label with a rating that climbs with the combo: words[i] from
+    /// combos[i] on (the label's own text below the first), a little larger at every tier.
+    public void UseRatingLadder(string[] words, int[] combos)
+    {
+        if (words == null || combos == null || words.Length == 0) return;
+        ladderWords = words;
+        ladderCombos = combos;
+        shownTier = -2;
+        UpdateRating();
+    }
+
+    private void UpdateRating()
+    {
+        if (ladderWords == null || comboLabel == null) return;
+        if (defaultLabel == null) defaultLabel = comboLabel.text;
+        int tier = -1;
+        for (int i = 0; i < Mathf.Min(ladderWords.Length, ladderCombos.Length); i++) if (combo >= ladderCombos[i]) tier = i;
+        string want = tier < 0 ? defaultLabel : ladderWords[tier];
+        // Compared by text: a restyle (a theme change) puts the skin's own label back.
+        if (tier == shownTier && comboLabel.text == want) return;
+        shownTier = tier;
+        comboLabel.text = want;
+        comboLabel.rectTransform.localScale = Vector3.one * (1f + 0.07f * Mathf.Max(0, tier + 1));
     }
 
     /// The combo value of the next milestone banner, or 0 when none is left.
@@ -183,6 +217,7 @@ public class HudController : MonoBehaviour
         combo++;
         scoredNotes++;
         if (comboNumber != null) comboNumber.text = skin != null ? skin.FormatCombo(combo) : combo.ToString();
+        UpdateRating();
 
         pulseSeconds = Mathf.Max(0.01f, beats.Seconds(style != null ? style.ComboPulseBeats : 0.35f));
         glowSeconds = Mathf.Max(0.01f, beats.Seconds(style != null ? style.ComboGlowDecayBeats : 0.6f));

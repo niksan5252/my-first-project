@@ -214,6 +214,37 @@ public static class TunnelRecording
 
         controller = new RecorderController(settings);
         controller.PrepareRecording();
+        pendingSeconds = seconds;
+        pendingProfile = profile;
+        // A playlist that opens straight on content (video 9): the tunnel's pre-roll plays but is
+        // not recorded - the recorder starts on the first frame of music.
+        var director = PlaylistDirector.Active;
+        if (director != null && director.Playlist != null && director.Playlist.recordFromContent)
+        {
+            EditorApplication.update += WaitForContent;
+            Debug.Log("[TunnelRecording] waiting for the music to start (the pre-roll is not recorded)");
+            return;
+        }
+        StartNow();
+    }
+
+    private static float pendingSeconds;
+    private static Profile pendingProfile;
+
+    private static void WaitForContent()
+    {
+        if (controller == null || !EditorApplication.isPlaying) { EditorApplication.update -= WaitForContent; return; }
+        var spawner = UnityEngine.Object.FindFirstObjectByType<CueSpawner>();
+        var clock = spawner != null ? spawner.Clock : null;
+        if (clock == null || !clock.IsRunning || clock.SongTime < -0.5f / Fps) return;
+        EditorApplication.update -= WaitForContent;
+        StartNow();
+    }
+
+    private static void StartNow()
+    {
+        float seconds = pendingSeconds;
+        var profile = pendingProfile;
         if (!controller.StartRecording())
         {
             Debug.LogError("[TunnelRecording] the recorder did not start - see the messages above");

@@ -65,6 +65,14 @@ public class PlaylistThemeBlender : MonoBehaviour
             var span = spans[k];
             var next = span.segment.theme;
             if (next == null) continue;
+            if (next == spans[k - 1].segment.theme)
+            {
+                // The same look on both sides (two spoiler clips of one level): nothing to change.
+                ringsQueuedFor = Mathf.Max(ringsQueuedFor, k); gateFor = Mathf.Max(gateFor, k);
+                cuesFor = Mathf.Max(cuesFor, k); preparedFor = Mathf.Max(preparedFor, k);
+                continue;
+            }
+            if (span.IsCut) gateFor = Mathf.Max(gateFor, k);     // a cut has no gate flying in
             var tunnel = applier.Tunnel;
             float travel = tunnel != null ? tunnel.TunnelLength / Mathf.Max(0.01f, tunnel.ScrollSpeed) : 12f;
 
@@ -121,6 +129,7 @@ public class PlaylistThemeBlender : MonoBehaviour
         float veilAmount = Mathf.Pow(Mathf.Sin(p * Mathf.PI), 0.7f);
         // A gust hides the swap behind its leaves, so the fog only half closes; rain darkens more.
         if (s.segment.transitionLook == PlaylistTransitionLook.Gust) veilAmount *= 0.55f;
+        if (s.IsCut) { veilAmount = 0f; e = p >= 0.5f ? 1f : 0f; }     // a cut: the new look at once
 
         if (swappedFor < active && now >= s.inMiddle) Swap(active);
 
@@ -198,6 +207,7 @@ public class PlaylistThemeBlender : MonoBehaviour
     {
         swappedFor = k;
         var theme = director.Timeline.spans[k].segment.theme;
+        if (k > 0 && theme == director.Timeline.spans[k - 1].segment.theme) return;
         EnsureBlendVolume();
         RenderSettings.fogColor = theme.fogColor;
         applier.SwapTo(theme, prepared);

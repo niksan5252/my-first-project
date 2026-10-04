@@ -256,6 +256,21 @@ public static class SilhouetteExercisePlanner
                     if (backStep != null) moves.Add(StepMove(backStep, release, settled, fade, i, "Step back " + backStep.clip.name));
                     break;
                 }
+                case CueType.CurbSplit when set.mocapOnly:
+                case CueType.SquatHold:
+                {
+                    // A wide squat held for the pose: down onto its start, the bottom held - on a
+                    // SquatHold pulsing on every beat - and up at its end.
+                    float t0 = c.time, t1 = c.time + Mathf.Max(beat, c.duration);
+                    if (c.type == CueType.SquatHold)
+                    {
+                        obstacleTiming(c, out float b0, out float commit, out float release, out _, out _);
+                        t0 = commit; t1 = Mathf.Max(commit + beat, release);
+                    }
+                    var mv = SquatHold(set, t0, t1, beat, fade, c.type == CueType.SquatHold ? set.squatPulse : 0f);
+                    if (mv != null) { mv.note = i; mv.label = c.type + " (squat held)"; moves.Add(mv); }
+                    break;
+                }
                 case CueType.CurbSplit:
                     gestures.Add(new SilhouettePlanner.Gesture
                     {
@@ -299,9 +314,106 @@ public static class SilhouetteExercisePlanner
             }
         }
 
+        if (set.grooveAmount > 0f) Groove(set, chart, beatAt, moves);
+
         moves.Sort((a, b) => a.start.CompareTo(b.start));
         gestures.Sort((a, b) => a.start.CompareTo(b.start));
         home.Sort((a, b) => a.t0.CompareTo(b.t0));
+    }
+
+    /// The squat take: down to its bottom by t0, held to t1 (pulsing `pulse` clip seconds up and
+    /// back down on every beat, lowest ON the beat), then up at its own speed.
+    private static Move SquatHold(SilhouetteMotionSet set, float t0, float t1, float beat, float fade, float pulse)
+    {
+        var sq = set.squat;
+        if (sq == null || !sq.Valid) return null;
+        float down = Mathf.Min(sq.impact, Mathf.Max(0.3f, beat));
+        var mv = new Move { motion = sq, layer = 0 };
+        mv.Key(t0 - down, 0f);
+        mv.Key(t0, sq.impact);
+        float bottom = sq.impact;
+        if (pulse > 0f)
+        {
+            for (float t = t0 + beat; t < t1 - 0.25f * beat; t += beat)
+            {
+                mv.Key(t - 0.5f * beat, bottom - pulse);
+                mv.Key(t, bottom);
+            }
+        }
+        mv.Key(t1, bottom + 0.04f);
+        float rise = sq.rise > sq.impact ? sq.rise : sq.Length;
+        float up = Mathf.Max(0.3f, (rise - bottom) * 0.8f);
+        mv.Key(t1 + up, rise);
+        float tail = sq.Length - rise;
+        mv.Key(t1 + up + tail, sq.Length);
+        mv.start = t0 - down; mv.fadeIn = Mathf.Min(fade, down * 0.5f);
+        mv.end = t1 + up + tail; mv.fadeOut = Mathf.Min(fade, tail + 0.1f);
+        return mv;
+    }
+
+    /// Fills the gaps between moves of the body with a step-touch on the beat (the dance loop that
+    /// has "Step Touch" in its name, else the first step loop), blended down to grooveAmount, so
+    /// the figure keeps moving with the music between notes as a person following along does.
+    /// The beats are counted from the last note before the gap, which sits on the chart's grid.
+    private static void Groove(SilhouetteMotionSet set, BeatmapSequencer chart, System.Func<float, float> beatAt, List<Move> moves)
+    {
+        SilhouetteMotion take = null;
+        foreach (var m in set.steps)
+            if (m != null && m.Valid && m.marks.Length > 0 && !m.clip.name.EndsWith("(Mirror)") && m.clip.name.Contains("Step Touch")) { take = m; break; }
+        if (take == null) foreach (var m in set.steps) if (m != null && m.Valid && m.marks.Length > 0) { take = m; break; }
+        if (take == null || chart.Count == 0) return;
+
+        var body = moves.FindAll(m => m.layer == 0);
+        body.Sort((a, b) => a.start.CompareTo(b.start));
+        float firstNote = float.PositiveInfinity, lastNote = float.NegativeInfinity;
+        var times = new List<float>();
+        for (int i = 0; i < chart.Count; i++)
+        {
+            times.Add(chart[i].time);
+            firstNote = Mathf.Min(firstNote, chart[i].time);
+            lastNote = Mathf.Max(lastNote, chart[i].time + chart[i].duration);
+        }
+        times.Sort();
+        float busyUntil = firstNote;
+        var added = new List<Move>();
+        foreach (var m in body)
+        {
+            TryGap(busyUntil, m.start);
+            busyUntil = Mathf.Max(busyUntil, m.end);
+        }
+        TryGap(busyUntil, lastNote);
+        moves.AddRange(added);
+
+        void TryGap(float from, float to)
+        {
+            float beat = beatAt(from);
+            if (to - from < set.grooveMinBeats * beat || to - from > set.grooveMaxBars * 4f * beat) return;
+            // The beat grid through the last note at or before the gap's start.
+            int k = times.BinarySearch(from);
+            if (k < 0) k = ~k - 1;
+            float anchor = k >= 0 ? times[k] : from;
+            float first = anchor + Mathf.Ceil((from - anchor) / beat + 0.25f) * beat;
+            float last = to - 0.5f * beat;
+            if (last - first < beat) return;
+            float clip = take.marks[0];
+            var mv = new Move { motion = take, layer = 0, amp = set.grooveAmount, label = "Groove " + take.clip.name };
+            mv.Key(first - beat, clip - beat);
+            mv.Key(first, clip);
+            int n = 0;
+            for (float t = first + beat; t <= last + 1e-3f; t += beat)
+            {
+                float found = FindMark(take, clip, beat * set.takeMinSpeed, beat * set.takeMaxSpeed, beat, i => true);
+                if (float.IsNaN(found)) found = clip + beat;
+                mv.Key(t, found);
+                clip = found;
+                n++;
+            }
+            float fade = Mathf.Min(0.22f, 0.5f * beat);
+            mv.start = Mathf.Max(from, first - 0.5f * beat); mv.fadeIn = fade;
+            mv.end = Mathf.Min(to, last + 0.5f * beat); mv.fadeOut = fade;
+            mv.label += " x" + (n + 1);
+            if (mv.end - mv.start > 2f * fade) added.Add(mv);
+        }
     }
 
     // --- building the moments ---
@@ -316,7 +428,7 @@ public static class SilhouetteExercisePlanner
         {
             var c = chart[i];
             if (c.type == CueType.Dodge || c.type == CueType.Curb || c.type == CueType.Duck || c.type == CueType.Jump
-                || c.type == CueType.CurbGap || c.type == CueType.CurbSplit) continue;
+                || c.type == CueType.CurbGap || c.type == CueType.CurbSplit || c.type == CueType.Rails || c.type == CueType.SquatHold) continue;
             if (list.Count == 0 || c.time - list[list.Count - 1].t > SameMoment) list.Add(new Moment { t = c.time });
             list[list.Count - 1].notes.Add(i);
         }

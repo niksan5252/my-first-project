@@ -174,6 +174,23 @@ public class SilhouetteTrainer : MonoBehaviour
     }
     private bool panelPalette;
 
+    /// Video 9: the trainer as a person filmed on camera - a solid black figure, softly backlit in
+    /// the theme's two colours (a vertical wash behind it and a halo round its edge), in a thin
+    /// rounded frame, with a light motion trail. Keeps the motion set; call before the build.
+    public void UseFilmedLook()
+    {
+        if (built) return;
+        filmed = true;
+        panelPalette = true;
+        textured = false;
+        outlineOnly = false;
+        followThemeColor = true;
+    }
+    private bool filmed;
+    private RawImage trailImage;
+    private RenderTexture trailRt;
+    [SerializeField, Range(0f, 1f)] private float filmedTrail = 0.38f;
+
     /// Swaps the character before the trainer is built - a playlist bringing its own. `asTextured`
     /// draws it as itself, textured, with a rim light and a backdrop in the theme's colours, rather
     /// than as a neon contour.
@@ -208,6 +225,7 @@ public class SilhouetteTrainer : MonoBehaviour
         if (!syncWritten && syncRows.Count > 0) WriteSync();
         if (graph.IsValid()) graph.Destroy();
         if (rt != null) { rt.Release(); Destroy(rt); }
+        if (trailRt != null) { trailRt.Release(); Destroy(trailRt); }
         if (stage != null) Destroy(stage);
         if (canvas != null) Destroy(canvas.gameObject);
         if (bodyMat != null) Destroy(bodyMat);
@@ -234,6 +252,13 @@ public class SilhouetteTrainer : MonoBehaviour
         SetLayer(model, layer);
 
         bodyMat = new Material(bodyShader != null ? bodyShader : Shader.Find("Tunnel/SilhouetteBody"));
+        if (filmed)
+        {
+            // A person against the light: almost black, the faintest rim in the theme's colour.
+            bodyMat.SetColor("_FillColor", new Color(0.012f, 0.012f, 0.016f, 1f));
+            bodyMat.SetFloat("_RimStrength", 0.14f);
+            bodyMat.SetFloat("_RimPower", 3.5f);
+        }
         var texShader = texturedShader != null ? texturedShader : Shader.Find("Tunnel/SilhouetteTextured");
         foreach (var r in model.GetComponentsInChildren<Renderer>(true))
         {
@@ -387,9 +412,10 @@ public class SilhouetteTrainer : MonoBehaviour
         panel.anchoredPosition = new Vector2(panelLeftMargin, panelRaise);
         panel.sizeDelta = panelSize;
 
-        float halo = 40f;
-        frameHalo = PanelImage("FrameGlow", SilhouettePanelSprites.Glow(frameCorner, halo), Color.clear, -halo);
-        var glass = PanelImage("Glass", SilhouettePanelSprites.Fill(frameCorner), new Color(0.01f, 0.012f, 0.03f, glassAlpha), 0f);
+        float halo = filmed ? 26f : 40f;
+        frameHalo = PanelImage("FrameGlow", filmed ? SilhouettePanelSprites.GlowRound(frameCorner, halo) : SilhouettePanelSprites.Glow(frameCorner, halo), Color.clear, -halo);
+        var glass = PanelImage("Glass", filmed ? SilhouettePanelSprites.FillRound(frameCorner) : SilhouettePanelSprites.Fill(frameCorner),
+                               new Color(0.01f, 0.012f, 0.03f, filmed ? 1f : glassAlpha), 0f);
         if (textured || panelPalette)
         {
             // The backdrop: a texture recoloured whenever the theme's colours move (ApplyTheme),
@@ -404,8 +430,11 @@ public class SilhouetteTrainer : MonoBehaviour
 
         glowMat = new Material(glowShader != null ? glowShader : Shader.Find("Tunnel/SilhouetteGlow"));
         figureGlow = PanelRaw("FigureGlow", glowMat);
+        // The motion trail: the previous frame of the figure under this one, half see-through.
+        if (filmed) trailImage = PanelRaw("FigureTrail", null);
         figureImage = PanelRaw("Figure", null);
-        frameEdge = PanelImage("Frame", SilhouettePanelSprites.Edge(frameCorner, frameWidth), Color.white, 0f);
+        frameEdge = PanelImage("Frame", filmed ? SilhouettePanelSprites.EdgeRound(frameCorner, Mathf.Min(frameWidth, 2f))
+                                               : SilhouettePanelSprites.Edge(frameCorner, frameWidth), Color.white, 0f);
         EnsureTexture();
     }
 
@@ -464,6 +493,17 @@ public class SilhouetteTrainer : MonoBehaviour
             glowMat.SetFloat("_Outline", 0f);
             glowMat.SetFloat("_Halo", texturedHalo);
         }
+        if (filmed)
+        {
+            // A solid figure lit from behind: no contour line, a soft halo round the edge.
+            glowMat.SetFloat("_Outline", 0f);
+            glowMat.SetFloat("_Halo", 0.9f);
+            if (trailRt != null) { trailRt.Release(); Destroy(trailRt); }
+            trailRt = new RenderTexture(w, h, 0, RenderTextureFormat.ARGB32) { name = "SilhouetteTrailRT", filterMode = FilterMode.Bilinear };
+            trailRt.Create();
+            trailImage.texture = trailRt;
+            trailImage.color = new Color(1f, 1f, 1f, filmedTrail);
+        }
         glowMat.SetFloat("_ContourPx", Mathf.Max(1.5f, h * contourWidth));
         glowMat.SetFloat("_ClosePx", h * contourWidth);
     }
@@ -517,6 +557,8 @@ public class SilhouetteTrainer : MonoBehaviour
     {
         if (!built) return;
         EnsureTexture();
+        // Last frame's figure, before this frame renders over it: the motion trail.
+        if (filmed && trailRt != null && rt != null && measured) Graphics.Blit(rt, trailRt);
         ApplyTheme();
 
         float now = Now;
@@ -783,6 +825,7 @@ public class SilhouetteTrainer : MonoBehaviour
                 // A gesture only shapes the stance: while a jump or a crouch owns the body the
                 // gesture gives way, or the tail of a wall's lean would twist the jump.
                 float w = g.Weight(now) * (mocap ? 1f : stance);
+                if (mocap && s.mocapOnly) w = 0f;      // the takes alone: no reach, no procedural pose
                 if (mocap)
                 {
                     // Over a take the reach or the tap is only a touch-up at the note.
@@ -1087,6 +1130,13 @@ public class SilhouetteTrainer : MonoBehaviour
                 float left = Mathf.Pow(1f - u, 2.2f), right = Mathf.Pow(u, 2.2f);
                 float lift = 0.75f + 0.25f * (1f - v);
                 Color c = (a * left + b * right) * backdropStrength * lift;
+                if (filmed)
+                {
+                    // A vertical wash, one colour at the top and the other at the floor, brightest
+                    // in a soft column behind the figure - a studio backlight.
+                    float column = Mathf.Exp(-Mathf.Pow((u - 0.5f) / 0.3f, 2f));
+                    c = Color.Lerp(b, a, v) * (0.38f + 0.62f * column) * 0.95f;
+                }
                 c.a = 1f;
                 px[y * w + x] = c;
             }

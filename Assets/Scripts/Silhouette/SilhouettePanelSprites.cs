@@ -8,13 +8,20 @@ public static class SilhouettePanelSprites
 {
     public static Sprite Fill(float corner) => Make(corner, 0f, d => Mathf.Clamp01(0.5f - d));
 
+    // The same three shapes with ROUND corners (radius `corner`) - the filmed-trainer panel of video 9.
+    public static Sprite FillRound(float corner) => Make(corner, 0f, d => Mathf.Clamp01(0.5f - d), true);
+    public static Sprite EdgeRound(float corner, float width) =>
+        Make(corner, 2f, d => Mathf.Clamp01(width * 0.5f + 0.5f - Mathf.Abs(d + width * 0.5f)), true);
+    public static Sprite GlowRound(float corner, float radius) =>
+        Make(corner, radius, d => d <= 0f ? 0f : Mathf.Pow(1f - Mathf.Clamp01(d / radius), 2.2f), true);
+
     public static Sprite Edge(float corner, float width) =>
         Make(corner, 2f, d => Mathf.Clamp01(width * 0.5f + 0.5f - Mathf.Abs(d + width * 0.5f)));
 
     public static Sprite Glow(float corner, float radius) =>
         Make(corner, radius, d => d <= 0f ? 0f : Mathf.Pow(1f - Mathf.Clamp01(d / radius), 2.2f));
 
-    private static Sprite Make(float corner, float margin, System.Func<float, float> alpha)
+    private static Sprite Make(float corner, float margin, System.Func<float, float> alpha, bool round = false)
     {
         int m = Mathf.CeilToInt(margin);
         int c = Mathf.CeilToInt(corner);
@@ -29,6 +36,11 @@ public static class SilhouettePanelSprites
                 float box = Mathf.Max(fx - half, fy - half);
                 float cut = (fx + fy - (2f * half - corner)) * 0.70710678f;
                 float d = Mathf.Max(box, cut);
+                if (round)
+                {
+                    float qx = fx - (half - corner), qy = fy - (half - corner);
+                    d = new Vector2(Mathf.Max(qx, 0f), Mathf.Max(qy, 0f)).magnitude + Mathf.Min(Mathf.Max(qx, qy), 0f) - corner;
+                }
                 px[y * size + x] = new Color32(255, 255, 255, (byte)Mathf.RoundToInt(alpha(d) * 255f));
             }
         tex.SetPixels32(px);

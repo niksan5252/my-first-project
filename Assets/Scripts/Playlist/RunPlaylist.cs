@@ -10,7 +10,16 @@ public enum PlaylistTransition
     // The outgoing track dips away, a thunderclap and a flash land at the transition's middle,
     // and the incoming track starts on the clap.
     Thunder,
+    // A hard cut (a few hundredths of a second of crossfade against a click): the spoiler's clips.
+    Cut,
+    // A break between two levels: the outgoing track has ended, the screen is covered by the
+    // retention cards over its frozen, blurred last frame with a quiet loop of its last bars under
+    // them, and the incoming track starts when the cards are done (RunPlaylist.interludeSeconds).
+    Interlude,
 }
+
+/// What a segment is in a retention-wrapped video: one of the levels, or a clip of the spoiler.
+public enum PlaylistSegmentRole { Level, Spoiler }
 
 /// What a transition LOOKS like, independent of what the music does.
 public enum PlaylistTransitionLook
@@ -29,6 +38,7 @@ public enum PlaylistTransitionLook
 public class PlaylistSegment
 {
     public string label;
+    public PlaylistSegmentRole role = PlaylistSegmentRole.Level;
     public AudioClip track;
     // File name under StreamingAssets/Beatmaps, as for a RunProfile.
     public string beatmapFileName;
@@ -106,4 +116,28 @@ public class RunPlaylist : ScriptableObject
     // No trainer panel at all in this playlist: the silhouette on the left is not built. The panel
     // stays in the scene, so other playlists and single-track profiles keep it.
     public bool hideTrainer;
+    // The trainer as a person filmed on camera: solid black, backlit in the segment's colours, a
+    // thin rounded frame, a light motion trail (SilhouetteTrainer.UseFilmedLook).
+    public bool trainerFilmed;
+
+    [Header("Retention wrapper (video 9) - off for every older playlist")]
+    // The whole wrapper: spoiler label over the Spoiler segments, the opening cards, the cards
+    // between levels (Interlude transitions), the combo reset per level and its rating ladder,
+    // the outro and the end screen (RetentionOverlay).
+    public bool retention;
+    [Min(3f)] public float interludeSeconds = 13f;       // a break between two levels
+    [Min(3f)] public float introCardsSeconds = 9f;       // the three opening cards (an Interlude too)
+    [Min(0f)] public float outroSeconds = 28f;           // VICTORY, "I hope you enjoyed it", the end screen
+    [Min(0f)] public float endScreenSeconds = 20f;       // the last part of the outro
+    [Range(0f, 1f)] public float loopVolume = 0.22f;     // the quiet loop under the cards
+    [Min(1)] public int loopBars = 4;                    // its length: the last bars before the cut
+    // The recording starts on the first frame of music: the tunnel's pre-roll is played but not
+    // recorded, so the video opens straight on content.
+    public bool recordFromContent;
+    public string welcomeText = "WELCOME TO BEAT TUNNEL";
+    // The combo rating under the number, by threshold (each word from its combo on).
+    public string[] ratingWords = { "WELL DONE", "AWESOME", "FLAWLESS", "PERFECT", "THAT'S INCREDIBLE", "EPIC", "THAT'S AMAZING" };
+    public int[] ratingCombos = { 10, 25, 45, 70, 100, 140, 190 };
+
+    public int LevelCount => segments.FindAll(s => s != null && s.role == PlaylistSegmentRole.Level).Count;
 }

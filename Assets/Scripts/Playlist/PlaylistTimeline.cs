@@ -19,12 +19,20 @@ public sealed class PlaylistTimeline
         public float bpm, secondsPerBeat, gridAnchor;
         public float Offset => audioStart - segment.clipStart;   // track time -> song time
         public bool HasTransitionIn => !float.IsNegativeInfinity(inStart);
+        public float transitionLength;
+        public bool IsCut => HasTransitionIn && segment.transitionIn == PlaylistTransition.Cut;
+        public bool IsInterlude => HasTransitionIn && segment.transitionIn == PlaylistTransition.Interlude;
     }
+
+    public const float CutSeconds = 0.06f;
 
     public readonly List<Span> spans = new List<Span>();
     public Beatmap Meta { get; private set; }
     public List<BeatmapCue> Cues { get; private set; }
-    public float Length => spans.Count > 0 ? spans[spans.Count - 1].audioEnd : 0f;
+    // A retention wrapper's outro after the last track: the cards and the end screen.
+    public float Outro { get; private set; }
+    public float MusicEnd => spans.Count > 0 ? spans[spans.Count - 1].audioEnd : 0f;
+    public float Length => MusicEnd + Outro;
     public string Report { get; private set; }
 
     /// Lays the segments out and merges their charts. `solo` >= 0 plays that segment alone.
@@ -50,15 +58,16 @@ public sealed class PlaylistTimeline
         }
         if (used.Count == 0) { error = "the playlist has no segments"; return null; }
 
-        LayOut(t, used, charts);
+        LayOut(t, used, charts, playlist);
         t.Merge(playlist, charts);
+        if (playlist.retention && solo < 0) t.Outro = playlist.outroSeconds;
         return t;
     }
 
     /// The whole timing policy of a playlist, in one place. Crossfade: the next track starts at
     /// the transition's start and the previous one ends at its end. Thunder: the previous track
     /// ends, and the next one starts, at the transition's middle, where the clap lands.
-    private static void LayOut(PlaylistTimeline t, List<PlaylistSegment> segs, List<(Beatmap meta, List<BeatmapCue> cues)> charts)
+    private static void LayOut(PlaylistTimeline t, List<PlaylistSegment> segs, List<(Beatmap meta, List<BeatmapCue> cues)> charts, RunPlaylist playlist)
     {
         float cursor = 0f;
         for (int i = 0; i < segs.Count; i++)
@@ -69,7 +78,21 @@ public sealed class PlaylistTimeline
             {
                 var prev = t.spans[i - 1];
                 float d = seg.transitionSeconds;
-                if (seg.transitionIn == PlaylistTransition.Crossfade)
+                if (seg.transitionIn == PlaylistTransition.Cut)
+                {
+                    // A cut, crossfaded over a few hundredths of a second so it does not click.
+                    d = CutSeconds;
+                    span.inStart = prev.audioEnd - d * 0.5f;
+                    span.audioStart = span.inStart;
+                }
+                else if (seg.transitionIn == PlaylistTransition.Interlude)
+                {
+                    // Nothing overlaps: the old track has ended, the cards play, the new one starts.
+                    d = prev.segment.role == PlaylistSegmentRole.Spoiler ? playlist.introCardsSeconds : playlist.interludeSeconds;
+                    span.inStart = prev.audioEnd;
+                    span.audioStart = prev.audioEnd + d;
+                }
+                else if (seg.transitionIn == PlaylistTransition.Crossfade)
                 {
                     span.inStart = prev.audioEnd - d;
                     span.audioStart = span.inStart;
@@ -81,6 +104,7 @@ public sealed class PlaylistTimeline
                 }
                 span.inEnd = span.inStart + d;
                 span.inMiddle = span.inStart + d * 0.5f;
+                span.transitionLength = d;
                 cursor = span.audioStart;
             }
             span.audioStart = cursor;
@@ -112,11 +136,14 @@ public sealed class PlaylistTimeline
             float margin = playlist.noteMarginBeats * span.secondsPerBeat;
             // After a crossfade the new track's notes wait for the end of the change; after a
             // thunderclap the new track starts ON the clap, and so may its notes, a beat later.
+            // A cut keeps every note up to it, on both sides; after an interlude the notes start
+            // with the music (the cards were the margin).
             float from = !span.HasTransitionIn ? float.NegativeInfinity
+                       : span.IsCut || span.IsInterlude ? span.audioStart
                        : span.segment.transitionIn == PlaylistTransition.Thunder ? span.inMiddle + margin
                        : span.inEnd + margin;
             var next = i + 1 < spans.Count ? spans[i + 1] : null;
-            float until = next != null ? next.inStart - margin : span.audioEnd;
+            float until = next != null ? (next.IsCut ? next.inStart : next.IsInterlude ? span.audioEnd : next.inStart - margin) : span.audioEnd;
             float shift = span.Offset + meta.audioOffset;
             int kept = 0, dropped = 0;
             foreach (var c in charts[i].cues)

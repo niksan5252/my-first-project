@@ -26,6 +26,12 @@ public class PlaylistDirector : MonoBehaviour
     private PlaylistThemeBlender blender;
 
     private AudioSource[] sources;      // two, alternating: segment k plays on sources[k % 2]
+    private RetentionOverlay overlay;
+    // The quiet loop under the cards: two sources taking the repetitions in turn.
+    private AudioSource[] loopSources;
+    private readonly List<Loop> loops = new List<Loop>();
+    private readonly HashSet<int> loopScheduled = new HashSet<int>();
+    private struct Loop { public AudioClip clip; public float clipFrom, length, start, end; }
     private AudioSource thunder;
     private AudioClip thunderClip;
     private readonly HashSet<int> scheduled = new HashSet<int>();
@@ -67,8 +73,15 @@ public class PlaylistDirector : MonoBehaviour
         spawner.SetTrackInfo(name.Replace(' ', '_'), timeline.Length);
         if (themeApplier != null) themeApplier.SetTheme(timeline.spans[0].segment.theme);
         if (trainer != null && list.hideTrainer) trainer.enabled = false;     // before its Start: the panel is never built
-        else if (trainer != null && list.trainerMotionSet != null) trainer.UseMotionSet(list.trainerMotionSet, list.trainerTextured);
+        else if (trainer != null && list.trainerMotionSet != null) trainer.UseMotionSet(list.trainerMotionSet, list.trainerTextured && !list.trainerFilmed);
         if (trainer != null && list.trainerPanelInThemeColors) trainer.UsePanelPalette();
+        if (trainer != null && list.trainerFilmed && !list.hideTrainer) trainer.UseFilmedLook();
+        if (list.retention)
+        {
+            overlay = gameObject.AddComponent<RetentionOverlay>();
+            overlay.Configure(this, spawner);
+            if (hud != null) hud.UseRatingLadder(list.ratingWords, list.ratingCombos);
+        }
 
         BuildAudio();
         // The beat every environment pulses to lives here, for the whole run. Left to the
@@ -103,6 +116,7 @@ public class PlaylistDirector : MonoBehaviour
         thunderClip = ThunderSynth.Create(AudioSettings.outputSampleRate > 0 ? AudioSettings.outputSampleRate : 48000);
         thunder.clip = thunderClip;
         thunder.volume = playlist.thunderVolume;
+        if (playlist.retention) PlanLoops(template);
         // The scene's own music source is not used by a playlist.
         if (template != null) { template.Stop(); template.clip = null; }
     }
@@ -144,6 +158,8 @@ public class PlaylistDirector : MonoBehaviour
         thunder.Stop();
         scheduled.Clear();
         thunderScheduled.Clear();
+        if (loopSources != null) foreach (var s in loopSources) s.Stop();
+        loopScheduled.Clear();
         Pump(at);
     }
 
@@ -152,8 +168,68 @@ public class PlaylistDirector : MonoBehaviour
         if (!clockStarted || spawner == null || !spawner.Clock.IsRunning) return;
         float now = spawner.Clock.SongTime;
         Pump(now);
+        PumpLoops(now);
         ApplyVolumes(now);
         TrackSegment(now);
+    }
+
+    /// The quiet loops: under every interlude, the last `loopBars` bars of the track before it
+    /// (up to its cut), repeated end to end; under the outro, the last track's. Each repetition is
+    /// one scheduled play, sample-exact, on two sources in turn.
+    private void PlanLoops(AudioSource template)
+    {
+        loopSources = new AudioSource[2];
+        for (int i = 0; i < 2; i++) loopSources[i] = NewSource("Playlist Loop " + (char)('A' + i), template);
+        var spans = timeline.spans;
+        for (int k = 0; k < spans.Count; k++)
+        {
+            bool before = k + 1 < spans.Count ? spans[k + 1].IsInterlude : timeline.Outro > 0f;
+            if (!before) continue;
+            var s = spans[k];
+            var clip = s.segment.track;
+            if (clip == null) continue;
+            float cut = s.segment.clipStart + s.segment.PlayedLength;
+            float len = Mathf.Min(playlist.loopBars * 4f * s.secondsPerBeat, cut);
+            float from = s.audioEnd, until = k + 1 < spans.Count ? spans[k + 1].audioStart : timeline.Length;
+            for (float t = from; t < until - 0.05f; t += len)
+                loops.Add(new Loop { clip = clip, clipFrom = cut - len, length = Mathf.Min(len, until - t), start = t, end = until });
+        }
+    }
+
+    private void PumpLoops(float now)
+    {
+        if (loopSources == null) return;
+        float master = spawner.MusicSource != null ? spawner.MusicSource.volume : 1f;
+        for (int i = 0; i < loops.Count; i++)
+        {
+            var l = loops[i];
+            if (!loopScheduled.Contains(i) && now >= l.start - ScheduleAhead && now < l.start + l.length && startAt <= l.start + l.length)
+            {
+                if (l.clip.loadState == AudioDataLoadState.Unloaded) l.clip.LoadAudioData();
+                if (l.clip.loadState != AudioDataLoadState.Loaded) continue;
+                loopScheduled.Add(i);
+                var src = loopSources[i % 2];
+                src.Stop();
+                src.clip = l.clip;
+                float from = Mathf.Max(startAt, l.start);
+                src.time = Mathf.Clamp(l.clipFrom + (from - l.start), 0f, l.clip.length - 0.01f);
+                src.PlayScheduled(startDsp + from);
+                src.SetScheduledEndTime(startDsp + l.start + l.length);
+            }
+        }
+        // A short fade in at each break's start and out at its end, quiet in between.
+        foreach (var src in loopSources)
+        {
+            float v = 0f;
+            foreach (var l in loops)
+                if (now >= l.start - 0.1f && now <= l.end + 0.1f)
+                {
+                    float first = loops.Find(x => x.end == l.end).start;
+                    v = Mathf.Clamp01((now - first) / 0.6f) * Mathf.Clamp01((l.end - now) / 1.2f);
+                    break;
+                }
+            src.volume = playlist.loopVolume * v * master;
+        }
     }
 
     /// Loads, schedules and releases tracks around `now`.
@@ -224,9 +300,11 @@ public class PlaylistDirector : MonoBehaviour
     {
         var span = timeline.spans[k];
         float v = 1f;
-        if (span.HasTransitionIn)
+        if (span.IsInterlude)
+            v *= Mathf.Clamp01((t - span.audioStart) / 0.05f);
+        else if (span.HasTransitionIn)
         {
-            if (span.segment.transitionIn == PlaylistTransition.Crossfade)
+            if (span.segment.transitionIn == PlaylistTransition.Crossfade || span.IsCut)
                 v *= Mathf.Sin(Mathf.Clamp01((t - span.inStart) / (span.inEnd - span.inStart)) * Mathf.PI * 0.5f);
             else
                 v *= Mathf.Lerp(playlist.thunderTrackStartVolume, 1f,
@@ -237,7 +315,9 @@ public class PlaylistDirector : MonoBehaviour
         if (k + 1 < timeline.spans.Count)
         {
             var next = timeline.spans[k + 1];
-            if (next.segment.transitionIn == PlaylistTransition.Crossfade)
+            if (next.IsInterlude)
+                v *= Mathf.Clamp01((span.audioEnd - t) / 0.05f);
+            else if (next.segment.transitionIn == PlaylistTransition.Crossfade || next.IsCut)
                 v *= Mathf.Cos(Mathf.Clamp01((t - next.inStart) / (next.inEnd - next.inStart)) * Mathf.PI * 0.5f);
             else
             {
@@ -259,6 +339,8 @@ public class PlaylistDirector : MonoBehaviour
         if (spawner.BeatmapMeta != null) spawner.BeatmapMeta.bpm = span.bpm;
         spawner.SetTempo(span.bpm);
         if (hud != null) hud.Beats.Reset();
+        // Every level starts its combo from 0 (the spoiler's clips do not count).
+        if (playlist.retention && hud != null && span.segment.role == PlaylistSegmentRole.Level) hud.ResetCounter();
         Debug.Log("[Playlist] segment " + (k + 1) + " '" + span.segment.label + "' from song " + now.ToString("F2") + " s, bpm " + span.bpm.ToString("0.###"), this);
     }
 

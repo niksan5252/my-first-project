@@ -218,4 +218,18 @@ public class SilhouetteMotionSet : ScriptableObject
     [Range(0.1f, 1f)] public float assistBeats = 0.45f;
     // How much of a take's turn away from the viewer is taken out (see SilhouettePoseJob).
     [Range(0f, 1f)] public float faceFront = 0.85f;
+
+    [Header("Mocap only (video 9: a person filmed on camera)")]
+    // Every movement is the take alone: no IK reach of the hand to the cube or the foot to the
+    // tile, no procedural pose for the wide stance or the one leg (the squat take holds those).
+    // The feet stay pinned by the stance as before - the only IK left is against foot sliding.
+    public bool mocapOnly;
+    // Between notes the body never stands still: a step-touch on the beat, played at this much of
+    // the take (blended with the stance), in any gap of at least grooveMinBeats and at most
+    // grooveMaxBars between two moves.
+    [Range(0f, 1f)] public float grooveAmount = 0f;
+    [Min(1f)] public float grooveMinBeats = 2f;
+    [Min(1f)] public float grooveMaxBars = 8f;
+    // How deep a held squat pulses on every beat, in clip seconds of the squat take back from its bottom.
+    [Range(0f, 0.4f)] public float squatPulse = 0.14f;
 }
