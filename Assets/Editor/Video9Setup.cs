@@ -72,6 +72,9 @@ public static class Video9Setup
     // The spoiler: the four 3 s clips that score highest on actions, rays and big moves in levels 2
     // and 3 (picked from the charts by Tools/beatmap: actions in the window + 3 x rays + 2 x big
     // moves, 20 s apart, from 25 s in), each cut half a beat before a beat.
+    // false: no spoiler and no opening cards (WELCOME...) - the video opens straight on level 1.
+    // The clips below stay for turning it back on.
+    private const bool SpoilerIntro = false;
     private static readonly (int level, float from, float to)[] Spoiler =
     {
         (2, 101.846f, 104.977f), (2, 126.448f, 129.580f), (3, 172.691f, 175.551f), (3, 193.668f, 196.528f),
@@ -104,7 +107,7 @@ public static class Video9Setup
         p.trainerTextured = false;
         p.trainerPanelInThemeColors = false;
         p.trainerFilmed = true;
-        p.hideTrainer = false;
+        p.hideTrainer = true;                 // no trainer panel (neither the video nor the 3D one)
         p.retention = true;
         p.recordFromContent = true;
         p.interludeSeconds = 13f;
@@ -116,7 +119,7 @@ public static class Video9Setup
         p.welcomeText = "WELCOME TO BEAT TUNNEL";
 
         p.segments = new List<PlaylistSegment>();
-        for (int k = 0; k < Spoiler.Length; k++)
+        for (int k = 0; SpoilerIntro && k < Spoiler.Length; k++)
         {
             var (level, from, to) = Spoiler[k];
             var s = skins[level - 1];
@@ -234,7 +237,7 @@ public static class Video9Setup
         p.beatmapFileName = s.beatmap;
         p.theme = theme;
         p.preRoll = true;
-        p.hideTrainer = false;
+        p.hideTrainer = true;                 // no trainer panel (neither the video nor the 3D one)
         EditorUtility.SetDirty(p);
         return p;
     }

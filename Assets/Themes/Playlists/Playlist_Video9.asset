@@ -14,46 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::RunPlaylist
   title: Video9
   segments:
-  - label: Spoiler 1
-    role: 1
-    track: {fileID: 8300000, guid: 0d3b1c5a43f08e54aa32d2323b88cdac, type: 3}
-    beatmapFileName: track9_2.json
-    theme: {fileID: 11400000, guid: e94ebca5bae4ad94493947821f0c5908, type: 2}
-    clipStart: 101.846
-    clipEnd: 104.977
-    transitionIn: 2
-    transitionSeconds: 2
-    transitionLook: 0
-  - label: Spoiler 2
-    role: 1
-    track: {fileID: 8300000, guid: 0d3b1c5a43f08e54aa32d2323b88cdac, type: 3}
-    beatmapFileName: track9_2.json
-    theme: {fileID: 11400000, guid: e94ebca5bae4ad94493947821f0c5908, type: 2}
-    clipStart: 126.448
-    clipEnd: 129.58
-    transitionIn: 2
-    transitionSeconds: 2
-    transitionLook: 0
-  - label: Spoiler 3
-    role: 1
-    track: {fileID: 8300000, guid: 313700e214d718841b2341135691963d, type: 3}
-    beatmapFileName: track9_3.json
-    theme: {fileID: 11400000, guid: 42e429801423fd6459c1251e11aac574, type: 2}
-    clipStart: 172.691
-    clipEnd: 175.551
-    transitionIn: 2
-    transitionSeconds: 2
-    transitionLook: 0
-  - label: Spoiler 4
-    role: 1
-    track: {fileID: 8300000, guid: 313700e214d718841b2341135691963d, type: 3}
-    beatmapFileName: track9_3.json
-    theme: {fileID: 11400000, guid: 42e429801423fd6459c1251e11aac574, type: 2}
-    clipStart: 193.668
-    clipEnd: 196.528
-    transitionIn: 2
-    transitionSeconds: 2
-    transitionLook: 0
   - label: Level 1 BluePink
     role: 0
     track: {fileID: 8300000, guid: 47234a94b404beb4ea8bbc61e1b18bc7, type: 3}
@@ -96,7 +56,7 @@ MonoBehaviour:
   trainerMotionSet: {fileID: 11400000, guid: 20ea16a395c84014ea26240274841ece, type: 2}
   trainerTextured: 0
   trainerPanelInThemeColors: 0
-  hideTrainer: 0
+  hideTrainer: 1
   trainerFilmed: 1
   retention: 1
   interludeSeconds: 13
