@@ -1,0 +1,174 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c4e63c121d8143645b43a210331db440, type: 3}
+  m_Name: VideoSilhouetteSet
+  m_EditorClassIdentifier: Assembly-CSharp::VideoSilhouetteSet
+  clips:
+  - name: 01_step_touch
+    clip: {fileID: 32900000, guid: 023b3c0f3f80b7e4baead16fc73e5e10, type: 3}
+    hitTime: 5
+    start: 4.2
+    end: 5.8
+    fitSpeed: 0
+  - name: 02_jab_cross
+    clip: {fileID: 32900000, guid: 0357f2f6e06d0924aa943491cab592d1, type: 3}
+    hitTime: 5
+    start: 4.2
+    end: 5.8
+    fitSpeed: 0
+  - name: 03_double_punch
+    clip: {fileID: 32900000, guid: 6d5c32b6d634ebd40a0c38615a1c8402, type: 3}
+    hitTime: 5
+    start: 4.2
+    end: 5.8
+    fitSpeed: 0
+  - name: 04_punch_up
+    clip: {fileID: 32900000, guid: 5c7700508ccef1744acd97b0f3af909e, type: 3}
+    hitTime: 0.7083333
+    start: 0
+    end: 1.4166666
+    fitSpeed: 1
+  - name: 05_jumping_jack
+    clip: {fileID: 32900000, guid: eb61bb30b7bd217478d234d5c5846ec8, type: 3}
+    hitTime: 0.625
+    start: 0
+    end: 1.25
+    fitSpeed: 1
+  - name: 06_squat_b
+    clip: {fileID: 32900000, guid: f6bf06b8ef2d9a944b2ab17ea64bb287, type: 3}
+    hitTime: 0.6666667
+    start: 0
+    end: 1.3333334
+    fitSpeed: 1
+  - name: 07_sumo_b
+    clip: {fileID: 32900000, guid: 63674b9d32d476c478830de5f9488b22, type: 3}
+    hitTime: 0.8541667
+    start: 0
+    end: 1.7083334
+    fitSpeed: 1
+  - name: 08_side_lunge_b
+    clip: {fileID: 32900000, guid: 8c6dfb76c274a164180ce988d7003291, type: 3}
+    hitTime: 0.7083333
+    start: 0
+    end: 1.4166666
+    fitSpeed: 1
+  - name: 09_march_b
+    clip: {fileID: 32900000, guid: cc23266fbcd426c43baab260cc402e49, type: 3}
+    hitTime: 1.25
+    start: 0
+    end: 2.5
+    fitSpeed: 1
+  - name: 11_side_bend
+    clip: {fileID: 32900000, guid: e0c6394fc3404d440928c3b65ff8bfc1, type: 3}
+    hitTime: 0.6666667
+    start: 0
+    end: 1.3333334
+    fitSpeed: 1
+  - name: 12_star
+    clip: {fileID: 32900000, guid: 65a9712c877191b4aa56ce34a60f1711, type: 3}
+    hitTime: 0.5
+    start: 0
+    end: 1
+    fitSpeed: 1
+  - name: 13_reach_up
+    clip: {fileID: 32900000, guid: 0d6e9457e27d27a46846f6ebdcb2faab, type: 3}
+    hitTime: 1
+    start: 0
+    end: 2
+    fitSpeed: 1
+  - name: fm_arms_wide
+    clip: {fileID: 32900000, guid: 4f602f645defe6347ade499a13168d00, type: 3}
+    hitTime: 1.687637
+    start: 0.88763696
+    end: 2.487637
+    fitSpeed: 0
+  - name: fm_march
+    clip: {fileID: 32900000, guid: d8bd179b7d4ea744983a520f04299980, type: 3}
+    hitTime: 4.3753552
+    start: 3.5753553
+    end: 5.1753554
+    fitSpeed: 0
+  - name: fm_misc_77
+    clip: {fileID: 32900000, guid: eff474de8eafead4a9cec6eec3fca053, type: 3}
+    hitTime: 5.167086
+    start: 4.367086
+    end: 5.9670863
+    fitSpeed: 0
+  - name: fm_punch
+    clip: {fileID: 32900000, guid: a9c7f7d3a428f244a85f9ca29d017b81, type: 3}
+    hitTime: 3.7294693
+    start: 2.9294693
+    end: 4.5294695
+    fitSpeed: 0
+  - name: fm_squat
+    clip: {fileID: 32900000, guid: 5ba10f9e40dc81f49bf6ad5da7972efe, type: 3}
+    hitTime: 3.0002434
+    start: 2.2002435
+    end: 3.8002434
+    fitSpeed: 0
+  - name: fm_sumo
+    clip: {fileID: 32900000, guid: 04977ef6221ba644a91345d624db2c2c, type: 3}
+    hitTime: 5.6254563
+    start: 4.825456
+    end: 6.4254565
+    fitSpeed: 0
+  bindings:
+  - note: 1
+    clip: 02_jab_cross
+  - note: 15
+    clip: 03_double_punch
+  - note: 9
+    clip: 04_punch_up
+  - note: 16
+    clip: 05_jumping_jack
+  - note: 7
+    clip: 06_squat_b
+  - note: 14
+    clip: 07_sumo_b
+  - note: 17
+    clip: 08_side_lunge_b
+  - note: 18
+    clip: 09_march_b
+  - note: 5
+    clip: 11_side_bend
+  - note: 19
+    clip: 12_star
+  - note: 0
+    clip: 01_step_touch
+  - note: 3
+    clip: 13_reach_up
+  - note: 4
+    clip: 01_step_touch
+  - note: 6
+    clip: 05_jumping_jack
+  - note: 2
+    clip: 05_jumping_jack
+  - note: 10
+    clip: 08_side_lunge_b
+  - note: 11
+    clip: 07_sumo_b
+  - note: 13
+    clip: 09_march_b
+  - note: 8
+    clip: fm_arms_wide
+  - note: 12
+    clip: fm_arms_wide
+  fallbackClip: 01_step_touch
+  neutralClip: 01_step_touch
+  neutralTime: 0
+  minSpeed: 0.6
+  maxSpeed: 1.6
+  maxShowBeats: 4
+  chordSeconds: 0.04
+  zoom: 1
+  centerX: 0.5
+  centerY: 0.5

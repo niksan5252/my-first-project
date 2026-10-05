@@ -85,6 +85,13 @@ public class SilhouetteTrainer : MonoBehaviour
     // The soft light around the character's edge, from the figure's alpha (SilhouetteGlow).
     [SerializeField, Range(0f, 2f)] private float texturedHalo = 1.1f;
 
+    [Header("Video trainer")]
+    // The trainer as filmed clips (VideoSilhouette) in the same panel instead of the 3D character.
+    // Off brings the 3D trainer back as it was.
+    [SerializeField] private bool useVideoSilhouette;
+    [SerializeField] private VideoSilhouetteSet videoSet;
+    private bool video;
+
     [Header("Diagnostics")]
     // The first N notes log planned vs observed impact time, once, and write it to
     // Screenshots/silhouette_sync.txt. 0 turns it off.
@@ -210,6 +217,11 @@ public class SilhouetteTrainer : MonoBehaviour
 
     private void Start()
     {
+        if (useVideoSilhouette && videoSet != null)
+        {
+            BuildVideo();
+            return;
+        }
         if (motionSet == null || motionSet.model == null)
         {
             Debug.LogWarning("[Silhouette] no motion set / model - trainer off", this);
@@ -235,6 +247,18 @@ public class SilhouetteTrainer : MonoBehaviour
     }
 
     // --- building ---
+
+    /// The panel alone, its figure fed by VideoSilhouette: no stage, no character, no camera.
+    private void BuildVideo()
+    {
+        video = true;
+        BuildPanel();
+        figureGlow.enabled = false;               // the clips carry their own neon contour
+        if (trailImage != null) trailImage.enabled = false;
+        var player = gameObject.AddComponent<VideoSilhouette>();
+        player.Init(videoSet, cueSpawner, figureImage, panel);
+        built = true;
+    }
 
     private void Build()
     {
@@ -435,7 +459,7 @@ public class SilhouetteTrainer : MonoBehaviour
         figureImage = PanelRaw("Figure", null);
         frameEdge = PanelImage("Frame", filmed ? SilhouettePanelSprites.EdgeRound(frameCorner, Mathf.Min(frameWidth, 2f))
                                                : SilhouettePanelSprites.Edge(frameCorner, frameWidth), Color.white, 0f);
-        EnsureTexture();
+        if (!video) EnsureTexture();
     }
 
     private Image PanelImage(string name, Sprite sprite, Color color, float outset)
@@ -513,7 +537,7 @@ public class SilhouetteTrainer : MonoBehaviour
 
     private void Update()
     {
-        if (!built || planned || cueSpawner == null) return;
+        if (!built || video || planned || cueSpawner == null) return;
         var chart = cueSpawner.Sequencer;
         var meta = cueSpawner.BeatmapMeta;
         if (chart == null || meta == null) return;
@@ -556,6 +580,7 @@ public class SilhouetteTrainer : MonoBehaviour
     private void LateUpdate()
     {
         if (!built) return;
+        if (video) { ApplyTheme(); ServeCaptures(Now); return; }
         EnsureTexture();
         // Last frame's figure, before this frame renders over it: the motion trail.
         if (filmed && trailRt != null && rt != null && measured) Graphics.Blit(rt, trailRt);
@@ -1103,8 +1128,11 @@ public class SilhouetteTrainer : MonoBehaviour
         }
         if (c == themeShown) return;
         themeShown = c;
-        bodyMat.SetColor("_RimColor", c);
-        foreach (var m in texturedMats) m.SetColor("_RimColor", c);
+        if (!video)
+        {
+            bodyMat.SetColor("_RimColor", c);
+            foreach (var m in texturedMats) m.SetColor("_RimColor", c);
+        }
         glowMat.SetColor("_GlowColor", c);
         if (!panelPalette)
         {
@@ -1265,7 +1293,7 @@ public class SilhouetteTrainer : MonoBehaviour
             var cam = Camera.main != null ? Camera.main.transform : null;
             Debug.Log("[Silhouette] capture " + captures[i].Value + " at song " + now.ToString("F3") + " (asked " + captures[i].Key.ToString("F3") + ")"
                       + (cam != null ? " camera x " + cam.localPosition.x.ToString("F3") + " roll " + Mathf.DeltaAngle(0f, cam.localEulerAngles.z).ToString("F1") : "")
-                      + " figure x " + figure.localPosition.x.ToString("F3"));
+                      + (figure != null ? " figure x " + figure.localPosition.x.ToString("F3") : ""));
             captures.RemoveAt(i);
         }
     }
