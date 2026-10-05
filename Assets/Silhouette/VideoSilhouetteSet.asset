@@ -122,52 +122,55 @@ MonoBehaviour:
     end: 6.4254565
     fitSpeed: 0
   bindings:
-  - note: 1
-    clip: 02_jab_cross
-  - note: 15
-    clip: 03_double_punch
-  - note: 9
-    clip: 04_punch_up
-  - note: 16
-    clip: 05_jumping_jack
-  - note: 7
-    clip: 06_squat_b
-  - note: 14
-    clip: 07_sumo_b
-  - note: 17
-    clip: 08_side_lunge_b
-  - note: 18
-    clip: 09_march_b
-  - note: 5
-    clip: 11_side_bend
-  - note: 19
-    clip: 12_star
   - note: 0
     clip: 01_step_touch
-  - note: 3
-    clip: 13_reach_up
   - note: 4
     clip: 01_step_touch
+  - note: 17
+    clip: 07_sumo_b
   - note: 6
-    clip: 05_jumping_jack
+    clip: 07_sumo_b
   - note: 2
-    clip: 05_jumping_jack
-  - note: 10
-    clip: 08_side_lunge_b
+    clip: 07_sumo_b
   - note: 11
     clip: 07_sumo_b
+  - note: 1
+    clip: 02_jab_cross
+  - note: 9
+    clip: 04_punch_up
+  - note: 18
+    clip: 04_punch_up
+  - note: 15
+    clip: 03_double_punch
+  - note: 3
+    clip: 13_reach_up
+  - note: 16
+    clip: 05_jumping_jack
+  - note: 19
+    clip: 12_star
   - note: 13
-    clip: 09_march_b
+    clip: fm_arms_wide
+  - note: 14
+    clip: 06_squat_b
+  - note: 7
+    clip: 06_squat_b
+  - note: 5
+    clip: 11_side_bend
+  - note: 10
+    clip: 08_side_lunge_b
   - note: 8
     clip: fm_arms_wide
   - note: 12
-    clip: fm_arms_wide
+    clip: 01_step_touch
   fallbackClip: 01_step_touch
+  restClip: 01_step_touch
   neutralClip: 01_step_touch
   neutralTime: 0
-  minSpeed: 0.6
-  maxSpeed: 1.6
-  maxShowBeats: 4
+  minPhraseBars: 2
+  cycleBeats:
+  - 1
+  - 2
+  crossfadeSeconds: 0.5
   chordSeconds: 0.04
   zoom: 1
   centerX: 0.5

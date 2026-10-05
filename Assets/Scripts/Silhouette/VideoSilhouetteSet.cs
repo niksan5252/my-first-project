@@ -14,13 +14,13 @@ public class VideoSilhouetteSet : ScriptableObject
         public string name;
         public VideoClip clip;
         // Seconds into the clip: the strike (the fist out, the squat's bottom, the feet landing).
-        // It is put exactly on the note's time.
+        // The phrase loop puts it on the beat.
         public float hitTime;
         // The fragment that is played around it - for a clip of several repeats, one repeat.
         public float start;
         public float end;
-        // true: the playback speed is fitted to the time the note leaves (minSpeed..maxSpeed);
-        // false: plays at 1x, cut by the next note.
+        // Not read by the phrase planner (every clip loops at a constant phrase speed); kept for
+        // the setup tool.
         public bool fitSpeed = true;
 
         public float Length => Mathf.Max(0.04f, end - start);
@@ -49,16 +49,19 @@ public class VideoSilhouetteSet : ScriptableObject
     public List<Binding> bindings = new List<Binding>();
     // Any note with no binding.
     public string fallbackClip = "01_step_touch";
-    // Between notes: this clip, paused on `neutralTime`.
+    // Bars with no notes: this clip looped in time (a pause is never a statue).
+    public string restClip = "01_step_touch";
+    // Before the chart is laid out: this clip, paused on `neutralTime`.
     public string neutralClip = "01_step_touch";
     public float neutralTime = 0f;
 
-    [Header("Timing (in beats of the track)")]
-    [Range(0.3f, 1f)] public float minSpeed = 0.6f;
-    [Range(1f, 3f)] public float maxSpeed = 1.6f;
-    // The longest a one-shot note may keep its clip when the next note is far away; after that the
-    // figure goes back to the neutral stance.
-    [Min(0.5f)] public float maxShowBeats = 4f;
+    [Header("Phrases (in bars and beats of the track)")]
+    // The shortest stretch one clip is kept for; a shorter run of notes joins its neighbour.
+    [Min(1)] public int minPhraseBars = 2;
+    // The beats one loop of a clip may take; the planner picks the one nearest the clip's own tempo.
+    public int[] cycleBeats = { 1, 2 };
+    // Two clips are alpha-blended over this long at a phrase change, from half a beat before it.
+    [Range(0.4f, 0.6f)] public float crossfadeSeconds = 0.5f;
     // Notes closer together than this are one chord.
     [Min(0f)] public float chordSeconds = 0.04f;
 
@@ -82,31 +85,30 @@ public class VideoSilhouetteSet : ScriptableObject
         return Find(fallbackClip);
     }
 
-    /// The default note -> clip table, by meaning. The notes with no clip of their own are paired
-    /// with the nearest one (commented).
+    /// The default note -> clip table: the exercise a phrase of these notes is shown as. The ones
+    /// with no clip of their own are paired with the nearest one (commented).
     public static List<Binding> DefaultBindings() => new List<Binding>
     {
-        B(Note.Punch, "02_jab_cross"),
-        B(Note.ChordPunch, "03_double_punch"),
-        B(Note.PunchHigh, "04_punch_up"),
-        B(Note.Jack, "05_jumping_jack"),
-        B(Note.Duck, "06_squat_b"),
-        B(Note.SquatHold, "07_sumo_b"),
-        B(Note.SideJump, "08_side_lunge_b"),
-        B(Note.HighLow, "09_march_b"),
-        B(Note.Dodge, "11_side_bend"),
-        B(Note.Star, "12_star"),
-        B(Note.Kick, "01_step_touch"),
-        // nearest by meaning
-        B(Note.PunchHold, "13_reach_up"),       // a fist held up
+        B(Note.Kick, "01_step_touch"),          // steps one after another
         B(Note.KickHold, "01_step_touch"),
-        B(Note.Curb, "05_jumping_jack"),        // one honest jump
-        B(Note.Jump, "05_jumping_jack"),        // retired, read as Curb
-        B(Note.CurbGap, "08_side_lunge_b"),     // over onto the free lane
-        B(Note.CurbSplit, "07_sumo_b"),         // a wide stance held
-        B(Note.Rails, "09_march_b"),            // narrow, feet together, in place
+        B(Note.SideJump, "07_sumo_b"),          // two pads side by side: wide stance with a bounce (no soft-jump clip)
+        B(Note.Curb, "07_sumo_b"),              // a hop over the curb: the same bounce (no soft-jump clip)
+        B(Note.Jump, "07_sumo_b"),              // retired, read as Curb
+        B(Note.CurbSplit, "07_sumo_b"),         // a wide stance
+        B(Note.Punch, "02_jab_cross"),          // punches L/R
+        B(Note.PunchHigh, "04_punch_up"),
+        B(Note.HighLow, "04_punch_up"),
+        B(Note.ChordPunch, "03_double_punch"),  // the double cube: both hands
+        B(Note.PunchHold, "13_reach_up"),
+        B(Note.Jack, "05_jumping_jack"),        // two lanes apart
+        B(Note.Star, "12_star"),
+        B(Note.Rails, "fm_arms_wide"),          // stance, arms out
+        B(Note.SquatHold, "06_squat_b"),        // squat with a pulse
+        B(Note.Duck, "06_squat_b"),
+        B(Note.Dodge, "11_side_bend"),          // walls: lean aside
+        B(Note.CurbGap, "08_side_lunge_b"),     // step over onto the free lane
         B(Note.PunchSweep, "fm_arms_wide"),     // the fist carried out to the side
-        B(Note.ArcHold, "fm_arms_wide"),
+        B(Note.ArcHold, "01_step_touch"),       // no arm-circle clip: step touch
     };
 
     private static Binding B(Note n, string c) => new Binding { note = n, clip = c };

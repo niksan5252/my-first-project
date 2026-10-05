@@ -107,7 +107,7 @@ public static class Video9Setup
         p.trainerTextured = false;
         p.trainerPanelInThemeColors = false;
         p.trainerFilmed = true;
-        p.hideTrainer = true;                 // no trainer panel (neither the video nor the 3D one)
+        p.hideTrainer = false;                // the trainer panel: the filmed clips (VideoSilhouette)
         p.retention = true;
         p.recordFromContent = true;
         p.interludeSeconds = 13f;
@@ -237,7 +237,7 @@ public static class Video9Setup
         p.beatmapFileName = s.beatmap;
         p.theme = theme;
         p.preRoll = true;
-        p.hideTrainer = true;                 // no trainer panel (neither the video nor the 3D one)
+        p.hideTrainer = false;                // the trainer panel: the filmed clips (VideoSilhouette)
         EditorUtility.SetDirty(p);
         return p;
     }
