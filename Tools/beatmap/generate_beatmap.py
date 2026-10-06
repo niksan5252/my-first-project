@@ -111,7 +111,14 @@ SQUAT = "Squat"              # set: one SquatHold for the whole set (4-8 s): a w
 RAILS = "RailsSet"           # set: Rails for the set, a punch every other beat above them
 LUNGE = "Lunge"              # set: a long strip under the left foot held out (KickHold, lane 0), the right foot tapping every other beat
 WIDE = "Wide"                # set: two strips apart (feet wide, 1.5 beats), then both feet together - a slow jack of the legs
-COMPOUND = {CROSS, WALL_RUN, SIDE_JUMP, HIGH_LOW, JACK, SHIFT, BALANCE, ARC, FAN, STEP_TAP, MIRROR, PUNCH_KICK,
+# Video 10 (reworked): sets built around a held pose with work on top - holds that are trained, not waited out.
+HOLD_JAB = "HoldJab"         # set: one fist held out (PunchHold) for 4 beats while the other punches low/high, then sides swap
+LEG_HOLD_PUNCH = "LegHoldPunch"  # set: one leg out on a strip (KickHold) for 4 beats, both fists punching on top, then the other leg
+SQUAT_PUNCH = "SquatPunch"   # set: the squat held for the set (SquatHold) with a punch on every beat, hands alternating
+RAILS_HIGH = "RailsHigh"     # set: rails (stand narrow) held for the set, uppercut-height punches on every beat
+PRESS_HOLD = "PressHold"     # set: both fists pressed out and held 2 beats, then two steps - push, hold, step, step
+HOLD_SETS_V10 = {HOLD_JAB, LEG_HOLD_PUNCH, SQUAT_PUNCH, RAILS_HIGH, PRESS_HOLD}
+COMPOUND = {HOLD_JAB, LEG_HOLD_PUNCH, SQUAT_PUNCH, RAILS_HIGH, PRESS_HOLD, CROSS, WALL_RUN, SIDE_JUMP, HIGH_LOW, JACK, SHIFT, BALANCE, ARC, FAN, STEP_TAP, MIRROR, PUNCH_KICK,
             STEP_TOUCH, JAB_CROSS, JAB_KICK, STEP_REACH, ARC_PUNCH, POWER_JUMP,
             STEP_PAIR, PUNCH_PAIR, SPEED_PUNCH, SPEED_STEP, SQUAT, RAILS, LUNGE, WIDE}
 # Types that may carry a duration in the JSON: the holds, a long Dodge wall, the balance kerbs.
@@ -709,7 +716,8 @@ def measure_hold(energy: np.ndarray, start_frame: int, limit_frame: int, cfg,
 ALL_EXERCISES = (PUNCH, KICK, "PunchHold", "KickHold", SWEEP, CHORD, DODGE, CURB, DUCK,
                  CROSS, WALL_RUN, SIDE_JUMP, HIGH_LOW, JACK, SHIFT, BALANCE, ARC, FAN,
                  STEP_TAP, MIRROR, PUNCH_KICK, STEP_TOUCH, JAB_CROSS, JAB_KICK, STEP_REACH, ARC_PUNCH,
-                 POWER_JUMP, STEP_PAIR, PUNCH_PAIR, SPEED_PUNCH, SPEED_STEP, SQUAT, RAILS, LUNGE, WIDE)
+                 POWER_JUMP, STEP_PAIR, PUNCH_PAIR, SPEED_PUNCH, SPEED_STEP, SQUAT, RAILS, LUNGE, WIDE,
+                 HOLD_JAB, LEG_HOLD_PUNCH, SQUAT_PUNCH, RAILS_HIGH, PRESS_HOLD)
 
 # Named set orders. A pattern is a list of (exercise, how many sets in a row), cycled until the
 # track runs out. This is the one place the shape of the workout lives: changing the routine
@@ -782,6 +790,8 @@ DEFAULT_SPACING_BEATS: Dict[str, float] = {
     STEP_TOUCH: 2.0, JAB_CROSS: 2.0, JAB_KICK: 1.0, STEP_REACH: 1.0, ARC_PUNCH: 1.0, POWER_JUMP: 2.0,
     # Video 9: pairs every other beat; the held poses take their notes from the set's own beats.
     STEP_PAIR: 1.0, PUNCH_PAIR: 1.0, SPEED_PUNCH: 1.0, SPEED_STEP: 1.0, SQUAT: 1.0, RAILS: 1.0, LUNGE: 1.0, WIDE: 1.0,
+    # Video 10: the held-pose sets read every beat; the hold itself is written from the set's beats.
+    HOLD_JAB: 1.0, LEG_HOLD_PUNCH: 1.0, SQUAT_PUNCH: 1.0, RAILS_HIGH: 1.0, PRESS_HOLD: 1.0,
     # Obstacles are spaced far wider than any note, and the number is not a taste judgement: the
     # camera performs the movement and has to be back at centre before the next one starts. The
     # longest reaction is the dodge, whose lead-in, hold and return together run 1.59 s - so at
@@ -1438,6 +1448,77 @@ CHARACTER_PLANS.update({
     },
 })
 
+CHARACTER_PLANS.update({
+    # Video 10, reworked after a real workout ("boring, the same over and over, no holds at all"):
+    # all three levels train everything - arms, legs, jumps, trunk - each phrase has at least one
+    # held pose with work on top (HoldJab, LegHoldPunch, SquatPunch, RailsHigh, PressHold, Lunge,
+    # Wide, ArcPunch, the long wall, the star), eight phrases a level so one comes back rarely, and
+    # the three levels share no phrase - they differ by their combinations, not by body part.
+    "cosmic-1": {
+        "normal": [
+            [(JAB_KICK, 2), (HOLD_JAB, 2), (JACK, 2), (DUCK, 2)],
+            [(LEG_HOLD_PUNCH, 2), (SIDE_JUMP, 2), (FAN, 2), (RAILS_HIGH, 2)],
+            [(STEP_REACH, 2), (PRESS_HOLD, 2), (SHIFT, 2), (CURB, 2)],
+            [(HIGH_LOW, 2), (LUNGE, 2), (LUNGE, 2, "R"), (DODGE, 2)],
+            [(POWER_JUMP, 2), (HOLD_JAB, 2, "R"), (PUNCH_KICK, 2), (BALANCE, 2)],
+            [(MIRROR, 2), (SQUAT_PUNCH, 2), (STEP_PAIR, 2), (ARC_PUNCH, 2)],
+            [(JAB_KICK, 2, "R"), (WIDE, 2), (SPEED_PUNCH, 2), (DUCK, 2)],
+            [(CHORD, 2), (LEG_HOLD_PUNCH, 2, "R"), (PUNCH_PAIR, 2), (WALL_RUN, 2)],
+        ],
+        "drop": [[(CROSS, 1), (FAN, 2), (JACK, 2), (HOLD_JAB, 2), (JAB_KICK, 1)],
+                 [(CROSS, 1), (POWER_JUMP, 2), (HIGH_LOW, 2), (LEG_HOLD_PUNCH, 2), (SHIFT, 1)],
+                 [(CROSS, 1), (PUNCH_KICK, 2), (PRESS_HOLD, 2), (SIDE_JUMP, 2), (MIRROR, 1)]],
+        "calm": [[(SQUAT_PUNCH, 4), (ARC, 2), ("KickHold", 2)],
+                 [(RAILS_HIGH, 2), ("PunchHold", 2), (LUNGE, 2), (WIDE, 2)],
+                 [(ARC_PUNCH, 2), (BALANCE, 2), (SQUAT, 4)]],
+        "fill": HIGH_LOW, "drop_bars": 8, "lead_in": False, "calm_first": True,
+        "limits": {ARC: 2}, "finale": CROSS,
+        "arcs": [(450.0, 6, 0.8), (360.0, 4, 0.75)],
+    },
+    "cosmic-2": {
+        "normal": [
+            [(SIDE_JUMP, 2), (LEG_HOLD_PUNCH, 2), (STEP_REACH, 2, "R"), (CURB, 2)],
+            [(PUNCH_PAIR, 2), (RAILS_HIGH, 2), (JACK, 2), (DODGE, 2, "R")],
+            [(SPEED_STEP, 2), (HOLD_JAB, 2), (MIRROR, 2), (BALANCE, 2)],
+            [(SHIFT, 2, "R"), (PRESS_HOLD, 2), (JAB_KICK, 2), (DUCK, 2)],
+            [(FAN, 2), (LUNGE, 2, "R"), (LUNGE, 2), (POWER_JUMP, 2)],
+            [(STEP_TAP, 2), (SQUAT_PUNCH, 2), (HIGH_LOW, 2, "R"), (ARC_PUNCH, 2, "R")],
+            [(CHORD, 2), (WIDE, 2), (PUNCH_KICK, 2, "R"), (WALL_RUN, 2)],
+            [(JACK, 2), (HOLD_JAB, 2, "R"), (SPEED_PUNCH, 2), (CURB, 2)],
+        ],
+        "drop": [[(CROSS, 1), (JACK, 2), (PUNCH_KICK, 2), (RAILS_HIGH, 2), (SIDE_JUMP, 1)],
+                 [(CROSS, 1), (SPEED_PUNCH, 2), (LEG_HOLD_PUNCH, 2, "R"), (POWER_JUMP, 2), (FAN, 1)],
+                 [(CROSS, 1), (SHIFT, 2), (HOLD_JAB, 2), (CHORD, 2), (HIGH_LOW, 1)]],
+        "calm": [[(LUNGE, 2), (LUNGE, 2, "R"), (SQUAT_PUNCH, 4)],
+                 [("PunchHold", 2), (ARC, 2), (WIDE, 2), ("KickHold", 2)],
+                 [(BALANCE, 2), (RAILS_HIGH, 2), (PRESS_HOLD, 2), (ARC_PUNCH, 2)]],
+        "fill": KICK, "drop_bars": 8, "lead_in": False, "calm_first": True,
+        "limits": {ARC: 2}, "finale": CROSS,
+        "arcs": [(360.0, 6, 0.75), (540.0, 8, 0.85)],
+    },
+    "cosmic-3": {
+        "normal": [
+            [(WALL_RUN, 4), (HOLD_JAB, 2), (POWER_JUMP, 2)],
+            [(PUNCH_KICK, 2), (LEG_HOLD_PUNCH, 2), (SPEED_STEP, 2), (DUCK, 2)],
+            [(JAB_KICK, 1), (JAB_KICK, 1, "R"), (SQUAT_PUNCH, 2), (JACK, 2), (CURB, 2)],
+            [(HIGH_LOW, 2), (PRESS_HOLD, 2, "R"), (SIDE_JUMP, 2), (BALANCE, 2)],
+            [(MIRROR, 2), (RAILS_HIGH, 2), (CHORD, 2), (DODGE, 2)],
+            [(SPEED_PUNCH, 2), (LUNGE, 2), (SHIFT, 2), (ARC_PUNCH, 2)],
+            [(FAN, 2), (WIDE, 2), (STEP_REACH, 2), (HOLD_JAB, 2, "R")],
+            [(POWER_JUMP, 2), (LEG_HOLD_PUNCH, 2, "R"), (PUNCH_PAIR, 2), (DUCK, 2)],
+        ],
+        "drop": [[(CROSS, 1), (SPEED_STEP, 2), (HOLD_JAB, 2), (JACK, 2), (SPEED_PUNCH, 1)],
+                 [(CROSS, 1), (CHORD, 2), (LEG_HOLD_PUNCH, 2), (PUNCH_KICK, 2), (POWER_JUMP, 1)],
+                 [(CROSS, 1), (JAB_KICK, 2), (RAILS_HIGH, 2), (SHIFT, 2), (FAN, 1)]],
+        "calm": [[(SQUAT_PUNCH, 4), (LUNGE, 2, "R"), (ARC, 2)],
+                 [(PRESS_HOLD, 2), ("KickHold", 2), (BALANCE, 2), (WIDE, 2)],
+                 [(ARC_PUNCH, 2), ("PunchHold", 2), (SQUAT, 4)]],
+        "fill": PUNCH_KICK, "drop_bars": 8, "lead_in": False, "calm_first": True,
+        "limits": {ARC: 2}, "finale": CROSS,
+        "arcs": [(450.0, 6, 0.8), (720.0, 8, 0.85)],
+    },
+})
+
 # ArcHold circles for a plan without its own `arcs`: (degrees, beats, radius m).
 ARC_SHAPES = [(360.0, 6, 0.75), (270.0, 4, 0.7), (450.0, 6, 0.8), (540.0, 8, 0.85)]
 # An ArcHold is never shorter than this many beats; an Arc set too short for it gets punches.
@@ -1570,7 +1651,7 @@ def expand_compound(events: List[Event], sets: List[WorkoutSet], beat: float, la
     for block in sets:
         members = sorted(by_set.get(block.index, []), key=lambda e: e.time)
         ex = block.exercise
-        if not members and ex not in (ARC, SQUAT, RAILS): continue
+        if not members and ex not in (ARC, SQUAT, RAILS, SQUAT_PUNCH, RAILS_HIGH): continue
         made: List[Event] = []
         if ex == ARC:
             # One mirrored pair on the set's first beat (its bar line - on the beat even where the
@@ -1651,6 +1732,41 @@ def expand_compound(events: List[Event], sets: List[WorkoutSet], beat: float, la
                 if ev.time + 0.5 * beat < block.end - 0.05 * beat:
                     off = note(ev, kind, 1 + hand % 2); off.time = ev.time + 0.5 * beat
                     made.append(off); hand += 1
+        elif ex in (HOLD_JAB, LEG_HOLD_PUNCH, PRESS_HOLD):
+            # Four-beat chunks from the set's beats. HoldJab: one fist held, the other punching on
+            # the other three beats; LegHoldPunch: one leg held out, both fists on top in turn;
+            # PressHold: both fists held two beats, then a step each side. Sides swap each chunk.
+            for c in range(0, len(members), 4):
+                chunk = members[c:c + 4]
+                side = 1 + (c // 4) % 2
+                first = chunk[0]
+                beats_held = min(4, int(np.floor((block.end - first.time) / beat + 1e-3)))
+                if ex == PRESS_HOLD:
+                    if beats_held >= 2:
+                        made.append(note(first, "PunchHold", 1, 1.75 * beat))
+                        made.append(note(first, "PunchHold", 2, 1.75 * beat))
+                    for k, ev in enumerate(chunk[2:]): made.append(note(ev, KICK, 1 + k % 2))
+                    continue
+                if beats_held < 2:
+                    for k, ev in enumerate(chunk): made.append(note(ev, PUNCH, 1 + k % 2))
+                    continue
+                hold_type = "PunchHold" if ex == HOLD_JAB else "KickHold"
+                made.append(note(first, hold_type, side, (beats_held - 0.5) * beat))
+                for k, ev in enumerate(chunk[1:beats_held]):
+                    kind = PUNCH if k % 2 == 0 else PUNCH_HIGH
+                    lane = 3 - side if ex == HOLD_JAB else 1 + k % 2
+                    made.append(note(ev, kind, lane))
+        elif ex in (SQUAT_PUNCH, RAILS_HIGH):
+            # The held pose for the set, a punch on every beat on top of it, hands alternating.
+            t0 = members[0].time if members and members[0].time - block.start < 0.25 * beat else block.start
+            src = members[0] if members else Event(time=t0, type=ex, intensity=0.6, set_index=block.index)
+            beats_held = int(np.floor((block.end - t0) / beat + 1e-3))
+            if beats_held >= 2:
+                pose = note(src, SQUAT_HOLD_TYPE if ex == SQUAT_PUNCH else RAILS_TYPE, 1, beats_held * beat)
+                pose.time = t0
+                made.append(pose)
+                for n, ev in enumerate(m for m in members if m.time >= t0 + 0.75 * beat):
+                    made.append(note(ev, PUNCH if ex == SQUAT_PUNCH else PUNCH_HIGH, 1 + n % 2))
         elif ex in (SQUAT, RAILS):
             # One held pose for the set, from its first beat to the end of its active part, whole beats.
             t0 = members[0].time if members and members[0].time - block.start < 0.25 * beat else block.start

@@ -689,3 +689,12 @@ competitor-hard. Seven normal phrases a plan, so a phrase comes back rarely.
 .venv\Scripts\python generate_beatmap.py ..\..\Assets\Audio\Tracks\track10_2.wav --detector grid --rest-beats 1 --spacing-tolerance 0.05 --grid-quiet-every 1 --competitor-style --difficulty hard --pattern cosmic-plyo --intro-rest 5
 .venv\Scripts\python generate_beatmap.py ..\..\Assets\Audio\Tracks\track10_3.wav --detector grid --rest-beats 1 --spacing-tolerance 0.05 --grid-quiet-every 1 --competitor-style --difficulty hard --intro-rest 5
 ```
+
+### Video 10, reworked: `--pattern cosmic-1|cosmic-2|cosmic-3`
+
+After a real workout ("boring, the same over and over, no holds"): every level trains everything,
+each phrase has a held pose with work on top, eight phrases a level, no phrase shared between
+levels. New hold sets: `HoldJab` (one fist held, the other punching), `LegHoldPunch` (one leg out,
+fists on top), `SquatPunch` (squat held + punches), `RailsHigh` (rails + high punches), `PressHold`
+(both fists held 2 beats, 2 steps). Measured: holds 35/33/44% of the time, 26/30/29 set types,
+longest run of one exercise ~7 s. Same command as above with `--pattern cosmic-<level>`.
