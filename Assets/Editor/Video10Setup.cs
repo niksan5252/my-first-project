@@ -89,7 +89,7 @@ public static class Video10Setup
         p.trainerMotionSet = mocap != null ? mocap : v9 != null ? v9.trainerMotionSet : null;
         p.trainerFilmed = false;
         p.trainerMocap3D = true;
-        p.hideTrainer = false;
+        p.hideTrainer = true;                 // no trainer panel in this video (the user's call)
         p.trainerTextured = false;
         p.trainerPanelInThemeColors = false;
         p.retention = true;
@@ -108,7 +108,8 @@ public static class Video10Setup
             {
                 label = "Level " + (i + 1) + " " + skins[i].name, role = PlaylistSegmentRole.Level,
                 track = tracks[i], beatmapFileName = skins[i].beatmap, theme = themes[i],
-                clipStart = 0f, clipEnd = 0f, transitionIn = PlaylistTransition.Interlude, transitionSeconds = 3.5f,
+                // One continuous run: the tracks crossfade inside the tunnel while the look changes under the veil.
+                clipStart = 0f, clipEnd = 0f, transitionIn = PlaylistTransition.Crossfade, transitionSeconds = 4f,
                 transitionLook = PlaylistTransitionLook.Veil,
             });
         EditorUtility.SetDirty(p);

@@ -21,8 +21,8 @@ MonoBehaviour:
     theme: {fileID: 11400000, guid: 2b60aaa9abfddb844a974792b1eef986, type: 2}
     clipStart: 0
     clipEnd: 0
-    transitionIn: 3
-    transitionSeconds: 3.5
+    transitionIn: 0
+    transitionSeconds: 4
     transitionLook: 0
   - label: Level 2 AsteroidStorm
     role: 0
@@ -31,8 +31,8 @@ MonoBehaviour:
     theme: {fileID: 11400000, guid: 3b3496ce2e65c4b4f8cad61889f9b578, type: 2}
     clipStart: 0
     clipEnd: 0
-    transitionIn: 3
-    transitionSeconds: 3.5
+    transitionIn: 0
+    transitionSeconds: 4
     transitionLook: 0
   - label: Level 3 NebulaHyperdrive
     role: 0
@@ -41,8 +41,8 @@ MonoBehaviour:
     theme: {fileID: 11400000, guid: 03c7ea515649742448d8b203c7d40bca, type: 2}
     clipStart: 0
     clipEnd: 0
-    transitionIn: 3
-    transitionSeconds: 3.5
+    transitionIn: 0
+    transitionSeconds: 4
     transitionLook: 0
   preRoll: 1
   noteMarginBeats: 1
@@ -56,7 +56,7 @@ MonoBehaviour:
   trainerMotionSet: {fileID: 11400000, guid: e624e49fec19f1a4680e6b2a8f5eedfb, type: 2}
   trainerTextured: 0
   trainerPanelInThemeColors: 0
-  hideTrainer: 0
+  hideTrainer: 1
   trainerFilmed: 0
   trainerMocap3D: 1
   retention: 1
