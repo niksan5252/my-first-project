@@ -2,11 +2,11 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// Lays a chart out as the video trainer's shows, once. The chart is cut into phrases of whole bars
-/// and each phrase is ONE clip looped at a constant speed - one cycle on 1 or 2 beats, the strike
-/// frame (VideoSilhouetteSet.Clip.hitTime) on the beat - the way a class instructor keeps one
-/// exercise going for a phrase instead of acting out each note. The clip changes only on a phrase
-/// boundary, cross-faded from half a beat before it. Bars with no notes are step touch in time.
-/// VideoSilhouette only looks up where the clock is in this list.
+/// and each phrase is ONE clip looped at a constant speed near its own - a strike on 1, 2 or 4
+/// beats, the strike frame (VideoSilhouetteSet.Clip.peakFrame) on the beat - the way a class
+/// instructor keeps one exercise going for a phrase instead of acting out each note. The clip
+/// changes only on a phrase boundary, cross-faded from half a beat before it. Bars with no notes
+/// are the rest clip (standing, a light sway). VideoSilhouette only looks up where the clock is.
 public static class VideoSilhouettePlanner
 {
     public struct Show
@@ -14,18 +14,16 @@ public static class VideoSilhouettePlanner
         public VideoSilhouetteSet.Clip clip;
         public float start, end;     // song time; end overlaps the next show by the cross-fade
         public float hit;            // song time of a strike (a downbeat); the loop is phased on it
-        public float speed;
-        public bool loop;            // the fragment repeats to fill the show
-        public bool hold;            // paused on `holdAt` clip-wise: the neutral stance
-        public float holdAt;         // clip time shown while holding
+        public float speed;          // constant through the show
         public string label;
 
-        /// Clip time at a song time.
-        public float ClipTime(float songTime)
+        /// The loop's frame at a song time, fractional (the shader blends the two around it).
+        public float Frame(float songTime)
         {
-            if (hold) return holdAt;
-            float u = clip.hitTime - clip.start + (songTime - hit) * speed;
-            return clip.start + (loop ? Mathf.Repeat(u, clip.Length) : Mathf.Clamp(u, 0f, clip.Length));
+            int n = clip.FrameCount;
+            if (n <= 0) return 0f;
+            float u = clip.peakFrame + (songTime - hit) * speed * clip.fps;
+            return Mathf.Repeat(u, n);
         }
     }
 
@@ -142,6 +140,7 @@ public static class VideoSilhouettePlanner
         // Each chord votes for its clip in its bar, and a hold in every bar it lasts into.
         var chord = new List<BeatmapCue>();
         int bar = 0;
+        float lastKick = float.NegativeInfinity;
         for (int i = 0; i < order.Count; i++)
         {
             chord.Clear();
@@ -149,11 +148,17 @@ public static class VideoSilhouettePlanner
             while (i < order.Count && order[i].time - t <= set.chordSeconds) chord.Add(order[i++]);
             i--;
             var note = Classify(chord, laneCount);
+            while (bar + 1 < bars.Count && bars[bar + 1].start <= t) bar++;
+            if (note == VideoSilhouetteSet.Note.Kick || note == VideoSilhouetteSet.Note.KickHold)
+            {
+                // Single steps a beat or less apart: a march, not step touch.
+                if (t - lastKick <= set.marchBeats * bars[bar].spb + 0.01f) note = VideoSilhouetteSet.Note.March;
+                lastKick = t;
+            }
             var clip = set.For(note);
             if (clip == null) continue;
             float hold = 0f;
             foreach (var c in chord) hold = Mathf.Max(hold, c.duration);
-            while (bar + 1 < bars.Count && bars[bar + 1].start <= t) bar++;
             for (int b = bar; b < bars.Count && (b == bar || bars[b].start < t + hold); b++)
             {
                 bars[b].votes.TryGetValue(clip, out float v);
@@ -164,7 +169,7 @@ public static class VideoSilhouettePlanner
         {
             float best = 0f;
             foreach (var kv in b.votes) if (kv.Value > best) { best = kv.Value; b.clip = kv.Key; }
-            if (b.clip == null) b.clip = rest;    // a pause: step touch in time, not a statue
+            if (b.clip == null) b.clip = rest;    // a pause: standing easy, swaying in time
         }
 
         // Runs of one clip, never across a change of grid (the loop is phased on one tempo).
@@ -216,7 +221,7 @@ public static class VideoSilhouettePlanner
             shows.Add(new Show
             {
                 clip = clip, start = start, end = float.PositiveInfinity, hit = first.downbeat,
-                speed = clip.Length / (CycleBeats(set, clip, spb) * spb), loop = true,
+                speed = clip.Length / (CycleBeats(set, clip, spb) * spb),
                 label = clip.name,
             });
             if (r > 0) { var p = shows[r - 1]; p.end = start + fade; shows[r - 1] = p; }
@@ -224,21 +229,25 @@ public static class VideoSilhouettePlanner
         return shows;
     }
 
-    /// The beats one cycle of the clip takes: of the allowed counts, the one that keeps it nearest
-    /// its own filmed tempo.
+    /// The beats one loop of the clip takes: its strikes times the beats per strike (cycleBeats) that
+    /// keep it nearest its own filmed tempo - inside the clip's speed range if any count does.
     public static int CycleBeats(VideoSilhouetteSet set, VideoSilhouetteSet.Clip clip, float spb)
     {
-        int best = 1;
+        int best = Mathf.Max(1, clip.strikes);
         float bestOff = float.PositiveInfinity;
-        foreach (int n in set.cycleBeats)
+        foreach (int per in set.cycleBeats)
         {
-            if (n < 1) continue;
-            float off = Mathf.Abs(Mathf.Log(clip.Length / (n * spb)));
+            if (per < 1) continue;
+            int n = per * Mathf.Max(1, clip.strikes);
+            float speed = clip.Length / (n * spb);
+            float off = Mathf.Abs(Mathf.Log(speed));
+            if (speed < clip.speedMin || speed > clip.speedMax) off += 10f;   // out of range: only if nothing fits
             if (off < bestOff) { bestOff = off; best = n; }
         }
         return best;
     }
 
-    public static Show Neutral(VideoSilhouetteSet set, VideoSilhouetteSet.Clip clip, float start, float end) =>
-        new Show { clip = clip, start = start, end = end, hit = start, speed = 0f, hold = true, holdAt = set.neutralTime, label = "neutral" };
+    /// Before the chart is known: the rest clip at its own speed.
+    public static Show Idle(VideoSilhouetteSet.Clip clip) =>
+        new Show { clip = clip, start = float.NegativeInfinity, end = float.PositiveInfinity, hit = 0f, speed = 1f, label = "idle" };
 }

@@ -1,0 +1,6 @@
+# Trainer-silhouette tools (key_green.py, bake_frames.py).
+numpy>=1.24
+scipy>=1.11
+pillow>=10.0
+# Ships its own ffmpeg build (with libvpx, for VP8 + alpha) - nothing to install system-wide.
+imageio-ffmpeg>=0.5
