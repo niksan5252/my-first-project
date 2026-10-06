@@ -674,3 +674,18 @@ track9_2 medium 1.74, track9_3 hard 2.39; every note on the eighth grid.
 .venv\Scripts\python generate_beatmap.py ..\..\Assets\Audio\Tracks\track9_2.wav --detector grid --rest-beats 1 --spacing-tolerance 0.05 --grid-quiet-every 1 --competitor-style --difficulty medium --intro-rest 5
 .venv\Scripts\python generate_beatmap.py ..\..\Assets\Audio\Tracks\track9_3.wav --detector grid --rest-beats 1 --spacing-tolerance 0.05 --grid-quiet-every 1 --competitor-style --difficulty hard --intro-rest 5
 ```
+
+## Video 10: `--pattern cosmic-boxer|cosmic-plyo` with `--competitor-style --difficulty hard`
+
+`--competitor-style` keeps the competitor's phrase system and start bar but no longer overrides an
+explicit `--pattern` that is a character plan. Levels 1-2 of video 10 are as dense as
+competitor-hard but each its own workout: `cosmic-boxer` (arms/trunk: JabKick, Fan, HighLow,
+PunchPair, ArcPunch, Mirror, StepReach, ducks, walls) and `cosmic-plyo` (legs/jumps: Jack,
+SideJump, Shift, PowerJump, Chord, kerbs, Balance, Wide, StepPair, the held squat). Level 3 stays
+competitor-hard. Seven normal phrases a plan, so a phrase comes back rarely.
+
+```
+.venv\Scripts\python generate_beatmap.py ..\..\Assets\Audio\Tracks\track10_1.wav --detector grid --rest-beats 1 --spacing-tolerance 0.05 --grid-quiet-every 1 --competitor-style --difficulty hard --pattern cosmic-boxer --intro-rest 5
+.venv\Scripts\python generate_beatmap.py ..\..\Assets\Audio\Tracks\track10_2.wav --detector grid --rest-beats 1 --spacing-tolerance 0.05 --grid-quiet-every 1 --competitor-style --difficulty hard --pattern cosmic-plyo --intro-rest 5
+.venv\Scripts\python generate_beatmap.py ..\..\Assets\Audio\Tracks\track10_3.wav --detector grid --rest-beats 1 --spacing-tolerance 0.05 --grid-quiet-every 1 --competitor-style --difficulty hard --intro-rest 5
+```

@@ -1384,6 +1384,60 @@ CHARACTER_PLANS.update({
     },
 })
 
+CHARACTER_PLANS.update({
+    # Video 10 ("Cosmic Rush"): levels 1 and 2 as dense as competitor-hard (~2.3 actions/s) but each
+    # its own workout, so no two levels - and no two videos - feel alike. Many phrases, each used
+    # once before the cycle repeats, mirrored halves ("R") so both sides work; level 3 stays
+    # competitor-hard.
+    #
+    # 1, OrbitStation - the boxer's station: arms and trunk. 1-2-1-kick combos, the punch fan, two
+    # heights, double punches, a circle with the lead hand while the rear one punches, mirrored
+    # pairs, step-and-reach, ducks under bars and walls between the combos.
+    "cosmic-boxer": {
+        "normal": [
+            [(JAB_KICK, 2), (JAB_KICK, 2, "R"), (HIGH_LOW, 2), (DUCK, 2)],
+            [(FAN, 2), (PUNCH_PAIR, 2), (FAN, 2), (DODGE, 2)],
+            [(STEP_REACH, 2), (STEP_REACH, 2, "R"), (MIRROR, 2), (DUCK, 2)],
+            [(ARC_PUNCH, 2), (HIGH_LOW, 2), (ARC_PUNCH, 2, "R"), (DODGE, 2, "R")],
+            [(JAB_KICK, 1), (JAB_KICK, 1, "R"), (FAN, 2), (PUNCH_PAIR, 2), (WALL_RUN, 4)],
+            [(MIRROR, 2), (STEP_TAP, 2), (HIGH_LOW, 2, "R"), (DUCK, 2)],
+            [(PUNCH_PAIR, 2), (JAB_KICK, 2, "R"), (STEP_REACH, 2), (DODGE, 2)],
+        ],
+        "drop": [[(CROSS, 1), (FAN, 2), (JAB_KICK, 2), (HIGH_LOW, 2), (PUNCH_PAIR, 1)],
+                 [(CROSS, 1), (MIRROR, 2), (JAB_KICK, 2, "R"), (FAN, 2), (HIGH_LOW, 1)],
+                 [(CROSS, 1), (HIGH_LOW, 2), (STEP_REACH, 2), (MIRROR, 2), (FAN, 1)]],
+        "calm": [[(ARC, 2), (STEP_REACH, 2), ("PunchHold", 2), (JAB_CROSS, 2)],
+                 [(RAILS, 2), (PUNCH_PAIR, 2), (ARC_PUNCH, 2), (STEP_TOUCH, 2)],
+                 [("PunchHold", 2), (MIRROR, 2), (ARC, 2), (STEP_REACH, 2, "R")]],
+        "fill": HIGH_LOW, "drop_bars": 8, "lead_in": False, "calm_first": True,
+        "limits": {ARC: 2, WALL_RUN: 2}, "finale": CROSS,
+        "arcs": [(450.0, 6, 0.8), (360.0, 4, 0.75)],
+    },
+    # 2, AsteroidStorm - plyometrics: legs and jumps. Jacks, side jumps, shifts, power jumps with
+    # the fists up, two-foot chords with a punch, kerbs to jump, one-leg balance, the wide stance,
+    # step pairs, the held squat on the breaks; punches only on top of the jumps.
+    "cosmic-plyo": {
+        "normal": [
+            [(JACK, 2), (SIDE_JUMP, 2), (JACK, 2), (CURB, 2)],
+            [(SHIFT, 2), (POWER_JUMP, 2), (SHIFT, 2, "R"), (BALANCE, 2)],
+            [(CHORD, 2), (STEP_PAIR, 2), (SIDE_JUMP, 2, "R"), (CURB, 2)],
+            [(POWER_JUMP, 2), (KICK, 2), (WIDE, 2), (BALANCE, 2)],
+            [(SIDE_JUMP, 2), (CHORD, 2), (JACK, 2), ("KickHold", 2)],
+            [(STEP_PAIR, 2), (SHIFT, 2), (POWER_JUMP, 2), (CURB, 2)],
+            [(KICK, 2, "R"), (JACK, 2), (CHORD, 2), (BALANCE, 2)],
+        ],
+        "drop": [[(CROSS, 1), (POWER_JUMP, 2), (JACK, 2), (SIDE_JUMP, 2), (CHORD, 1)],
+                 [(CROSS, 1), (CHORD, 2), (SHIFT, 2), (JACK, 2), (POWER_JUMP, 1)],
+                 [(CROSS, 1), (SIDE_JUMP, 2), (POWER_JUMP, 2), (STEP_PAIR, 2), (JACK, 1)]],
+        "calm": [[(SQUAT, 4), (WIDE, 2), ("KickHold", 2)],
+                 [(BALANCE, 2), (KICK, 2), (SQUAT, 4)],
+                 [(WIDE, 2), (STEP_PAIR, 2), ("KickHold", 2), (KICK, 2, "R")]],
+        "fill": KICK, "drop_bars": 8, "lead_in": False, "calm_first": True,
+        "limits": {SQUAT: 3}, "finale": CROSS,
+        "arcs": [(360.0, 4, 0.75)],
+    },
+})
+
 # ArcHold circles for a plan without its own `arcs`: (degrees, beats, radius m).
 ARC_SHAPES = [(360.0, 6, 0.75), (270.0, 4, 0.7), (450.0, 6, 0.8), (540.0, 8, 0.85)]
 # An ArcHold is never shorter than this many beats; an Arc set too short for it gets punches.
@@ -2655,7 +2709,7 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main(argv: Optional[Sequence[str]] = None) -> int:
     cfg = build_parser().parse_args(argv)
-    if cfg.competitor_style:
+    if cfg.competitor_style and cfg.pattern not in CHARACTER_PLANS:
         cfg.pattern = "competitor-" + cfg.difficulty
 
     if not cfg.audio.is_file():
