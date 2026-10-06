@@ -8,6 +8,7 @@ peak frame is the one farthest from the clip's first pose (the person standing).
 3 frames are blended into the frames just before the loop's start, so the wrap is seamless.
 
     python bake_frames.py CLIP.webm OUT.png [--cycle A B] [--peak T] [--mirror] [--strikes N]
+    python bake_frames.py CLIP.webm OUT.png --range A B     (every frame from A to B s, as it is)
 
 Writes OUT.png, a flipbook of the loop's frames (left to right, top to bottom, `columns` across;
 Unity imports it as a Texture2DArray), and prints one JSON line: fps, frames, columns, rows,
@@ -77,9 +78,16 @@ def main():
     ap.add_argument("--peak", type=float, help="the strike, source seconds")
     ap.add_argument("--mirror", action="store_true", help="loop + its mirror image: one side, then the other")
     ap.add_argument("--strikes", type=int, help="strikes (beats) in one loop")
+    ap.add_argument("--range", nargs=2, type=float, metavar=("A", "B"), help="bake these seconds as they are, no loop")
     args = ap.parse_args()
 
     vw, vh, fps = probe(args.clip)
+    if args.range:
+        full = decode_crop(args, vw, vh)
+        s = min(len(full) - 1, max(0, round(args.range[0] * fps)))
+        e = min(len(full), max(s + 1, round(args.range[1] * fps)))
+        write(args, full[s:e], {"fps": fps, "rangeStart": s / fps, "rangeEnd": e / fps, "sourceFrames": len(full)})
+        return
     # The figure, at the analysis size: the whole frame (arms out of the panel still count).
     small = decode(args.clip, vf="scale=128:72", size=(128, 72), alpha=True)[..., 3].astype(np.float32) / 255.0
     n = len(small)
@@ -103,14 +111,7 @@ def main():
         dev = np.abs(small[s:e] - rest).reshape(e - s, -1).mean(axis=1)
         peak = s + int(np.argmax(dev))
 
-    # The panel's crop of the frames, at the bake size.
-    zoom = max(1.0, args.zoom)
-    ch = vh / zoom
-    cw = min(vw, ch * args.width / args.height)
-    x = min(max(0.0, args.cx * vw - cw / 2), vw - cw)
-    y = min(max(0.0, (1 - args.cy) * vh - ch / 2), vh - ch)
-    vf = f"crop={cw:.0f}:{ch:.0f}:{x:.0f}:{y:.0f},scale={args.width}:{args.height}:flags=area"
-    full = decode(args.clip, vf=vf, size=(args.width, args.height), alpha=True).astype(np.float32)
+    full = decode_crop(args, vw, vh)
 
     def loop(flip):
         f = full[s:e].copy()
@@ -130,6 +131,26 @@ def main():
 
     frames = np.concatenate([loop(False), loop(True)]) if args.mirror else loop(False)
     strikes = args.strikes or (2 if args.mirror or alternating(dl, dr, s, e) else 1)
+    write(args, frames, {
+        "fps": fps, "cycleStart": s / fps, "cycleEnd": e / fps, "peakTime": peak / fps, "peakFrame": peak - s,
+        "strikes": strikes, "amplitude": round(amp, 4), "seam": round(seam, 4), "sourceFrames": n,
+    })
+
+
+def decode_crop(args, vw, vh):
+    """The panel's crop of every frame, at the bake size, float RGBA."""
+    zoom = max(1.0, args.zoom)
+    ch = vh / zoom
+    cw = min(vw, ch * args.width / args.height)
+    x = min(max(0.0, args.cx * vw - cw / 2), vw - cw)
+    y = min(max(0.0, (1 - args.cy) * vh - ch / 2), vh - ch)
+    vf = f"crop={cw:.0f}:{ch:.0f}:{x:.0f}:{y:.0f},scale={args.width}:{args.height}:flags=area"
+    return decode(args.clip, vf=vf, size=(args.width, args.height), alpha=True).astype(np.float32)
+
+
+def write(args, frames, info):
+    """The frames as a flipbook PNG, and the JSON line."""
+    frames = frames.copy()
     frames[..., :3] = np.where(frames[..., 3:] > 0, frames[..., :3], 0)
     out = frames.round().clip(0, 255).astype(np.uint8)
     count = len(out)
@@ -140,11 +161,7 @@ def main():
         r, c = divmod(i, cols)
         sheet[r * args.height:(r + 1) * args.height, c * args.width:(c + 1) * args.width] = f
     Image.fromarray(sheet, "RGBA").save(args.out, optimize=True)
-    print(json.dumps({
-        "fps": fps, "frames": count, "columns": cols, "rows": rows, "width": args.width, "height": args.height,
-        "cycleStart": s / fps, "cycleEnd": e / fps, "peakTime": peak / fps, "peakFrame": peak - s,
-        "strikes": strikes, "amplitude": round(amp, 4), "seam": round(seam, 4), "sourceFrames": n,
-    }))
+    print(json.dumps({"frames": count, "columns": cols, "rows": rows, "width": args.width, "height": args.height, **info}))
 
 
 def premul_lerp(a, b, w):

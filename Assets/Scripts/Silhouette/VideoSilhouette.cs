@@ -7,9 +7,9 @@ using UnityEngine.UI;
 /// Tunnel/SilhouetteFrames shader. Built by SilhouetteTrainer when its video flag is on, in place of
 /// the 3D figure.
 ///
-/// Nothing plays: every frame the shows (VideoSilhouettePlanner, one looped clip per phrase) are
-/// looked up at the song clock and the shader is told which two frames to blend - so the picture
-/// can never stall, seek or drift from the music. At a phrase change the new clip is blended in
+/// Nothing plays: every frame the timeline (VideoSilhouettePlanner, a move per note) is looked up
+/// at the song clock and the shader is told which two frames to blend - so the picture can never
+/// stall, seek or drift from the music. Where one move hands over to the next it is blended in
 /// over VideoSilhouetteSet.crossfadeSeconds in the same shader.
 public class VideoSilhouette : MonoBehaviour
 {
@@ -18,12 +18,13 @@ public class VideoSilhouette : MonoBehaviour
     private static readonly int ParamA = Shader.PropertyToID("_A");
     private static readonly int ParamB = Shader.PropertyToID("_B");
     private static readonly int Mix = Shader.PropertyToID("_Mix");
+    private static readonly int BounceId = Shader.PropertyToID("_Bounce");
 
     private VideoSilhouetteSet set;
     private CueSpawner spawner;
     private RawImage image;
     private Material mat;
-    private List<VideoSilhouettePlanner.Show> shows = new List<VideoSilhouettePlanner.Show>();
+    private List<VideoSilhouettePlanner.Segment> shows = new List<VideoSilhouettePlanner.Segment>();
     private int current;
     private bool planned;
 
@@ -37,10 +38,8 @@ public class VideoSilhouette : MonoBehaviour
         image.material = mat;
         image.texture = Texture2D.whiteTexture;
         image.uvRect = new Rect(0f, 0f, 1f, 1f);   // the frames are baked to the panel's crop
-        // Before the chart is known: standing easy.
-        var idle = set.Find(set.restClip) ?? set.Find(set.fallbackClip);
-        if (idle != null) shows.Add(VideoSilhouettePlanner.Idle(idle));
-        image.enabled = shows.Count > 0;
+        // Before the chart is known: the figure is shown once it is planned.
+        image.enabled = false;
     }
 
     private void OnDestroy()
@@ -88,38 +87,39 @@ public class VideoSilhouette : MonoBehaviour
         shows = plan;
         current = 0;
         image.enabled = true;
-        Debug.Log("[VideoSilhouette] " + shows.Count + " shows planned", this);
+        Debug.Log("[VideoSilhouette] " + shows.Count + " segments planned", this);
     }
 
     private void LateUpdate()
     {
         if (shows.Count == 0) return;
-        // Before the song starts the idle show runs on its own time; the plan only once it runs.
+        // Before the song starts the first segment (the intro groove) runs on its own time.
         float now = Now;
         if (planned && !Running) now = float.NegativeInfinity;
 
         int k = Mathf.Clamp(current, 0, shows.Count - 1);
-        while (k + 1 < shows.Count && shows[k + 1].start <= now) k++;
-        while (k > 0 && shows[k].start > now) k--;
+        while (k + 1 < shows.Count && shows[k + 1].from <= now) k++;
+        while (k > 0 && shows[k].from > now) k--;
         current = k;
 
         var cur = shows[k];
         float t = float.IsInfinity(now) ? Time.time : now;
+        float a = k > 0 && !float.IsInfinity(cur.from) ? Mathf.Clamp01((t - cur.from) / Mathf.Max(0.01f, cur.fade)) : 1f;
+        var other = a < 1f ? shows[k - 1] : cur;
         Bind(FramesA, ParamA, cur, t);
-        float fade = Mathf.Max(0.01f, set.crossfadeSeconds);
-        float a = k > 0 ? Mathf.Clamp01((now - cur.start) / fade) : 1f;
-        if (a < 1f) Bind(FramesB, ParamB, shows[k - 1], t);
-        else Bind(FramesB, ParamB, cur, t);
+        Bind(FramesB, ParamB, other, t);
+        mat.SetVector(BounceId, new Vector4(cur.Bounce(t) * set.bounce, other.Bounce(t) * set.bounce, 0f, 0f));
         mat.SetFloat(Mix, a);
     }
 
-    private void Bind(int tex, int param, VideoSilhouettePlanner.Show show, float songTime)
+    private void Bind(int tex, int param, VideoSilhouettePlanner.Segment seg, float songTime)
     {
-        int n = show.clip.FrameCount;
-        float f = show.Frame(songTime);
+        var clip = seg.clip;
+        float f = clip.FrameAt(seg.ClipTime(songTime));
+        int n = clip.FrameCount;
         int f0 = Mathf.Min(n - 1, Mathf.FloorToInt(f));
-        int f1 = f0 + 1 >= n ? 0 : f0 + 1;
-        mat.SetTexture(tex, show.clip.frames);
-        mat.SetVector(param, new Vector4(f0, f1, f - f0, 0f));
+        int f1 = Mathf.Min(n - 1, f0 + 1);
+        mat.SetTexture(tex, clip.frames);
+        mat.SetVector(param, new Vector4(f0, f1, f - f0, seg.mirror ? 1f : 0f));
     }
 }

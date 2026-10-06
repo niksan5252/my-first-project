@@ -13,326 +13,279 @@ MonoBehaviour:
   m_Name: VideoSilhouetteSet
   m_EditorClassIdentifier: Assembly-CSharp::VideoSilhouetteSet
   clips:
-  - name: 04_punch_up
-    frames: {fileID: 18700000, guid: 0396c578be63a3241b38f672f635d992, type: 3}
-    frameCount: 34
+  - name: step
+    frames: {fileID: 18700000, guid: d7934cc4a9cdba14093cf0ea3e421d5b, type: 3}
+    frameCount: 36
     fps: 24
-    peakFrame: 21
-    strikes: 1
-    mirror: 0
-    manualCycle: 0
-    cycleStart: 0
-    cycleEnd: 1.4166666
-    peakTime: 0.875
-    speedMin: 0.8
-    speedMax: 1.25
-  - name: 05_jumping_jack
-    frames: {fileID: 18700000, guid: 90003be773ae42248856d6793e714d33, type: 3}
+    bakeStart: 0.9583333
+    moves:
+    - group: step
+      side: 2
+      start: 1
+      peak: 1.67
+      end: 2.4
+      loopStart: 0
+      loopEnd: 0
+      holdLoops: 0
+  - name: march
+    frames: {fileID: 18700000, guid: d207cf13d66eec04988254710d976cb9, type: 3}
     frameCount: 29
     fps: 24
-    peakFrame: 11
-    strikes: 1
-    mirror: 0
-    manualCycle: 0
-    cycleStart: 0
-    cycleEnd: 1.2083334
-    peakTime: 0.45833334
-    speedMin: 0.8
-    speedMax: 1.25
-  - name: 06_squat_b
-    frames: {fileID: 18700000, guid: 4880a62b99c7d7c4d8931b566344a7c6, type: 3}
+    bakeStart: 1.4583334
+    moves:
+    - group: march
+      side: 2
+      start: 1.5
+      peak: 1.83
+      end: 2.08
+      loopStart: 1.5
+      loopEnd: 2.625
+      holdLoops: 0
+    - group: march
+      side: 1
+      start: 2.04
+      peak: 2.375
+      end: 2.62
+      loopStart: 1.5
+      loopEnd: 2.625
+      holdLoops: 0
+    - group: marchHold
+      side: 2
+      start: 1.5
+      peak: 1.83
+      end: 2.08
+      loopStart: 0
+      loopEnd: 0
+      holdLoops: 0
+    - group: marchHold
+      side: 1
+      start: 2.04
+      peak: 2.375
+      end: 2.62
+      loopStart: 0
+      loopEnd: 0
+      holdLoops: 0
+  - name: step_narrow_wide
+    frames: {fileID: 18700000, guid: 2ee72e396392c0d479a39d0f8c2a8ddb, type: 3}
     frameCount: 32
     fps: 24
-    peakFrame: 18
-    strikes: 1
-    mirror: 0
-    manualCycle: 0
-    cycleStart: 0
-    cycleEnd: 1.3333334
-    peakTime: 0.75
-    speedMin: 0.8
-    speedMax: 1.25
-  - name: 07_sumo_b
-    frames: {fileID: 18700000, guid: 2b0f8b39adec7cf4e80a806cffdbf834, type: 3}
-    frameCount: 41
+    bakeStart: 1.5
+    moves:
+    - group: jack
+      side: 0
+      start: 1.55
+      peak: 2.1
+      end: 2.8
+      loopStart: 0
+      loopEnd: 0
+      holdLoops: 0
+  - name: jump
+    frames: {fileID: 18700000, guid: 16a1bfedd782bb343ace204d6d8092f4, type: 3}
+    frameCount: 60
     fps: 24
-    peakFrame: 28
-    strikes: 1
-    mirror: 0
-    manualCycle: 0
-    cycleStart: 0
-    cycleEnd: 1.7083334
-    peakTime: 1.1666666
-    speedMin: 0.8
-    speedMax: 1.25
-  - name: 08_side_lunge_b
-    frames: {fileID: 18700000, guid: b48306605c8465742a08d0502e342f84, type: 3}
-    frameCount: 34
+    bakeStart: 0.7916667
+    moves:
+    - group: jump
+      side: 0
+      start: 1.55
+      peak: 2.33
+      end: 3.25
+      loopStart: 0.83
+      loopEnd: 2.33
+      holdLoops: 0
+  - name: narrow_steps
+    frames: {fileID: 18700000, guid: bbad69ea4f939c6428b7cefdc8b14149, type: 3}
+    frameCount: 76
     fps: 24
-    peakFrame: 20
-    strikes: 1
-    mirror: 0
-    manualCycle: 0
-    cycleStart: 0
-    cycleEnd: 1.4166666
-    peakTime: 0.8333333
-    speedMin: 0.8
-    speedMax: 1.25
-  - name: 11_side_bend
-    frames: {fileID: 18700000, guid: 03fb533e2798aac44b51655f18ee3e26, type: 3}
-    frameCount: 32
+    bakeStart: 2.4583333
+    moves:
+    - group: rails
+      side: 0
+      start: 2.5
+      peak: 3.33
+      end: 4
+      loopStart: 3.33
+      loopEnd: 5.58
+      holdLoops: 1
+  - name: punch_lr
+    frames: {fileID: 18700000, guid: e648a42fd1d6a3a44b836fe8c6fadfe4, type: 3}
+    frameCount: 51
     fps: 24
-    peakFrame: 17
-    strikes: 1
-    mirror: 0
-    manualCycle: 0
-    cycleStart: 0
-    cycleEnd: 1.3333334
-    peakTime: 0.7083333
-    speedMin: 0.8
-    speedMax: 1.25
-  - name: 12_star
-    frames: {fileID: 18700000, guid: d90f913031d1884448fc213883be9ca4, type: 3}
-    frameCount: 24
+    bakeStart: 0.375
+    moves:
+    - group: punch
+      side: 2
+      start: 0.42
+      peak: 0.71
+      end: 1
+      loopStart: 0.71
+      loopEnd: 2.12
+      holdLoops: 0
+    - group: punch
+      side: 1
+      start: 1
+      peak: 1.33
+      end: 1.67
+      loopStart: 0.71
+      loopEnd: 2.12
+      holdLoops: 0
+    - group: punch2
+      side: 0
+      start: 1
+      peak: 1.72
+      end: 2.45
+      loopStart: 0
+      loopEnd: 0
+      holdLoops: 0
+  - name: punch_up
+    frames: {fileID: 18700000, guid: 6242091d1e5fd784384782b3ccc790aa, type: 3}
+    frameCount: 63
     fps: 24
-    peakFrame: 9
-    strikes: 1
-    mirror: 0
-    manualCycle: 0
-    cycleStart: 0
-    cycleEnd: 1
-    peakTime: 0.375
-    speedMin: 0.8
-    speedMax: 1.25
-  - name: 13_reach_up
-    frames: {fileID: 18700000, guid: 3d47aa4a189f76c4bb9168b4c5a3667c, type: 3}
-    frameCount: 48
+    bakeStart: 0.41666666
+    moves:
+    - group: punchHigh
+      side: 1
+      start: 0.45
+      peak: 0.79
+      end: 1.1
+      loopStart: 0.79
+      loopEnd: 2.25
+      holdLoops: 0
+    - group: punchHigh
+      side: 2
+      start: 1.1
+      peak: 1.4
+      end: 1.75
+      loopStart: 0.79
+      loopEnd: 2.25
+      holdLoops: 0
+    - group: punchHigh2
+      side: 0
+      start: 2
+      peak: 2.48
+      end: 3
+      loopStart: 0
+      loopEnd: 0
+      holdLoops: 0
+  - name: arm_circles
+    frames: {fileID: 18700000, guid: ace94383f5fcea241884391d18dfda58, type: 3}
+    frameCount: 87
     fps: 24
-    peakFrame: 34
-    strikes: 1
-    mirror: 0
-    manualCycle: 0
-    cycleStart: 0
-    cycleEnd: 2
-    peakTime: 1.4166666
-    speedMin: 0.8
-    speedMax: 1.25
-  - name: 20_arm_circles
-    frames: {fileID: 18700000, guid: 88b2e4d7938f5074aae51017f9b535db, type: 3}
-    frameCount: 77
+    bakeStart: 0.33333334
+    moves:
+    - group: circles
+      side: 0
+      start: 0.4
+      peak: 1.2
+      end: 3.9
+      loopStart: 0.55
+      loopEnd: 3.65
+      holdLoops: 1
+  - name: sumo
+    frames: {fileID: 18700000, guid: 027100376485f4f468b13118f7be322d, type: 3}
+    frameCount: 51
     fps: 24
-    peakFrame: 16
-    strikes: 2
-    mirror: 0
-    manualCycle: 1
-    cycleStart: 0.5
-    cycleEnd: 3.7
-    peakTime: 1.17
-    speedMin: 0.8
-    speedMax: 1.25
-  - name: 21_jump
-    frames: {fileID: 18700000, guid: 4afef19a39caa554f92bc0055f646f74, type: 3}
-    frameCount: 34
+    bakeStart: 1.2083334
+    moves:
+    - group: sumo
+      side: 0
+      start: 1.8
+      peak: 2.38
+      end: 3.3
+      loopStart: 0
+      loopEnd: 0
+      holdLoops: 0
+    - group: sumoHold
+      side: 0
+      start: 1.8
+      peak: 2.38
+      end: 3.3
+      loopStart: 1.27
+      loopEnd: 2.38
+      holdLoops: 1
+  - name: dodge
+    frames: {fileID: 18700000, guid: c10801dbb23625a4b823900351368522, type: 3}
+    frameCount: 38
     fps: 24
-    peakFrame: 18
-    strikes: 1
-    mirror: 0
-    manualCycle: 1
-    cycleStart: 1.58
-    cycleEnd: 3
-    peakTime: 2.33
-    speedMin: 0.8
-    speedMax: 1.25
-  - name: 22_march
-    frames: {fileID: 18700000, guid: 4912d779f29fe88439cd3360ccb324e6, type: 3}
-    frameCount: 27
-    fps: 24
-    peakFrame: 8
-    strikes: 2
-    mirror: 0
-    manualCycle: 1
-    cycleStart: 1.5
-    cycleEnd: 2.625
-    peakTime: 1.83
-    speedMin: 0.8
-    speedMax: 1.25
-  - name: 23_punch_overhead
-    frames: {fileID: 18700000, guid: 1b2c31d0f36825f469379adbd74d9f51, type: 3}
-    frameCount: 34
-    fps: 24
-    peakFrame: 11
-    strikes: 2
-    mirror: 0
-    manualCycle: 0
-    cycleStart: 0.45833334
-    cycleEnd: 1.875
-    peakTime: 0.9166667
-    speedMin: 0.8
-    speedMax: 1.25
-  - name: 24_side_stretch
-    frames: {fileID: 18700000, guid: 449e9910db0ac6e459f2e17211f49d25, type: 3}
-    frameCount: 85
-    fps: 24
-    peakFrame: 19
-    strikes: 2
-    mirror: 0
-    manualCycle: 1
-    cycleStart: 0.2
-    cycleEnd: 3.75
-    peakTime: 1
-    speedMin: 0.8
-    speedMax: 1.25
-  - name: 25_sumo_pulse
-    frames: {fileID: 18700000, guid: 8aaaf8cd71e61b2479223cb6e911f902, type: 3}
-    frameCount: 28
-    fps: 24
-    peakFrame: 0
-    strikes: 1
-    mirror: 0
-    manualCycle: 1
-    cycleStart: 1.25
-    cycleEnd: 2.42
-    peakTime: 1.25
-    speedMin: 0.8
-    speedMax: 1.25
-  - name: 26_bounce
-    frames: {fileID: 18700000, guid: eb608725211761a4c9aaa0c2383ad1d9, type: 3}
-    frameCount: 23
-    fps: 24
-    peakFrame: 6
-    strikes: 2
-    mirror: 0
-    manualCycle: 1
-    cycleStart: 0.46
-    cycleEnd: 1.42
-    peakTime: 0.71
-    speedMin: 0.8
-    speedMax: 1.25
-  - name: 28_step_touch
-    frames: {fileID: 18700000, guid: 0578fa38d62cd8e45a30f4506c6eb864, type: 3}
-    frameCount: 58
-    fps: 24
-    peakFrame: 16
-    strikes: 2
-    mirror: 1
-    manualCycle: 1
-    cycleStart: 0
-    cycleEnd: 1.2
-    peakTime: 0.67
-    speedMin: 0.8
-    speedMax: 1.25
-  - name: 30_idle
-    frames: {fileID: 18700000, guid: a81eaba5b0772d746973ef66b7a5ce86, type: 3}
-    frameCount: 101
-    fps: 24
-    peakFrame: 0
-    strikes: 1
-    mirror: 0
-    manualCycle: 1
-    cycleStart: 0.3
-    cycleEnd: 4.5
-    peakTime: 0.3
-    speedMin: 0.8
-    speedMax: 1.25
-  - name: fm_arms_wide
-    frames: {fileID: 18700000, guid: 2d063ca4553492c47b1295cdff4bb8d0, type: 3}
-    frameCount: 35
-    fps: 24
-    peakFrame: 20
-    strikes: 1
-    mirror: 0
-    manualCycle: 0
-    cycleStart: 1.25
-    cycleEnd: 2.7083333
-    peakTime: 2.0833333
-    speedMin: 0.8
-    speedMax: 1.25
-  - name: fm_squat
-    frames: {fileID: 18700000, guid: 6592195ef524fdc4db969424f8e76b80, type: 3}
+    bakeStart: 0.16666667
+    moves:
+    - group: dodge
+      side: 1
+      start: 0.2
+      peak: 0.85
+      end: 1.7
+      loopStart: 0
+      loopEnd: 0
+      holdLoops: 0
+  - name: groove
+    frames: {fileID: 18700000, guid: c2b2e05ba479a0d4790837bab8831f0b, type: 3}
     frameCount: 56
     fps: 24
-    peakFrame: 14
-    strikes: 1
-    mirror: 0
-    manualCycle: 0
-    cycleStart: 1.5416666
-    cycleEnd: 3.875
-    peakTime: 2.125
-    speedMin: 0.8
-    speedMax: 1.25
-  - name: fm_sumo
-    frames: {fileID: 18700000, guid: 996a4eb4cd69c874a941ff9178e0399a, type: 3}
-    frameCount: 28
-    fps: 24
-    peakFrame: 15
-    strikes: 1
-    mirror: 0
-    manualCycle: 0
-    cycleStart: 3.4583333
-    cycleEnd: 4.625
-    peakTime: 4.0833335
-    speedMin: 0.8
-    speedMax: 1.25
+    bakeStart: 3.2916667
+    moves:
+    - group: groove
+      side: 0
+      start: 3.33
+      peak: 3.33
+      end: 5.58
+      loopStart: 3.33
+      loopEnd: 5.58
+      holdLoops: 0
   bindings:
   - note: 0
-    clip: 28_step_touch
-  - note: 4
-    clip: 28_step_touch
+    group: step
   - note: 20
-    clip: 22_march
-  - note: 17
-    clip: 26_bounce
+    group: march
+  - note: 4
+    group: marchHold
   - note: 16
-    clip: 05_jumping_jack
+    group: jack
   - note: 11
-    clip: 05_jumping_jack
-  - note: 2
-    clip: 21_jump
+    group: jack
   - note: 6
-    clip: 21_jump
+    group: jack
+  - note: 17
+    group: jump
+  - note: 2
+    group: jump
   - note: 13
-    clip: fm_arms_wide
-  - note: 14
-    clip: 25_sumo_pulse
-  - note: 7
-    clip: 06_squat_b
-  - note: 5
-    clip: 24_side_stretch
-  - note: 10
-    clip: 08_side_lunge_b
-  - note: 9
-    clip: 23_punch_overhead
-  - note: 18
-    clip: 23_punch_overhead
+    group: rails
   - note: 1
-    clip: 23_punch_overhead
-  - note: 15
-    clip: 13_reach_up
+    group: punch
   - note: 3
-    clip: 13_reach_up
-  - note: 19
-    clip: 12_star
+    group: punch
+  - note: 15
+    group: punch2
   - note: 8
-    clip: fm_arms_wide
+    group: punch
+  - note: 9
+    group: punchHigh
+  - note: 18
+    group: punchHigh2
+  - note: 21
+    group: punchHigh2
+  - note: 19
+    group: punchHigh2
   - note: 12
-    clip: 20_arm_circles
-  excluded:
-  - 01_step_touch
-  - 02_jab_cross
-  - 03_double_punch
-  - 09_march_b
-  - fm_punch
-  - fm_march
-  - fm_misc_77
-  - 27_guard_punch
-  - 29_cross_hop
-  fallbackClip: 28_step_touch
-  restClip: 30_idle
-  minPhraseBars: 2
-  cycleBeats: 01000000020000000400000008000000i
+    group: circles
+  - note: 14
+    group: sumoHold
+  - note: 7
+    group: sumo
+  - note: 5
+    group: dodge
+  - note: 10
+    group: step
+  - note: 22
+    group: groove
+  marchBeats: 0.75
+  pauseBeats: 2
+  grooveBeats: 020000000400000008000000i
+  speedMin: 0.75
+  speedMax: 1.4
   crossfadeSeconds: 0.5
   chordSeconds: 0.04
-  marchBeats: 0.75
+  bounce: 0.012
   frameShader: {fileID: 4800000, guid: 9d9cb2c8459b4114ab28503d7c2eaac3, type: 3}
   zoom: 1
   centerX: 0.5
