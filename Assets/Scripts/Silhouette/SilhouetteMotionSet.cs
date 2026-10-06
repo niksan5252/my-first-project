@@ -72,6 +72,10 @@ public class SilhouetteMotionSet : ScriptableObject
     // scales them all by this - reaches, steps, the dodge's shift and the hop's height - so the
     // moves keep their proportions on it (the 3.2 m cartoon skeleton uses ~1.7).
     [Min(0.1f)] public float gestureScale = 1f;
+    // Foot IK pulls the feet to a clip's IK goals. FBX takes carry them; clips made in code
+    // (MocapImport) do not, and with no goals the feet are pulled to the origin - legs folded under a
+    // floating body. On for a set of such clips: every clip plays its muscles as they are.
+    public bool noFootIK;
 
     [Header("Clips")]
     // The stance under everything, as motion capture: calm idles for the short rests between

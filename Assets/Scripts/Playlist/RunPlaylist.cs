@@ -119,6 +119,8 @@ public class RunPlaylist : ScriptableObject
     // The trainer as a person filmed on camera: solid black, backlit in the segment's colours, a
     // thin rounded frame, a light motion trail (SilhouetteTrainer.UseFilmedLook).
     public bool trainerFilmed;
+    // Video 10: the 3D character on mocap (MocapImport) in the filmed look, without the trail.
+    public bool trainerMocap3D;
 
     [Header("Retention wrapper (video 9) - off for every older playlist")]
     // The whole wrapper: spoiler label over the Spoiler segments, the opening cards, the cards

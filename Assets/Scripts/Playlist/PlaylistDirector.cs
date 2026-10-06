@@ -76,6 +76,7 @@ public class PlaylistDirector : MonoBehaviour
         else if (trainer != null && list.trainerMotionSet != null) trainer.UseMotionSet(list.trainerMotionSet, list.trainerTextured && !list.trainerFilmed);
         if (trainer != null && list.trainerPanelInThemeColors) trainer.UsePanelPalette();
         if (trainer != null && list.trainerFilmed && !list.hideTrainer) trainer.UseFilmedLook();
+        if (trainer != null && list.trainerMocap3D && !list.hideTrainer) trainer.UseCharacterNotVideo();
         if (list.retention)
         {
             overlay = gameObject.AddComponent<RetentionOverlay>();

@@ -184,6 +184,16 @@ public class SilhouetteTrainer : MonoBehaviour
     /// Video 9: the trainer as a person filmed on camera - a solid black figure, softly backlit in
     /// the theme's two colours (a vertical wash behind it and a halo round its edge), in a thin
     /// rounded frame, with a light motion trail. Keeps the motion set; call before the build.
+    /// Video 10: the 3D character on mocap even where the scene is set to the filmed clips, in the
+    /// filmed look (solid black, backlit) but with no motion trail - one figure, never a ghost.
+    public void UseCharacterNotVideo()
+    {
+        if (built) return;
+        useVideoSilhouette = false;
+        UseFilmedLook();
+        filmedTrail = 0f;
+    }
+
     public void UseFilmedLook()
     {
         if (built) return;
@@ -356,7 +366,7 @@ public class SilhouetteTrainer : MonoBehaviour
         for (int i = 0; i < clips.Count; i++)
         {
             var p = AnimationClipPlayable.Create(graph, clips[i]);
-            p.SetApplyFootIK(true);
+            p.SetApplyFootIK(!motionSet.noFootIK);
             p.Pause();   // time is set by hand every frame
             graph.Connect(p, 0, mixer, i);
             mixer.SetInputWeight(i, 0f);
@@ -455,7 +465,7 @@ public class SilhouetteTrainer : MonoBehaviour
         glowMat = new Material(glowShader != null ? glowShader : Shader.Find("Tunnel/SilhouetteGlow"));
         figureGlow = PanelRaw("FigureGlow", glowMat);
         // The motion trail: the previous frame of the figure under this one, half see-through.
-        if (filmed) trailImage = PanelRaw("FigureTrail", null);
+        if (filmed && filmedTrail > 0f) trailImage = PanelRaw("FigureTrail", null);
         figureImage = PanelRaw("Figure", null);
         frameEdge = PanelImage("Frame", filmed ? SilhouettePanelSprites.EdgeRound(frameCorner, Mathf.Min(frameWidth, 2f))
                                                : SilhouettePanelSprites.Edge(frameCorner, frameWidth), Color.white, 0f);
@@ -522,11 +532,14 @@ public class SilhouetteTrainer : MonoBehaviour
             // A solid figure lit from behind: no contour line, a soft halo round the edge.
             glowMat.SetFloat("_Outline", 0f);
             glowMat.SetFloat("_Halo", 0.9f);
-            if (trailRt != null) { trailRt.Release(); Destroy(trailRt); }
-            trailRt = new RenderTexture(w, h, 0, RenderTextureFormat.ARGB32) { name = "SilhouetteTrailRT", filterMode = FilterMode.Bilinear };
-            trailRt.Create();
-            trailImage.texture = trailRt;
-            trailImage.color = new Color(1f, 1f, 1f, filmedTrail);
+            if (trailImage != null)
+            {
+                if (trailRt != null) { trailRt.Release(); Destroy(trailRt); }
+                trailRt = new RenderTexture(w, h, 0, RenderTextureFormat.ARGB32) { name = "SilhouetteTrailRT", filterMode = FilterMode.Bilinear };
+                trailRt.Create();
+                trailImage.texture = trailRt;
+                trailImage.color = new Color(1f, 1f, 1f, filmedTrail);
+            }
         }
         glowMat.SetFloat("_ContourPx", Mathf.Max(1.5f, h * contourWidth));
         glowMat.SetFloat("_ClosePx", h * contourWidth);
@@ -624,6 +637,9 @@ public class SilhouetteTrainer : MonoBehaviour
             top = Mathf.Max(top, r.bounds.max.y);
         if (float.IsNegativeInfinity(top)) return;
         float height = top - stage.transform.position.y;
+        // The first frame may be a held squat (a chart that opens on one): never frame on less than
+        // a standing figure, or the camera zooms in and crops the trainer for the whole run.
+        if (motionSet.analysisHipsHeight > 0f) height = Mathf.Max(height, motionSet.analysisHipsHeight * 1.55f);
         viewHeight = height * (motionSet.frameHeights > 0f ? motionSet.frameHeights : frameHeights);
         viewCenterY = height * (motionSet.frameCenter > 0f ? motionSet.frameCenter : frameCenter);
         figureCamera.orthographicSize = viewHeight * 0.5f;
@@ -703,7 +719,7 @@ public class SilhouetteTrainer : MonoBehaviour
         if (slot == 0 && inputOf.TryGetValue(clip, out int st)) return st;
         if (slotInput.TryGetValue((clip, slot), out int i)) return i;
         var p = AnimationClipPlayable.Create(graph, clip);
-        p.SetApplyFootIK(true);
+        p.SetApplyFootIK(!motionSet.noFootIK);
         p.Pause();
         if (slot <= 2)
         {

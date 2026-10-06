@@ -1,0 +1,79 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3bb9640588ee8e744972f872bcd42a92, type: 3}
+  m_Name: Playlist_Video10
+  m_EditorClassIdentifier: Assembly-CSharp::RunPlaylist
+  title: Video10
+  segments:
+  - label: Level 1 OrbitStation
+    role: 0
+    track: {fileID: 8300000, guid: 8b72eecf58b281c4b91c937215bc922b, type: 3}
+    beatmapFileName: track10_1.json
+    theme: {fileID: 11400000, guid: 2b60aaa9abfddb844a974792b1eef986, type: 2}
+    clipStart: 0
+    clipEnd: 0
+    transitionIn: 3
+    transitionSeconds: 3.5
+    transitionLook: 0
+  - label: Level 2 AsteroidStorm
+    role: 0
+    track: {fileID: 8300000, guid: fa8b856047cc2bc40b921c606eb07b8f, type: 3}
+    beatmapFileName: track10_2.json
+    theme: {fileID: 11400000, guid: 3b3496ce2e65c4b4f8cad61889f9b578, type: 2}
+    clipStart: 0
+    clipEnd: 0
+    transitionIn: 3
+    transitionSeconds: 3.5
+    transitionLook: 0
+  - label: Level 3 NebulaHyperdrive
+    role: 0
+    track: {fileID: 8300000, guid: 0cb945ad5ad34e5498952996bb418579, type: 3}
+    beatmapFileName: track10_3.json
+    theme: {fileID: 11400000, guid: 03c7ea515649742448d8b203c7d40bca, type: 2}
+    clipStart: 0
+    clipEnd: 0
+    transitionIn: 3
+    transitionSeconds: 3.5
+    transitionLook: 0
+  preRoll: 1
+  noteMarginBeats: 1
+  wallsInTransition: 0
+  veilFogEnd: 22
+  thunderFlash: 0.8
+  thunderVolume: 1
+  thunderTrackStartVolume: 0.55
+  thunderRiseSeconds: 0.8
+  finalFadeSeconds: 0
+  trainerMotionSet: {fileID: 11400000, guid: e624e49fec19f1a4680e6b2a8f5eedfb, type: 2}
+  trainerTextured: 0
+  trainerPanelInThemeColors: 0
+  hideTrainer: 0
+  trainerFilmed: 0
+  trainerMocap3D: 1
+  retention: 1
+  interludeSeconds: 13
+  introCardsSeconds: 9
+  outroSeconds: 26
+  endScreenSeconds: 20
+  loopVolume: 0.22
+  loopBars: 4
+  recordFromContent: 1
+  welcomeText: WELCOME TO BEAT TUNNEL
+  ratingWords:
+  - WELL DONE
+  - AWESOME
+  - FLAWLESS
+  - PERFECT
+  - THAT'S INCREDIBLE
+  - EPIC
+  - THAT'S AMAZING
+  ratingCombos: 0a000000190000002d00000046000000640000008c000000be000000i
