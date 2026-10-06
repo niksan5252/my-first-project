@@ -29,7 +29,7 @@ public static class MocapImport
     private static readonly (string name, SilhouetteFitnessAnalysis.Role role)[] Takes =
     {
         ("Punch", SilhouetteFitnessAnalysis.Role.Punch),         // straight punches L/R, from our clip
-        ("Box2", SilhouetteFitnessAnalysis.Role.Punch),          // CMU boxing, jabs in a guard
+        ("Box4", SilhouetteFitnessAnalysis.Role.Punch),          // CMU boxing, jab/cross upright, facing the viewer
         ("PunchUp", SilhouetteFitnessAnalysis.Role.Uppercut),    // CMU punches up
         ("PunchHigh", SilhouetteFitnessAnalysis.Role.Uppercut),  // our clip: punches up
         ("Kick", SilhouetteFitnessAnalysis.Role.Steps),          // step-tap
@@ -161,10 +161,10 @@ public static class MocapImport
                 // Limbs, parent first: aim each bone at its child's landmark.
                 Aim(B(HumanBodyBones.LeftUpperArm), B(HumanBodyBones.LeftLowerArm), P[LEl] - P[LSh]);
                 Aim(B(HumanBodyBones.LeftLowerArm), B(HumanBodyBones.LeftHand), P[LWr] - P[LEl]);
-                Aim(B(HumanBodyBones.LeftHand), B(HumanBodyBones.LeftMiddleProximal), (P[LIndex] + P[LPinky]) * 0.5f - P[LWr]);
                 Aim(B(HumanBodyBones.RightUpperArm), B(HumanBodyBones.RightLowerArm), P[REl] - P[RSh]);
                 Aim(B(HumanBodyBones.RightLowerArm), B(HumanBodyBones.RightHand), P[RWr] - P[REl]);
-                Aim(B(HumanBodyBones.RightHand), B(HumanBodyBones.RightMiddleProximal), (P[RIndex] + P[RPinky]) * 0.5f - P[RWr]);
+                // Hands follow the forearm: the finger landmarks are too noisy to aim a wrist by - they
+                // made the fists flick from frame to frame.
                 Aim(B(HumanBodyBones.LeftUpperLeg), B(HumanBodyBones.LeftLowerLeg), P[LKnee] - P[LHip]);
                 Aim(B(HumanBodyBones.LeftLowerLeg), B(HumanBodyBones.LeftFoot), P[LAnk] - P[LKnee]);
                 Aim(B(HumanBodyBones.LeftFoot), B(HumanBodyBones.LeftToes), P[LToe] - P[LAnk]);
@@ -188,6 +188,11 @@ public static class MocapImport
                 rootQ[2].AddKey(time, pose.bodyRotation.z); rootQ[3].AddKey(time, pose.bodyRotation.w);
             }
             handler.Dispose();
+            // The capture's frame-to-frame noise, smoothed out of every curve (a two-pass 5-tap
+            // Gaussian, ~0.1 s): a strike's peak stays where it was, the shake between goes.
+            foreach (var c in muscles) Smooth(c);
+            foreach (var c in rootT) Smooth(c);
+            foreach (var c in rootQ) Smooth(c);
 
             string path = ClipFolder + "/" + name + ".anim";
             var clip = AssetDatabase.LoadAssetAtPath<AnimationClip>(path);
@@ -215,6 +220,22 @@ public static class MocapImport
             return clip;
         }
         finally { Object.DestroyImmediate(go); }
+    }
+
+    private static void Smooth(AnimationCurve c)
+    {
+        var k = c.keys;
+        if (k.Length < 5) return;
+        for (int pass = 0; pass < 2; pass++)
+        {
+            var v = k.Select(x => x.value).ToArray();
+            for (int i = 0; i < k.Length; i++)
+            {
+                float V(int j) => v[Mathf.Clamp(j, 0, v.Length - 1)];
+                k[i].value = (V(i - 2) + 4f * V(i - 1) + 6f * V(i) + 4f * V(i + 1) + V(i + 2)) / 16f;
+            }
+        }
+        c.keys = k;
     }
 
     // Muscle names in clips use dots for the finger muscles ("Left Thumb 1 Stretched" -> "LeftHand.Thumb.1 Stretched").
