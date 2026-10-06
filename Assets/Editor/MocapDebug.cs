@@ -5,6 +5,26 @@ using UnityEngine;
 /// Logs where a mocap clip puts Jennifer's joints (model space) - a check of the retarget without rendering.
 public static class MocapDebug
 {
+    [MenuItem("Tunnel/Mocap/Debug Punch Reach", priority = 62)]
+    public static void PunchReach()
+    {
+        var set = AssetDatabase.LoadAssetAtPath<SilhouetteMotionSet>("Assets/SharedAssets/Mixamo/JenniferFilmedMotionSet.asset");
+        var go = Object.Instantiate(set.model);
+        go.hideFlags = HideFlags.HideAndDontSave;
+        var a = go.GetComponent<Animator>();
+        var sb = new StringBuilder();
+        foreach (var m in set.punches)
+        {
+            m.clip.SampleAnimation(go, m.impact);
+            var hand = a.GetBoneTransform(m.limb == 0 ? HumanBodyBones.LeftHand : HumanBodyBones.RightHand).position;
+            var sh = a.GetBoneTransform(m.limb == 0 ? HumanBodyBones.LeftUpperArm : HumanBodyBones.RightUpperArm).position;
+            var d = hand - sh;
+            sb.AppendLine($"{m.clip.name} limb {m.limb}: side {d.x:F2} up {d.y:F2} fwd {d.z:F2}");
+        }
+        Object.DestroyImmediate(go);
+        System.IO.File.WriteAllText("Screenshots/punch_reach.txt", sb.ToString());
+    }
+
     [MenuItem("Tunnel/Mocap/Debug Pose Dump", priority = 61)]
     public static void Dump()
     {

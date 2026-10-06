@@ -126,6 +126,9 @@ public class SilhouetteMotionSet : ScriptableObject
     // Seen from the front a reach straight ahead is lost, so the hand goes out to the side and up
     // to shoulder height, elbow soft - the way the reference instructor shows it.
     public float punchOutOuter = 0.42f;
+    // Outer-lane punches always thrown straight out to the side at shoulder height, whatever the
+    // take (the trainer's procedural reach, kept on even with mocapOnly).
+    public bool outerPunchSide;
     public float punchOutInner = 0.3f;
     public float punchForward = 0.12f;
     public float punchDrop = -0.04f;

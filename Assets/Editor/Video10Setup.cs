@@ -230,6 +230,13 @@ public static class Video10Setup
         p.finalFadeSeconds = 0f;
         // The Mixamo takes on Jennifer (Video 9's set) - smooth; the video mocap set read as jerky.
         p.trainerMotionSet = AssetDatabase.LoadAssetAtPath<SilhouetteMotionSet>("Assets/SharedAssets/Mixamo/JenniferFilmedMotionSet.asset");
+        if (p.trainerMotionSet != null)
+        {
+            // Outer lanes (1 and 4): the punch always goes straight out to the side.
+            p.trainerMotionSet.outerPunchSide = true;
+            p.trainerMotionSet.punchOutOuter = 0.55f;
+            EditorUtility.SetDirty(p.trainerMotionSet);
+        }
         p.trainerTextured = false;
         p.trainerFilmed = false;
         p.trainerMocap3D = true;

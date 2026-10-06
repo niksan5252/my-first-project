@@ -17,6 +17,7 @@ MonoBehaviour:
   frameHeights: 0
   frameCenter: 0
   gestureScale: 1
+  noFootIK: 0
   idle:
   - clip: {fileID: -203655887218126122, guid: 7236f56dc6707ad4e9c4ef40e96d4781, type: 3}
     impact: 0
@@ -2008,7 +2009,8 @@ MonoBehaviour:
       m_PostInfinity: 2
       m_RotationOrder: 4
   bounceDepth: 0.009
-  punchOutOuter: 0.42
+  punchOutOuter: 0.55
+  outerPunchSide: 1
   punchOutInner: 0.3
   punchForward: 0.12
   punchDrop: -0.04

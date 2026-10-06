@@ -866,7 +866,10 @@ public class SilhouetteTrainer : MonoBehaviour
                 // A gesture only shapes the stance: while a jump or a crouch owns the body the
                 // gesture gives way, or the tail of a wall's lean would twist the jump.
                 float w = g.Weight(now) * (mocap ? 1f : stance);
-                if (mocap && s.mocapOnly) w = 0f;      // the takes alone: no reach, no procedural pose
+                // A punch on an outer lane can always be thrown out to the side (outerPunchSide) -
+                // the one reach kept even over the takes alone, because it reads best as a silhouette.
+                bool sideReach = s.outerPunchSide && g.outer && g.kind == SilhouettePlanner.GestureKind.Punch;
+                if (mocap && s.mocapOnly && !sideReach) w = 0f;      // the takes alone: no reach, no procedural pose
                 if (mocap)
                 {
                     // Over a take the reach or the tap is only a touch-up at the note.
@@ -875,7 +878,7 @@ public class SilhouetteTrainer : MonoBehaviour
                         case SilhouettePlanner.GestureKind.Punch:
                         case SilhouettePlanner.GestureKind.PunchHold:
                         case SilhouettePlanner.GestureKind.PunchHigh:
-                            w *= s.assistHand; break;
+                            w *= sideReach ? 1f : s.assistHand; break;
                         case SilhouettePlanner.GestureKind.Kick:
                         case SilhouettePlanner.GestureKind.KickHold:
                             w *= s.assistFoot; break;
