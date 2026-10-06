@@ -228,7 +228,8 @@ public static class Video10Setup
         p.preRoll = true;
         p.retention = false;
         p.finalFadeSeconds = 0f;
-        p.trainerMotionSet = AssetDatabase.LoadAssetAtPath<SilhouetteMotionSet>(MocapImport.SetPath);
+        // The Mixamo takes on Jennifer (Video 9's set) - smooth; the video mocap set read as jerky.
+        p.trainerMotionSet = AssetDatabase.LoadAssetAtPath<SilhouetteMotionSet>("Assets/SharedAssets/Mixamo/JenniferFilmedMotionSet.asset");
         p.trainerTextured = false;
         p.trainerFilmed = false;
         p.trainerMocap3D = true;
