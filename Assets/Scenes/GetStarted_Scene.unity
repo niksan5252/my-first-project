@@ -182,7 +182,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::RunProfileSelector
   profile: {fileID: 11400000, guid: 5ec4173adbff60c48af74805341d9615, type: 2}
-  playlist: {fileID: 0}
+  playlist: {fileID: 11400000, guid: 0e8960de752308445b00832f8449abf8, type: 2}
   playlistSolo: -1
   cueSpawner: {fileID: 0}
   themeApplier: {fileID: 0}

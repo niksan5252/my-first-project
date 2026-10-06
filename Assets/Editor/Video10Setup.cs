@@ -213,5 +213,42 @@ public static class Video10Setup
         dst.SaveAndReimport();
     }
 
+    /// Every button and combination on silence (Tools/beatmap/showcase.py), the mocap trainer on,
+    /// to pick the trainer's movement for each cue. Schedule: Desktop/витрина_кнопок.txt.
+    public const string ShowcasePath = Themes + "Playlists/Playlist_Showcase.asset";
+
+    [MenuItem("Tunnel/Playlist/Build Button Showcase", priority = 89)]
+    public static void BuildShowcase()
+    {
+        const string track = "Assets/Audio/Tracks/showcase_silent.wav";
+        AssetDatabase.ImportAsset(track);
+        var p = AssetDatabase.LoadAssetAtPath<RunPlaylist>(ShowcasePath);
+        if (p == null) { p = ScriptableObject.CreateInstance<RunPlaylist>(); AssetDatabase.CreateAsset(p, ShowcasePath); }
+        p.title = "Showcase";
+        p.preRoll = true;
+        p.retention = false;
+        p.finalFadeSeconds = 0f;
+        p.trainerMotionSet = AssetDatabase.LoadAssetAtPath<SilhouetteMotionSet>(MocapImport.SetPath);
+        p.trainerTextured = false;
+        p.trainerFilmed = false;
+        p.trainerMocap3D = true;
+        p.hideTrainer = false;
+        p.segments = new List<PlaylistSegment>
+        {
+            new PlaylistSegment
+            {
+                label = "Showcase", role = PlaylistSegmentRole.Level,
+                track = AssetDatabase.LoadAssetAtPath<AudioClip>(track), beatmapFileName = "showcase.json",
+                theme = AssetDatabase.LoadAssetAtPath<TunnelTheme>(Themes + "Theme_Cosmic_OrbitStation.asset"),
+                transitionIn = PlaylistTransition.Cut,
+            },
+        };
+        EditorUtility.SetDirty(p);
+        AssetDatabase.SaveAssets();
+        HalloweenPlaylistSetup.Use(ShowcasePath);
+        HalloweenPlaylistSetup.Solo(-1);
+        Debug.Log("[Showcase] built " + ShowcasePath);
+    }
+
     [MenuItem("Tunnel/Playlist/Use: Video 10", priority = 98)] private static void UseVideo10() => HalloweenPlaylistSetup.Use(PlaylistPath);
 }
