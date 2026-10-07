@@ -243,7 +243,11 @@ public static class MocapImport
             int f0 = Mathf.RoundToInt(m.marks[i] * fps), best = f0;
             for (int f = f0; f <= Mathf.Min(frames, f0 + Mathf.RoundToInt(0.6f * fps)); f++)
                 if (footY[foot, f] < footY[foot, best] - 1e-4f) best = f;
-            m.marks[i] = best / fps;
+            // The first touch, not the full settle: the earliest frame already within 1.5 cm of it.
+            int touch = best;
+            for (int f = f0; f <= best; f++)
+                if (footY[foot, f] <= footY[foot, best] + 0.015f) { touch = f; break; }
+            m.marks[i] = touch / fps;
         }
         log.AppendLine("  steps on the landing: " + string.Join(" ", m.marks.Select(t => t.ToString("F2"))));
     }
