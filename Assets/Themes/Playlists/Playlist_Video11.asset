@@ -1,0 +1,99 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3bb9640588ee8e744972f872bcd42a92, type: 3}
+  m_Name: Playlist_Video11
+  m_EditorClassIdentifier: Assembly-CSharp::RunPlaylist
+  title: Video11
+  segments:
+  - label: Level 1 SunsetPink
+    role: 0
+    track: {fileID: 8300000, guid: de09ecfe91c24a54bb238985289075a2, type: 3}
+    beatmapFileName: track11_1.json
+    theme: {fileID: 11400000, guid: 3b1ca20f3c9fe874f97423d49c28da27, type: 2}
+    clipStart: 0
+    clipEnd: 0
+    transitionIn: 0
+    transitionSeconds: 4
+    transitionLook: 0
+  - label: Level 2 ToxicGreen
+    role: 0
+    track: {fileID: 8300000, guid: 5b10c07c0f395824db82742d6e8ba471, type: 3}
+    beatmapFileName: track11_2.json
+    theme: {fileID: 11400000, guid: 587f9ac8aa3271b4b9e3f2f3f3cfa78b, type: 2}
+    clipStart: 0
+    clipEnd: 0
+    transitionIn: 0
+    transitionSeconds: 4
+    transitionLook: 0
+  - label: Level 3 RioCarnival
+    role: 0
+    track: {fileID: 8300000, guid: b675d258b7b342f4487ac16111b359bd, type: 3}
+    beatmapFileName: track11_3.json
+    theme: {fileID: 11400000, guid: 29b9112d053bd1643baed1f141bd04a1, type: 2}
+    clipStart: 0
+    clipEnd: 0
+    transitionIn: 0
+    transitionSeconds: 4
+    transitionLook: 0
+  - label: Level 4 IceStorm
+    role: 0
+    track: {fileID: 8300000, guid: e63e70739bee11341a70f3f6b974764e, type: 3}
+    beatmapFileName: track11_4.json
+    theme: {fileID: 11400000, guid: a9a588412a48076498fdddb34d99659b, type: 2}
+    clipStart: 0
+    clipEnd: 0
+    transitionIn: 0
+    transitionSeconds: 4
+    transitionLook: 0
+  - label: Level 5 GoldFinal
+    role: 0
+    track: {fileID: 8300000, guid: 686e104d65e5ac74db0da1556e981182, type: 3}
+    beatmapFileName: track11_5.json
+    theme: {fileID: 11400000, guid: d8f1cd211c6d8474491b53a6eae8008c, type: 2}
+    clipStart: 0
+    clipEnd: 0
+    transitionIn: 0
+    transitionSeconds: 4
+    transitionLook: 0
+  preRoll: 1
+  noteMarginBeats: 1
+  wallsInTransition: 0
+  veilFogEnd: 22
+  thunderFlash: 0.8
+  thunderVolume: 1
+  thunderTrackStartVolume: 0.55
+  thunderRiseSeconds: 0.8
+  finalFadeSeconds: 0
+  trainerMotionSet: {fileID: 11400000, guid: e624e49fec19f1a4680e6b2a8f5eedfb, type: 2}
+  trainerTextured: 0
+  trainerPanelInThemeColors: 0
+  hideTrainer: 1
+  trainerFilmed: 0
+  trainerMocap3D: 1
+  retention: 1
+  interludeSeconds: 13
+  introCardsSeconds: 9
+  outroSeconds: 26
+  endScreenSeconds: 20
+  loopVolume: 0.22
+  loopBars: 4
+  recordFromContent: 1
+  welcomeText: WELCOME TO BEAT TUNNEL
+  ratingWords:
+  - WELL DONE
+  - AWESOME
+  - FLAWLESS
+  - PERFECT
+  - THAT'S INCREDIBLE
+  - EPIC
+  - THAT'S AMAZING
+  ratingCombos: 0a000000190000002d00000046000000640000008c000000be000000i
