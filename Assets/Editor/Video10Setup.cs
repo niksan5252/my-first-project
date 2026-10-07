@@ -264,7 +264,9 @@ public static class Video10Setup
                 if (jumps.Count > 0) p.trainerMotionSet.curb = jumps;
                 var hops = mocapSet.hops.Where(m => m.clip != null && !m.clip.name.StartsWith("JumpCMU")).ToList();
                 if (hops.Count > 0) p.trainerMotionSet.hops = hops;
-                p.trainerMotionSet.noFootIK = false;
+                // Foot IK off for the whole set: our mocap clips carry no IK goals, and blended with a take
+                // that has them the feet get pulled to the origin - legs folded under a floating body.
+                p.trainerMotionSet.noFootIK = true;
                 p.trainerMotionSet.noFootIKClips = p.trainerMotionSet.steps.Concat(p.trainerMotionSet.wideSteps)
                     .Concat(p.trainerMotionSet.curb).Concat(p.trainerMotionSet.hops).Select(m => m.clip).Distinct().ToList();
             }
