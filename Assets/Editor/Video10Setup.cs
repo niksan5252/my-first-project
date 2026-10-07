@@ -236,6 +236,9 @@ public static class Video10Setup
             // Outer lanes (1 and 4): the punch always goes straight out to the side.
             p.trainerMotionSet.outerPunchSide = true;
             p.trainerMotionSet.highPunchUp = true;      // high notes: the fist straight up
+            p.trainerMotionSet.outerKickWide = true;    // outer-lane steps: the foot out wide
+            p.trainerMotionSet.kickOutOuter = 0.65f;
+            p.trainerMotionSet.kickBodyFollowOuter = 0.35f;
             p.trainerMotionSet.punchOutOuter = 0.55f;
             // Punches: the straight jab only (and its mirror for the other hand) - the cross and the
             // hook wind up oddly.

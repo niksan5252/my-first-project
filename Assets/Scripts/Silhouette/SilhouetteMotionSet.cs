@@ -131,6 +131,8 @@ public class SilhouetteMotionSet : ScriptableObject
     public bool outerPunchSide;
     // High punches (PunchHigh) always thrown straight up above the head (the procedural reach).
     public bool highPunchUp;
+    // Steps on the outer lanes always put the foot out wide onto the outer tile (the procedural reach).
+    public bool outerKickWide;
     public float punchOutInner = 0.3f;
     public float punchForward = 0.12f;
     public float punchDrop = -0.04f;

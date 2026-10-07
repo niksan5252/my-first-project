@@ -869,7 +869,8 @@ public class SilhouetteTrainer : MonoBehaviour
                 // A punch on an outer lane can always be thrown out to the side (outerPunchSide) -
                 // the one reach kept even over the takes alone, because it reads best as a silhouette.
                 bool sideReach = (s.outerPunchSide && g.outer && g.kind == SilhouettePlanner.GestureKind.Punch)
-                              || (s.highPunchUp && g.kind == SilhouettePlanner.GestureKind.PunchHigh);   // and a high punch straight up
+                              || (s.highPunchUp && g.kind == SilhouettePlanner.GestureKind.PunchHigh)    // and a high punch straight up
+                              || (s.outerKickWide && g.outer && (g.kind == SilhouettePlanner.GestureKind.Kick || g.kind == SilhouettePlanner.GestureKind.KickHold));   // and a wide step
                 if (mocap && s.mocapOnly && !sideReach) w = 0f;      // the takes alone: no reach, no procedural pose
                 if (mocap)
                 {
@@ -882,7 +883,7 @@ public class SilhouetteTrainer : MonoBehaviour
                             w *= sideReach ? 1f : s.assistHand; break;
                         case SilhouettePlanner.GestureKind.Kick:
                         case SilhouettePlanner.GestureKind.KickHold:
-                            w *= s.assistFoot; break;
+                            w *= sideReach ? 1f : s.assistFoot; break;
                         case SilhouettePlanner.GestureKind.Dodge:
                             w = 0f; break;   // the side step's take turns the body itself
                     }
@@ -913,10 +914,11 @@ public class SilhouetteTrainer : MonoBehaviour
                         float out_ = g.outer ? s.kickOutOuter : s.kickOutInner;
                         // Lifted on the way there and back, flat on the tile at the note. Only
                         // this foot moves; the other stays pinned where the stance put it.
-                        float lift = mocap ? 0f : s.kickLift * 4f * w * (1f - w);
+                        bool wide = sideReach;      // an outer-lane step thrown wide over the takes
+                        float lift = mocap && !wide ? 0f : (wide ? 0.5f : 1f) * s.kickLift * 4f * w * (1f - w);   // a wide step: a low lift, not a kick
                         Vector3 step = new Vector3(x * out_ * w, lift, mocap ? 0f : s.kickForward * w);
                         if (w > footW[limb]) { footW[limb] = w; foot[limb] = step; }
-                        if (g.outer && !mocap) body += new Vector3(x * out_ * s.kickBodyFollowOuter * w, 0f, 0f);
+                        if (g.outer && (!mocap || wide)) body += new Vector3(x * out_ * s.kickBodyFollowOuter * w, 0f, 0f);
                         tapping = Mathf.Max(tapping, w);
                         break;
                     }

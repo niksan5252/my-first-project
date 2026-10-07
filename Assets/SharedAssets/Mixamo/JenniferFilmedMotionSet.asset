@@ -1729,16 +1729,17 @@ MonoBehaviour:
   punchOutOuter: 0.55
   outerPunchSide: 1
   highPunchUp: 1
+  outerKickWide: 1
   punchOutInner: 0.3
   punchForward: 0.12
   punchDrop: -0.04
   punchHoldRaise: 0.48
   punchHoldPulse: 0.04
-  kickOutOuter: 0.42
+  kickOutOuter: 0.65
   kickOutInner: 0.2
   kickForward: 0.12
   kickLift: 0.12
-  kickBodyFollowOuter: 0.1
+  kickBodyFollowOuter: 0.35
   tapInBeats: 0.45
   tapStayBeats: 0.1
   tapOutBeats: 0.4
