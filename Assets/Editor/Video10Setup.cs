@@ -235,6 +235,9 @@ public static class Video10Setup
             // Outer lanes (1 and 4): the punch always goes straight out to the side.
             p.trainerMotionSet.outerPunchSide = true;
             p.trainerMotionSet.punchOutOuter = 0.55f;
+            // Punches: the straight jab only (and its mirror for the other hand) - the cross and the
+            // hook wind up oddly.
+            p.trainerMotionSet.punches.RemoveAll(m => m.clip == null || !m.clip.name.StartsWith("Lead Jab"));
             EditorUtility.SetDirty(p.trainerMotionSet);
         }
         p.trainerTextured = false;
