@@ -224,6 +224,30 @@ public static class MocapImport
         finally { Object.DestroyImmediate(go); }
     }
 
+    /// A step is ON the note when the foot comes down, not when the knee is highest (the analysis's
+    /// mark): each step mark moves to that foot's next lowest point within 0.6 s - the landing.
+    private static void LandMarks(GameObject go, Animator a, SilhouetteMotion m, System.Text.StringBuilder log)
+    {
+        const float fps = 60f;
+        int frames = Mathf.Max(1, Mathf.RoundToInt(m.Length * fps));
+        var footY = new float[2, frames + 1];
+        for (int f = 0; f <= frames; f++)
+        {
+            m.clip.SampleAnimation(go, Mathf.Min(m.Length, f / fps));
+            footY[0, f] = go.transform.InverseTransformPoint(a.GetBoneTransform(HumanBodyBones.LeftFoot).position).y;
+            footY[1, f] = go.transform.InverseTransformPoint(a.GetBoneTransform(HumanBodyBones.RightFoot).position).y;
+        }
+        for (int i = 0; i < m.marks.Length; i++)
+        {
+            int foot = i < m.markLimbs.Length ? Mathf.Clamp(m.markLimbs[i], 0, 1) : 0;
+            int f0 = Mathf.RoundToInt(m.marks[i] * fps), best = f0;
+            for (int f = f0; f <= Mathf.Min(frames, f0 + Mathf.RoundToInt(0.6f * fps)); f++)
+                if (footY[foot, f] < footY[foot, best] - 1e-4f) best = f;
+            m.marks[i] = best / fps;
+        }
+        log.AppendLine("  steps on the landing: " + string.Join(" ", m.marks.Select(t => t.ToString("F2"))));
+    }
+
     private static void Smooth(AnimationCurve c)
     {
         var k = c.keys;
@@ -291,6 +315,7 @@ public static class MocapImport
                 {
                     if (!clips.TryGetValue(n, out var clip)) continue;
                     var m = SilhouetteFitnessAnalysis.Analyze(go, a, clip, clip, role, log);
+                    if (role == SilhouetteFitnessAnalysis.Role.Steps) LandMarks(go, a, m, log);
                     bool original = n == name;
                     // A rep whose strike sits on the cut's edge has no wind-up or recovery: drop it.
                     bool single = role != SilhouetteFitnessAnalysis.Role.Steps && role != SilhouetteFitnessAnalysis.Role.Jack && role != SilhouetteFitnessAnalysis.Role.Idle;
