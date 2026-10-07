@@ -98,7 +98,7 @@ public class RingArchHyperCity : MonoBehaviour, IThemeAccent
 
     private void Update()
     {
-        if (frame == null) return;
+        if (frame == null || mpb == null || frameMat == null) return;
         float beats = ClubBeat.BeatIndex + ClubBeat.BeatPhase;
         float energy = Mathf.Clamp(ClubBeat.Energy, 0f, 1.7f);
         float kick = ClubBeat.Pulse;

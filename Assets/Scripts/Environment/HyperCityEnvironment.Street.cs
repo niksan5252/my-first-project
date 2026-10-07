@@ -11,6 +11,8 @@ public partial class HyperCityEnvironment
     private readonly List<Mover> bollards = new List<Mover>();
     private readonly List<Mover> trains = new List<Mover>();
     private readonly Material[] shopMats = new Material[3];
+    private Material asphaltMat, laneDashMat, laneEdgeMat;
+    private readonly List<Mover> groundCars = new List<Mover>();
     private Material walkMat, tileMat, awningMatA, awningMatB, kioskMat, bollardMat, railTrackMat, trainMat, trainWinMat;
 
     private void BuildStreet()
@@ -30,9 +32,46 @@ public partial class HyperCityEnvironment
         kioskMat = Neon(Color.Lerp(secondary, primary, 0.5f));
         bollardMat = Neon(Color.Lerp(secondary, Color.white, 0.3f));
         var cyl = RemixGeo.Primitive(PrimitiveType.Cylinder);
+        asphaltMat = Own(new Material(Shader.Find("Universal Render Pipeline/Lit")));
+        asphaltMat.SetColor("_BaseColor", new Color(0.06f, 0.065f, 0.08f));
+        asphaltMat.SetFloat("_Smoothness", 0.8f);
+        laneDashMat = Neon(new Color(1f, 0.85f, 0.45f));
+        laneEdgeMat = Neon(Color.Lerp(primary, Color.white, 0.4f));
 
         foreach (int side in new[] { -1, 1 })
         {
+            // Side lanes of the highway between the road and the sidewalk: asphalt with a dashed
+            // lane line and a solid edge line, and low cars driving in them.
+            for (float z = -Behind; z < far; z += 12f)
+            {
+                var seg = new GameObject("SideLanes").transform;
+                seg.SetParent(root, false);
+                seg.localPosition = new Vector3(side * 5.4f, -0.47f, z + 6f);
+                var slab = Place("Asphalt", cube, asphaltMat, seg);
+                slab.transform.localScale = new Vector3(4.8f, 0.06f, 12f);
+                for (int k = 0; k < 2; k++)
+                    RemixGeo.Beam(seg, "Dash", cube, laneDashMat, new Vector3(0f, 0.05f, -5f + k * 6f), new Vector3(0f, 0.05f, -2f + k * 6f), 0.12f);
+                RemixGeo.Beam(seg, "Edge", cube, laneEdgeMat, new Vector3(side * 2.1f, 0.05f, -6f), new Vector3(side * 2.1f, 0.05f, 6f), 0.1f);
+                street.Add(new Mover { t = seg });
+            }
+            for (int c = 0; c < 6; c++)
+            {
+                var car = new GameObject("GroundCar").transform;
+                car.SetParent(root, false);
+                float lx = side * (c % 2 == 0 ? 4.3f : 6.5f);
+                car.localPosition = new Vector3(lx, -0.05f, Rand(-Behind, far));
+                var body = Place("Body", cube, carBodyMat, car);
+                body.transform.localPosition = new Vector3(0f, 0.3f, 0f);
+                body.transform.localScale = new Vector3(1.5f, 0.55f, 3.4f);
+                var roof = Place("Roof", cube, carBodyMat, car);
+                roof.transform.localPosition = new Vector3(0f, 0.75f, -0.2f);
+                roof.transform.localScale = new Vector3(1.2f, 0.4f, 1.8f);
+                RemixGeo.Beam(car, "Tail", cube, tailMat, new Vector3(-0.6f, 0.4f, -1.72f), new Vector3(0.6f, 0.4f, -1.72f), 0.1f);
+                RemixGeo.Beam(car, "Under", cube, edgeMat, new Vector3(-0.6f, 0.05f, -1.5f), new Vector3(-0.6f, 0.05f, 1.5f), 0.06f);
+                RemixGeo.Beam(car, "Under", cube, edgeMat, new Vector3(0.6f, 0.05f, -1.5f), new Vector3(0.6f, 0.05f, 1.5f), 0.06f);
+                groundCars.Add(new Mover { t = car, speed = -Rand(5f, 11f) });
+            }
+
             // Sidewalk slabs (12 m each, so they scroll and wrap like everything else) with tile lines.
             for (float z = -Behind; z < far; z += 12f)
             {
@@ -155,6 +194,17 @@ public partial class HyperCityEnvironment
     private void UpdateStreet(float dt, float delta, float t, float beats, float kick, float energy, float drop, float barPulse)
     {
         foreach (var s in street) Scroll(s.t, delta);
+        float farZ = span - Behind;
+        foreach (var c in groundCars)
+        {
+            var p = c.t.localPosition;
+            p.z -= delta + c.speed * dt;             // slower than the road: they drive with us
+            if (p.z < -Behind) p.z += span;
+            if (p.z > farZ) p.z -= span;
+            c.t.localPosition = p;
+        }
+        RemixGeo.SetEmission(laneDashMat, new Color(1f, 0.85f, 0.45f), Mathf.Min(MaxLevel, emission * 0.6f));
+        RemixGeo.SetEmission(laneEdgeMat, Color.Lerp(primary, Color.white, 0.4f), Mathf.Min(MaxLevel, emission * (0.45f + 0.35f * kick * energy)));
 
         RemixGeo.SetEmission(tileMat, Color.Lerp(primary, Color.white, 0.3f), Mathf.Min(MaxLevel, emission * (0.2f + 0.35f * barPulse * energy)));
         int on = ((ClubBeat.BeatIndex % 3) + 3) % 3;
