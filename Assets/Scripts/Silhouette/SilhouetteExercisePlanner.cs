@@ -520,7 +520,12 @@ public static class SilhouetteExercisePlanner
     private static void StepRun(SilhouetteMotionSet set, List<Moment> run, System.Func<float, float> beatAt, System.Random rng,
                                 List<Move> moves, List<SilhouettePlanner.Gesture> gestures, BeatmapSequencer chart, int laneCount)
     {
-        var loops = set.steps.FindAll(s => s != null && s.Valid && s.marks.Length > 0);
+        // Mostly on the outer lanes: the wide step, when the set has one.
+        int outerNotes = 0;
+        foreach (var m in run) { int l = chart[m.legNote].lane; if (l == 0 || l == laneCount - 1) outerNotes++; }
+        var pool = set.wideSteps != null && set.wideSteps.Count > 0 && outerNotes * 2 > run.Count ? set.wideSteps : set.steps;
+        var loops = pool.FindAll(s => s != null && s.Valid && s.marks.Length > 0);
+        if (loops.Count == 0) loops = set.steps.FindAll(s => s != null && s.Valid && s.marks.Length > 0);
         if (loops.Count == 0) return;
         var take = loops[rng.Next(loops.Count)];
         float len = take.Length;

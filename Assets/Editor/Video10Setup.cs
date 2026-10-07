@@ -252,6 +252,7 @@ public static class Video10Setup
             {
                 var steps = mocapSet.steps.Where(m => m.clip != null && m.clip.name.StartsWith("March")).ToList();
                 if (steps.Count > 0) { p.trainerMotionSet.steps = steps; p.trainerMotionSet.noFootIK = true; }
+                p.trainerMotionSet.wideSteps = mocapSet.steps.Where(m => m.clip != null && m.clip.name.StartsWith("WideStep")).ToList();
             }
             EditorUtility.SetDirty(p.trainerMotionSet);
         }

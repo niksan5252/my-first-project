@@ -101,6 +101,8 @@ public class SilhouetteMotionSet : ScriptableObject
     // Foot notes: dance loops whose steps and taps are marked; a run of kicks is played on one,
     // each note on the next mark of the right foot.
     public List<SilhouetteMotion> steps = new List<SilhouetteMotion>();
+    // Optional: a run of steps mostly on the outer lanes takes one of these (a wide step to the side).
+    public List<SilhouetteMotion> wideSteps = new List<SilhouetteMotion>();
     // Two-foot notes: the jumping jack (its open and closed landings), the jumps in place.
     public List<SilhouetteMotion> jacks = new List<SilhouetteMotion>();
     public List<SilhouetteMotion> hops = new List<SilhouetteMotion>();
