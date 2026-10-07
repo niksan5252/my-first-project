@@ -236,6 +236,7 @@ public static class Video10Setup
             // Outer lanes (1 and 4): the punch always goes straight out to the side.
             p.trainerMotionSet.outerPunchSide = true;
             p.trainerMotionSet.highPunchUp = true;      // high notes: the fist straight up
+            p.trainerMotionSet.takeMaxSpeed = 2.5f;     // the wide step's marks are up to 1.1 s apart for notes every 0.5 s
             p.trainerMotionSet.outerKickWide = false;   // off: pulling the foot out against the march clip twists the leg
             p.trainerMotionSet.kickOutOuter = 0.65f;
             p.trainerMotionSet.kickBodyFollowOuter = 0.35f;
