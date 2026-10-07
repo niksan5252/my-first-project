@@ -17,23 +17,15 @@ BPM = 120.0
 BEAT = 60.0 / BPM
 LANES = 4
 START = 4.0          # song seconds before the first item
-GAP = 4              # beats of nothing after each item
+GAP = 2              # beats of nothing after each item
 
 # (label, kind, payload). raw: [(beat, type, lane, duration_beats, extra)], set: (exercise, beats, mirror)
 ITEMS = [
-    ("Punch - inner lanes, left/right", "raw", [(b, g.PUNCH, 1 + b % 2, 0, None) for b in range(4)]),
-    ("Punch - outer lanes", "raw", [(b, g.PUNCH, 0 if b % 2 == 0 else 3, 0, None) for b in range(4)]),
-    ("PunchHigh", "raw", [(b, g.PUNCH_HIGH, 1 + b % 2, 0, None) for b in range(4)]),
-    ("PunchHigh - outer lanes", "raw", [(b, g.PUNCH_HIGH, 0 if b % 2 == 0 else 3, 0, None) for b in range(4)]),
     ("Kick - inner lanes", "raw", [(b, g.KICK, 1 + b % 2, 0, None) for b in range(4)]),
     ("Kick - outer lanes", "raw", [(b, g.KICK, 0 if b % 2 == 0 else 3, 0, None) for b in range(4)]),
     ("Jump", "raw", [(0, g.JUMP, 1, 0, None), (2, g.JUMP, 2, 0, None)]),
-    ("PunchHold - left, then right", "raw", [(0, "PunchHold", 1, 2, None), (3, "PunchHold", 2, 2, None)]),
-    ("PunchHold - both hands", "raw", [(0, "PunchHold", 1, 3, None), (0, "PunchHold", 2, 3, None)]),
     ("KickHold - left, then right", "raw", [(0, "KickHold", 1, 2, None), (3, "KickHold", 2, 2, None)]),
     ("KickHold - outer (leg out wide)", "raw", [(0, "KickHold", 0, 2, None), (3, "KickHold", 3, 2, None)]),
-    ("ArcHold - one hand circle", "raw", [(0, g.ARC_HOLD, 1, 4, (-360.0, 0.75))]),
-    ("ArcHold - both hands", "raw", [(0, g.ARC_HOLD, 1, 6, (-450.0, 0.8)), (0, g.ARC_HOLD, 2, 6, (450.0, 0.8))]),
     ("Dodge - wall left, then right", "raw", [(0, g.DODGE, 0, 1, None), (4, g.DODGE, 3, 1, None)]),
     ("Duck - bar to duck under", "raw", [(0, g.DUCK, 1, 0, None)]),
     ("Curb - kerb to jump", "raw", [(0, g.CURB, 1, 0, None)]),
@@ -74,6 +66,15 @@ ITEMS = [
     ("Squat - squat held set", "set", (g.SQUAT, 8, False)),
     ("Balance - one leg / wide kerb", "set", (g.BALANCE, 8, False)),
     ("WallRun - long wall + steps", "set", (g.WALL_RUN, 8, False)),
+    # arms last - already tuned
+    ("Punch - inner lanes, left/right", "raw", [(b, g.PUNCH, 1 + b % 2, 0, None) for b in range(4)]),
+    ("Punch - outer lanes", "raw", [(b, g.PUNCH, 0 if b % 2 == 0 else 3, 0, None) for b in range(4)]),
+    ("PunchHigh", "raw", [(b, g.PUNCH_HIGH, 1 + b % 2, 0, None) for b in range(4)]),
+    ("PunchHigh - outer lanes", "raw", [(b, g.PUNCH_HIGH, 0 if b % 2 == 0 else 3, 0, None) for b in range(4)]),
+    ("PunchHold - left, then right", "raw", [(0, "PunchHold", 1, 2, None), (3, "PunchHold", 2, 2, None)]),
+    ("PunchHold - both hands", "raw", [(0, "PunchHold", 1, 3, None), (0, "PunchHold", 2, 3, None)]),
+    ("ArcHold - one hand circle", "raw", [(0, g.ARC_HOLD, 1, 4, (-360.0, 0.75))]),
+    ("ArcHold - both hands", "raw", [(0, g.ARC_HOLD, 1, 6, (-450.0, 0.8)), (0, g.ARC_HOLD, 2, 6, (450.0, 0.8))]),
 ]
 
 
