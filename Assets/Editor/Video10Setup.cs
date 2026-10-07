@@ -250,7 +250,7 @@ public static class Video10Setup
             var mocapSet = AssetDatabase.LoadAssetAtPath<SilhouetteMotionSet>(MocapImport.SetPath);
             if (mocapSet != null)
             {
-                var steps = mocapSet.steps.Where(m => m.clip != null && m.clip.name.StartsWith("CompSteps")).ToList();
+                var steps = mocapSet.steps.Where(m => m.clip != null && m.clip.name.StartsWith("March")).ToList();
                 if (steps.Count > 0) { p.trainerMotionSet.steps = steps; p.trainerMotionSet.noFootIK = true; }
             }
             EditorUtility.SetDirty(p.trainerMotionSet);
