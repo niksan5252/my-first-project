@@ -14,7 +14,7 @@ public class RingArchHyperCity : MonoBehaviour, IThemeAccent
     [SerializeField] private HyperCitySkin skin;
     [SerializeField] private float halfBase = 6.8f;
     [SerializeField] private float top = 7.6f;
-    [SerializeField] private float thickness = 0.18f;
+    [SerializeField] private float thickness = 0.11f;
     [SerializeField] private Color color = new Color(1f, 0.3f, 0.7f);
     [SerializeField, Range(0f, RemixGeo.MaxEmission)] private float emissionIntensity = 1.3f;
 
@@ -104,7 +104,7 @@ public class RingArchHyperCity : MonoBehaviour, IThemeAccent
         float kick = ClubBeat.Pulse;
         float barPulse = Mathf.Pow(1f - Mathf.Repeat(beats, 4f) / 4f, 3f);
 
-        float level = Mathf.Min(RemixGeo.MaxEmission, emissionIntensity * (0.5f + 0.45f * kick * energy + 0.3f * barPulse * energy));
+        float level = Mathf.Min(RemixGeo.MaxEmission, emissionIntensity * (0.3f + 0.4f * kick * energy + 0.25f * barPulse * energy));
         RemixGeo.SetEmission(frameMat, color, level);
         RemixGeo.SetEmission(trimMat, skin == HyperCitySkin.GoldFinal ? Gold : Color.Lerp(color, Color.white, 0.6f),
             Mathf.Min(RemixGeo.MaxEmission, emissionIntensity * (0.35f + 0.6f * barPulse * energy)));

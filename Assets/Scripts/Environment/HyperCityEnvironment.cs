@@ -23,7 +23,7 @@ public enum HyperCitySkin
 ///
 /// Everything near scrolls with the tunnel; time and energy come from ClubBeat (the song clock), so
 /// it is on the music in Play and in a recording.
-public class HyperCityEnvironment : MonoBehaviour, IEnvironmentDecorator, IThemePalette
+public partial class HyperCityEnvironment : MonoBehaviour, IEnvironmentDecorator, IThemePalette
 {
     [SerializeField] private HyperCitySkin skin;
     [SerializeField, Range(0f, 1f)] private float dropBloom = 0.4f;
@@ -95,6 +95,7 @@ public class HyperCityEnvironment : MonoBehaviour, IEnvironmentDecorator, ITheme
         BuildBuildings();
         BuildBillboards();
         BuildLamps();
+        BuildDecor();
         switch (skin)
         {
             case HyperCitySkin.ToxicGreen: BuildLasers(false); break;
@@ -468,6 +469,8 @@ public class HyperCityEnvironment : MonoBehaviour, IEnvironmentDecorator, ITheme
             mpb.SetColor(RemixGeo.EmissionId, lampCol * Mathf.Min(MaxLevel, emission * level));
             l.r.SetPropertyBlock(mpb);
         }
+
+        UpdateDecor(dt, delta, t, beats, kick, energy, drop, barPulse);
 
         if (horizonMat != null) horizonMat.SetFloat("_Intensity", 0.75f + 0.25f * barPulse * energy + 0.25f * drop);
 
