@@ -200,14 +200,14 @@ MonoBehaviour:
       m_PostInfinity: 2
       m_RotationOrder: 4
   uppercuts:
-  - clip: {fileID: -203655887218126122, guid: b18a8840d0356cf4886e57a14a17417b, type: 3}
-    impact: 0.55
+  - clip: {fileID: -203655887218126122, guid: 4d509063a1e8a454f984bcff8ada6ec4, type: 3}
+    impact: 0.38333333
     side: 
     reverseAfterImpact: 0
     holdFrame: -1
     limb: 0
     marks:
-    - 0.55
+    - 0.38333333
     markKinds: 04000000i
     markLimbs: 00000000i
     takeoff: -1
@@ -220,56 +220,16 @@ MonoBehaviour:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-  - clip: {fileID: 4061839508520268033, guid: b18a8840d0356cf4886e57a14a17417b, type: 3}
-    impact: 0.55
+  - clip: {fileID: 4061839508520268033, guid: 4d509063a1e8a454f984bcff8ada6ec4, type: 3}
+    impact: 0.38333333
     side: 
     reverseAfterImpact: 0
     holdFrame: -1
     limb: 1
     marks:
-    - 0.55
+    - 0.38333333
     markKinds: 04000000i
     markLimbs: 01000000i
-    takeoff: -1
-    apex: -1
-    rise: -1
-    travel: -0
-    travelCurve:
-      serializedVersion: 2
-      m_Curve: []
-      m_PreInfinity: 2
-      m_PostInfinity: 2
-      m_RotationOrder: 4
-  - clip: {fileID: -203655887218126122, guid: 3453d2cefcf6c8b46be7185a5d8c81a3, type: 3}
-    impact: 0.65
-    side: 
-    reverseAfterImpact: 0
-    holdFrame: -1
-    limb: 1
-    marks:
-    - 0.65
-    markKinds: 04000000i
-    markLimbs: 01000000i
-    takeoff: -1
-    apex: -1
-    rise: -1
-    travel: 0
-    travelCurve:
-      serializedVersion: 2
-      m_Curve: []
-      m_PreInfinity: 2
-      m_PostInfinity: 2
-      m_RotationOrder: 4
-  - clip: {fileID: 4061839508520268033, guid: 3453d2cefcf6c8b46be7185a5d8c81a3, type: 3}
-    impact: 0.65
-    side: 
-    reverseAfterImpact: 0
-    holdFrame: -1
-    limb: 0
-    marks:
-    - 0.65
-    markKinds: 04000000i
-    markLimbs: 00000000i
     takeoff: -1
     apex: -1
     rise: -1

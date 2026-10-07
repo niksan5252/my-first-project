@@ -238,6 +238,8 @@ public static class Video10Setup
             // Punches: the straight jab only (and its mirror for the other hand) - the cross and the
             // hook wind up oddly.
             p.trainerMotionSet.punches.RemoveAll(m => m.clip == null || !m.clip.name.StartsWith("Lead Jab"));
+            // High punches and held fists too: the jab, not the uppercuts' wind-up.
+            p.trainerMotionSet.uppercuts = new List<SilhouetteMotion>(p.trainerMotionSet.punches);
             EditorUtility.SetDirty(p.trainerMotionSet);
         }
         p.trainerTextured = false;
