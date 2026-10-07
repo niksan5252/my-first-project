@@ -870,7 +870,7 @@ public class SilhouetteTrainer : MonoBehaviour
                 // the one reach kept even over the takes alone, because it reads best as a silhouette.
                 bool sideReach = (s.outerPunchSide && g.outer && g.kind == SilhouettePlanner.GestureKind.Punch)
                               || (s.highPunchUp && g.kind == SilhouettePlanner.GestureKind.PunchHigh)    // and a high punch straight up
-                              || (s.outerKickWide && g.outer && (g.kind == SilhouettePlanner.GestureKind.Kick || g.kind == SilhouettePlanner.GestureKind.KickHold));   // and a wide step
+                              || (s.outerKickWide && g.outer && g.kind == SilhouettePlanner.GestureKind.Kick);   // and a wide step (not a held leg: that twisted it)
                 if (mocap && s.mocapOnly && !sideReach) w = 0f;      // the takes alone: no reach, no procedural pose
                 if (mocap)
                 {
