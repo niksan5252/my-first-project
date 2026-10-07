@@ -366,7 +366,7 @@ public class SilhouetteTrainer : MonoBehaviour
         for (int i = 0; i < clips.Count; i++)
         {
             var p = AnimationClipPlayable.Create(graph, clips[i]);
-            p.SetApplyFootIK(!motionSet.noFootIK);
+            p.SetApplyFootIK(motionSet.FootIK(clips[i]));
             p.Pause();   // time is set by hand every frame
             graph.Connect(p, 0, mixer, i);
             mixer.SetInputWeight(i, 0f);
@@ -719,7 +719,7 @@ public class SilhouetteTrainer : MonoBehaviour
         if (slot == 0 && inputOf.TryGetValue(clip, out int st)) return st;
         if (slotInput.TryGetValue((clip, slot), out int i)) return i;
         var p = AnimationClipPlayable.Create(graph, clip);
-        p.SetApplyFootIK(!motionSet.noFootIK);
+        p.SetApplyFootIK(motionSet.FootIK(clip));
         p.Pause();
         if (slot <= 2)
         {

@@ -76,6 +76,9 @@ public class SilhouetteMotionSet : ScriptableObject
     // (MocapImport) do not, and with no goals the feet are pulled to the origin - legs folded under a
     // floating body. On for a set of such clips: every clip plays its muscles as they are.
     public bool noFootIK;
+    // Or just these clips (code-made mocap clips mixed into a set of FBX takes).
+    public List<AnimationClip> noFootIKClips = new List<AnimationClip>();
+    public bool FootIK(AnimationClip clip) => !noFootIK && (noFootIKClips == null || !noFootIKClips.Contains(clip));
 
     [Header("Clips")]
     // The stance under everything, as motion capture: calm idles for the short rests between

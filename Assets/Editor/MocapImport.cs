@@ -44,6 +44,7 @@ public static class MocapImport
         ("Jump", SilhouetteFitnessAnalysis.Role.Hop),
         ("NarrowWide", SilhouetteFitnessAnalysis.Role.Hop),
         ("JumpCMU", SilhouetteFitnessAnalysis.Role.Jump),        // the kerb: the straight jump
+        ("Jump", SilhouetteFitnessAnalysis.Role.Jump),           // our Gemini jump in place: straight legs in the air
         ("SquatDeep", SilhouetteFitnessAnalysis.Role.Squat),
         ("SideStep", SilhouetteFitnessAnalysis.Role.SideStep),
         ("Dodge", SilhouetteFitnessAnalysis.Role.Dodge),

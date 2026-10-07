@@ -18,6 +18,7 @@ MonoBehaviour:
   frameCenter: 0
   gestureScale: 1
   noFootIK: 1
+  noFootIKClips: []
   idle:
   - clip: {fileID: -203655887218126122, guid: 7236f56dc6707ad4e9c4ef40e96d4781, type: 3}
     impact: 0
@@ -189,6 +190,46 @@ MonoBehaviour:
     markLimbs: ffffffffi
     takeoff: 0.51666665
     apex: 0.81666666
+    rise: -1
+    travel: 0
+    travelCurve:
+      serializedVersion: 2
+      m_Curve: []
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+  - clip: {fileID: 7400000, guid: 1835dbad3634e03409429fddd2423285, type: 2}
+    impact: 0.7
+    side: 
+    reverseAfterImpact: 0
+    holdFrame: -1
+    limb: -1
+    marks:
+    - 1.2333333
+    markKinds: 01000000i
+    markLimbs: ffffffffi
+    takeoff: 0.18333334
+    apex: 0.7
+    rise: -1
+    travel: 0
+    travelCurve:
+      serializedVersion: 2
+      m_Curve: []
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+  - clip: {fileID: 7400000, guid: 72014e5cf199f7847b686deea308c59a, type: 2}
+    impact: 0.73333335
+    side: 
+    reverseAfterImpact: 0
+    holdFrame: -1
+    limb: -1
+    marks:
+    - 1.3666667
+    markKinds: 01000000i
+    markLimbs: ffffffffi
+    takeoff: 0.2
+    apex: 0.73333335
     rise: -1
     travel: 0
     travelCurve:

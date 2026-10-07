@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Text;
 using UnityEditor;
 using UnityEngine;
@@ -5,6 +6,30 @@ using UnityEngine;
 /// Logs where a mocap clip puts Jennifer's joints (model space) - a check of the retarget without rendering.
 public static class MocapDebug
 {
+    [MenuItem("Tunnel/Mocap/Debug Jump Apex", priority = 63)]
+    public static void JumpApex()
+    {
+        var set = AssetDatabase.LoadAssetAtPath<SilhouetteMotionSet>("Assets/SharedAssets/Mixamo/JenniferFilmedMotionSet.asset");
+        var go = Object.Instantiate(set.model);
+        go.hideFlags = HideFlags.HideAndDontSave;
+        var a = go.GetComponent<Animator>();
+        var sb = new StringBuilder();
+        var mocap = AssetDatabase.LoadAssetAtPath<SilhouetteMotionSet>(MocapImport.SetPath);
+        foreach (var m in set.curb.Concat(mocap.curb).Concat(mocap.hops.Where(h => h.clip.name.StartsWith("Jump#"))))
+        {
+            var st = AnimationUtility.GetAnimationClipSettings(m.clip);
+            sb.AppendLine($"{m.clip.name} bakeY {st.loopBlendPositionY} origY {st.keepOriginalPositionY} takeoff {m.takeoff} apex {m.apex} impact {m.impact}");
+            foreach (float t in new[] { 0f, m.takeoff, m.apex, m.impact })
+            {
+                m.clip.SampleAnimation(go, Mathf.Max(0f, t));
+                float Y(HumanBodyBones b) => a.GetBoneTransform(b).position.y;
+                sb.AppendLine($"  t {t:F2}: hips {Y(HumanBodyBones.Hips):F2} knee {Y(HumanBodyBones.LeftLowerLeg):F2} foot {Y(HumanBodyBones.LeftFoot):F2}");
+            }
+        }
+        Object.DestroyImmediate(go);
+        System.IO.File.WriteAllText("Screenshots/jump_apex.txt", sb.ToString());
+    }
+
     [MenuItem("Tunnel/Mocap/Debug Punch Reach", priority = 62)]
     public static void PunchReach()
     {

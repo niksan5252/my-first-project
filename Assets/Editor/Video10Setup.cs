@@ -236,7 +236,9 @@ public static class Video10Setup
             // Outer lanes (1 and 4): the punch always goes straight out to the side.
             p.trainerMotionSet.outerPunchSide = true;
             p.trainerMotionSet.highPunchUp = true;      // high notes: the fist straight up
-            p.trainerMotionSet.takeMaxSpeed = 2.5f;     // the wide step's marks are up to 1.1 s apart for notes every 0.5 s
+            p.trainerMotionSet.takeMaxSpeed = 2.5f;
+            p.trainerMotionSet.takeFadeBeats = 1f;      // a beat to blend from one move into the next, not 0.2 s
+            p.trainerMotionSet.stanceFadeBeats = 2f;    // and two to settle into the stance     // the wide step's marks are up to 1.1 s apart for notes every 0.5 s
             p.trainerMotionSet.outerKickWide = false;   // off: pulling the foot out against the march clip twists the leg
             p.trainerMotionSet.kickOutOuter = 0.65f;
             p.trainerMotionSet.kickBodyFollowOuter = 0.35f;
@@ -252,8 +254,19 @@ public static class Video10Setup
             if (mocapSet != null)
             {
                 var steps = mocapSet.steps.Where(m => m.clip != null && m.clip.name.StartsWith("March")).ToList();
-                if (steps.Count > 0) { p.trainerMotionSet.steps = steps; p.trainerMotionSet.noFootIK = true; }
+                if (steps.Count > 0) p.trainerMotionSet.steps = steps;
                 p.trainerMotionSet.wideSteps = mocapSet.steps.Where(m => m.clip != null && m.clip.name.StartsWith("WideStep")).ToList();
+                // Foot IK off for our mocap clips only (they carry no IK goals); the Mixamo takes keep it,
+                // or their jump crosses the legs.
+                // Jumps: our Gemini "прыжок на месте" (straight legs in the air). Mixamo's jumps tuck the
+                // knees to the chest; the CMU jump folds its legs in the retarget.
+                var jumps = mocapSet.curb.Where(m => m.clip != null && m.clip.name.StartsWith("Jump#")).ToList();
+                if (jumps.Count > 0) p.trainerMotionSet.curb = jumps;
+                var hops = mocapSet.hops.Where(m => m.clip != null && !m.clip.name.StartsWith("JumpCMU")).ToList();
+                if (hops.Count > 0) p.trainerMotionSet.hops = hops;
+                p.trainerMotionSet.noFootIK = false;
+                p.trainerMotionSet.noFootIKClips = p.trainerMotionSet.steps.Concat(p.trainerMotionSet.wideSteps)
+                    .Concat(p.trainerMotionSet.curb).Concat(p.trainerMotionSet.hops).Select(m => m.clip).Distinct().ToList();
             }
             EditorUtility.SetDirty(p.trainerMotionSet);
         }
