@@ -100,15 +100,6 @@ public static class MocapImport
             t.root.Add(M(0));
             var p = new Vector3[33];
             for (int j = 0; j < 33; j++) p[j] = M(3 + j * 3);
-            // Seen from the front, MediaPipe pulls the knees in (knock-kneed legs): put each knee
-            // back on the hip-ankle line sideways, keeping its forward bend.
-            foreach (var (hip, knee, ankle) in new[] { (LHip, LKnee, LAnk), (RHip, RKnee, RAnk) })
-            {
-                float span = p[ankle].y - p[hip].y;
-                if (Mathf.Abs(span) < 0.05f) continue;
-                float k = Mathf.Clamp01((p[knee].y - p[hip].y) / span);
-                p[knee].x = Mathf.Lerp(p[hip].x, p[ankle].x, k);
-            }
             t.p.Add(p);
         }
         return t;
