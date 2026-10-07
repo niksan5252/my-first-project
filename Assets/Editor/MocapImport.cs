@@ -205,7 +205,9 @@ public static class MocapImport
             for (int i = 0; i < 3; i++) AnimationUtility.SetEditorCurve(clip, EditorCurveBinding.FloatCurve("", typeof(Animator), t[i]), rootT[i]);
             for (int i = 0; i < 4; i++) AnimationUtility.SetEditorCurve(clip, EditorCurveBinding.FloatCurve("", typeof(Animator), q[i]), rootQ[i]);
             var settings = AnimationUtility.GetAnimationClipSettings(clip);
-            settings.loopTime = name.StartsWith("StepGroove");
+            // The rep loops (steps, marches, jacks, the groove) are walked mark by mark past their end -
+            // they must loop, or the figure freezes on the last frame.
+            settings.loopTime = !name.Contains("#");
             // Bake the root into the pose with the original height and place, as the Mixamo takes are
             // imported: the trainer plays without root motion, and an un-baked clip would hand its
             // height to the (unused) root and sink the figure.
