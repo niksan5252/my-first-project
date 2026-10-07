@@ -868,7 +868,8 @@ public class SilhouetteTrainer : MonoBehaviour
                 float w = g.Weight(now) * (mocap ? 1f : stance);
                 // A punch on an outer lane can always be thrown out to the side (outerPunchSide) -
                 // the one reach kept even over the takes alone, because it reads best as a silhouette.
-                bool sideReach = s.outerPunchSide && g.outer && g.kind == SilhouettePlanner.GestureKind.Punch;
+                bool sideReach = (s.outerPunchSide && g.outer && g.kind == SilhouettePlanner.GestureKind.Punch)
+                              || (s.highPunchUp && g.kind == SilhouettePlanner.GestureKind.PunchHigh);   // and a high punch straight up
                 if (mocap && s.mocapOnly && !sideReach) w = 0f;      // the takes alone: no reach, no procedural pose
                 if (mocap)
                 {

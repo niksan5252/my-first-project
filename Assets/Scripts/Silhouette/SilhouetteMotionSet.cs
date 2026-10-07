@@ -129,6 +129,8 @@ public class SilhouetteMotionSet : ScriptableObject
     // Outer-lane punches always thrown straight out to the side at shoulder height, whatever the
     // take (the trainer's procedural reach, kept on even with mocapOnly).
     public bool outerPunchSide;
+    // High punches (PunchHigh) always thrown straight up above the head (the procedural reach).
+    public bool highPunchUp;
     public float punchOutInner = 0.3f;
     public float punchForward = 0.12f;
     public float punchDrop = -0.04f;
