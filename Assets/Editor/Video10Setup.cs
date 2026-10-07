@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Collections.Generic;
 using System.IO;
 using UnityEditor;
@@ -241,6 +242,14 @@ public static class Video10Setup
             p.trainerMotionSet.punches.RemoveAll(m => m.clip == null || !m.clip.name.StartsWith("Lead Jab"));
             // High punches and held fists too: the jab, not the uppercuts' wind-up.
             p.trainerMotionSet.uppercuts = new List<SilhouetteMotion>(p.trainerMotionSet.punches);
+            // Steps: the plain step-tap from our Gemini clip ("степ ногой", mocap), not the Mixamo
+            // dance takes. Those clips carry no foot IK goals, so foot IK is off for the set.
+            var mocapSet = AssetDatabase.LoadAssetAtPath<SilhouetteMotionSet>(MocapImport.SetPath);
+            if (mocapSet != null)
+            {
+                var steps = mocapSet.steps.Where(m => m.clip != null && m.clip.name.StartsWith("Kick")).ToList();
+                if (steps.Count > 0) { p.trainerMotionSet.steps = steps; p.trainerMotionSet.noFootIK = true; }
+            }
             EditorUtility.SetDirty(p.trainerMotionSet);
         }
         p.trainerTextured = false;
