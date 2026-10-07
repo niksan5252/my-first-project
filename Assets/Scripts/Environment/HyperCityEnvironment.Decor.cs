@@ -25,6 +25,7 @@ public partial class HyperCityEnvironment
         BuildRails();
         BuildSearchlights();
         BuildDrones();
+        BuildStreet();
         if (skin == HyperCitySkin.SunsetPink) BuildPalms();
     }
 
@@ -299,6 +300,7 @@ public partial class HyperCityEnvironment
             RemixGeo.SetEmission(palmMat, secondary, Mathf.Min(MaxLevel, emission * (0.5f + 0.3f * barPulse * energy)));
             RemixGeo.SetEmission(palmLeafMat, new Color(0.2f, 1f, 0.6f), Mathf.Min(MaxLevel, emission * (0.5f + 0.5f * kick * energy)));
         }
+        UpdateStreet(dt, delta, t, beats, kick, energy, drop, barPulse);
         if (skylineMat != null) skylineMat.SetFloat("_Intensity", 0.5f + 0.15f * barPulse * energy + 0.2f * drop);
     }
 }

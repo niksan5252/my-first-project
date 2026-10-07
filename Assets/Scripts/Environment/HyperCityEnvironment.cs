@@ -259,7 +259,7 @@ public partial class HyperCityEnvironment : MonoBehaviour, IEnvironmentDecorator
             int side = k % 2 == 0 ? -1 : 1;
             var b = new GameObject("Billboard").transform;
             b.SetParent(root, false);
-            b.localPosition = new Vector3(side * 12.5f, Rand(10f, 14f), z);
+            b.localPosition = new Vector3(side * 12.5f, Rand(11.5f, 15f), z);
             b.localRotation = Quaternion.Euler(0f, side * 28f, 0f);
             var panel = Place("Panel", cube, boardMats[k % 3], b);
             panel.transform.localScale = new Vector3(6.5f, 3.4f, 0.15f);
