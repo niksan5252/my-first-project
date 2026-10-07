@@ -972,9 +972,14 @@ public class SilhouetteTrainer : MonoBehaviour
                     }
                     case SilhouettePlanner.GestureKind.PunchHigh:
                     {
-                        // Straight up above the head, the elbow out to the side.
-                        Vector3 t = shoulder + new Vector3(x * 0.14f, s.punchHighRaise, 0.1f);
-                        Take(ref hand[limb], w, t, shoulder + new Vector3(x * 0.3f, 0.28f, -0.1f));
+                        // Straight up above the head, the elbow out to the side; on an outer lane
+                        // (highPunchUp sets) the arm long and out at 45 degrees, up and to the side.
+                        bool diagonal = s.highPunchUp && g.outer;
+                        Vector3 t = diagonal ? shoulder + new Vector3(x * 0.44f, 0.44f, 0.05f)
+                                             : shoulder + new Vector3(x * 0.14f, s.punchHighRaise, 0.1f);
+                        Vector3 elbow = diagonal ? shoulder + new Vector3(x * 0.22f, 0.22f, 0f)
+                                                 : shoulder + new Vector3(x * 0.3f, 0.28f, -0.1f);
+                        Take(ref hand[limb], w, t, elbow);
                         break;
                     }
                     case SilhouettePlanner.GestureKind.StarArms:
