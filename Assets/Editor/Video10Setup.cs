@@ -236,7 +236,7 @@ public static class Video10Setup
             // Outer lanes (1 and 4): the punch always goes straight out to the side.
             p.trainerMotionSet.outerPunchSide = true;
             p.trainerMotionSet.highPunchUp = true;      // high notes: the fist straight up
-            p.trainerMotionSet.outerKickWide = true;    // outer-lane steps: the foot out wide
+            p.trainerMotionSet.outerKickWide = false;   // off: the IK reach twisted the leg; the competitor's steps are wide themselves
             p.trainerMotionSet.kickOutOuter = 0.65f;
             p.trainerMotionSet.kickBodyFollowOuter = 0.35f;
             p.trainerMotionSet.punchOutOuter = 0.55f;
@@ -250,7 +250,7 @@ public static class Video10Setup
             var mocapSet = AssetDatabase.LoadAssetAtPath<SilhouetteMotionSet>(MocapImport.SetPath);
             if (mocapSet != null)
             {
-                var steps = mocapSet.steps.Where(m => m.clip != null && m.clip.name.StartsWith("March")).ToList();
+                var steps = mocapSet.steps.Where(m => m.clip != null && m.clip.name.StartsWith("CompSteps")).ToList();
                 if (steps.Count > 0) { p.trainerMotionSet.steps = steps; p.trainerMotionSet.noFootIK = true; }
             }
             EditorUtility.SetDirty(p.trainerMotionSet);

@@ -34,6 +34,7 @@ public static class MocapImport
         ("PunchHigh", SilhouetteFitnessAnalysis.Role.Uppercut),  // our clip: punches up
         ("Kick", SilhouetteFitnessAnalysis.Role.Steps),          // step-tap
         ("March", SilhouetteFitnessAnalysis.Role.Steps),
+        ("CompSteps", SilhouetteFitnessAnalysis.Role.Steps),     // the competitor's trainer (DANCE MODE #20, 0:54): narrow and wide steps
         ("HighKnees", SilhouetteFitnessAnalysis.Role.Steps),     // CMU, knees up on the spot
         ("Star", SilhouetteFitnessAnalysis.Role.Jack),           // CMU jumping jacks - "the rays"
         ("Star2", SilhouetteFitnessAnalysis.Role.Jack),
