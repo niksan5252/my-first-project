@@ -322,6 +322,17 @@ public static class MocapImport
                     if (!clips.TryGetValue(n, out var clip)) continue;
                     var m = SilhouetteFitnessAnalysis.Analyze(go, a, clip, clip, role, log);
                     if (role == SilhouetteFitnessAnalysis.Role.Steps) LandMarks(go, a, m, log);
+                    // Hand-set marks (Tools/mocap/<clip>.marks: "time,limb" lines) win over the analysis -
+                    // for a take whose feet the analysis cannot tell apart (the wide step stays wide).
+                    string marksFile = Path.Combine(Source, n + ".marks");
+                    if (File.Exists(marksFile))
+                    {
+                        var rows = File.ReadAllLines(marksFile).Where(l => l.Contains(',')).Select(l => l.Split(',')).ToArray();
+                        m.marks = rows.Select(r => F(r[0])).ToArray();
+                        m.markLimbs = rows.Select(r => int.Parse(r[1])).ToArray();
+                        m.markKinds = rows.Select(r => MarkKind.Step).ToArray();
+                        log.AppendLine("  marks from " + marksFile);
+                    }
                     bool original = n == name;
                     // A rep whose strike sits on the cut's edge has no wind-up or recovery: drop it.
                     bool single = role != SilhouetteFitnessAnalysis.Role.Steps && role != SilhouetteFitnessAnalysis.Role.Jack && role != SilhouetteFitnessAnalysis.Role.Idle;
