@@ -50,6 +50,7 @@ MonoBehaviour:
     side: 
     reverseAfterImpact: 0
     holdFrame: -1
+    yawFix: -55
   duckDown:
     clip: {fileID: -203655887218126122, guid: 6625688499b932640b8be7315ab68eda, type: 3}
     impact: 0.6

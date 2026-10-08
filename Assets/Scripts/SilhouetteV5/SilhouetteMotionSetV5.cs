@@ -19,6 +19,9 @@ public class SilhouetteMotionV5
     // 0 or more: the clip is not played but held as a still pose at this time (the relaxed stance
     // is the LAST frame of Fight Idle To Standing Idle). Negative: played normally.
     public float holdFrame = -1f;
+    // Degrees to turn the body about the vertical while this take plays: some Mixamo takes are
+    // filmed facing away from the camera (Standing Jump ~55 deg); this faces them to the viewer.
+    public float yawFix;
 
     public bool Valid => clip != null;
     public float Length => clip != null ? clip.length : 0f;

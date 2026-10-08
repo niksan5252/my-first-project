@@ -492,6 +492,17 @@ public class SilhouetteTrainerV5 : MonoBehaviour
     }
 
     /// Everything the pose job needs for this moment, from the gestures and the beat.
+    // The weighted yaw correction of the takes playing now (SilhouetteMotionV5.yawFix).
+    private float YawFix()
+    {
+        if (weights == null) return 0f;
+        float y = 0f;
+        void One(SilhouetteMotionV5 m) { if (m != null && m.Valid && m.yawFix != 0f && inputOf.TryGetValue(m.clip, out int i)) y += weights[i] * m.yawFix; }
+        if (motionSet.curb != null) foreach (var m in motionSet.curb) One(m);
+        One(motionSet.duckDown); One(motionSet.duckUp); One(motionSet.stepScreenRight); One(motionSet.stepScreenLeft);
+        return y;
+    }
+
     private SilhouettePoseJobV5 Pose(float now, float stance)
     {
         var s = motionSet;
@@ -570,7 +581,7 @@ public class SilhouetteTrainerV5 : MonoBehaviour
         body.y += dip * stance * tapping;
         job.bodyOffset = body;
         job.leanDegrees = lean;
-        job.turnDegrees = turn;
+        job.turnDegrees = turn + YawFix();
         Vector3 W(Vector3 local) => stage.transform.TransformPoint(local);
         // The hand's target rides with the body (its bounce and its shift).
         job.lHandW = hand[0].w; job.lHand = W(hand[0].target + body); job.lElbow = W(hand[0].elbow + body);

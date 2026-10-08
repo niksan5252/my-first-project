@@ -78,6 +78,11 @@ ITEMS = [
 ]
 
 
+# Items already signed off by the user, left out of the showcase so it starts on the next one to fix.
+DONE = {"Kick - inner lanes", "Kick - outer lanes"}
+ITEMS = [it for it in ITEMS if it[0] not in DONE]
+
+
 def main():
     events, sets, schedule = [], [], []
     t = START
