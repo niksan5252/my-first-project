@@ -268,7 +268,7 @@ public static class Video12Setup
     /// Video 12's trainer - the filmed video silhouette from our Gemini clips - to fix its moves.
     public const string ShowcaseVideoPath = Themes + "Playlists/Playlist_ShowcaseVideo.asset";
 
-    [MenuItem("Tunnel/Playlist/Build Button Showcase (video trainer)", priority = 89)]
+    [MenuItem("Tunnel/Playlist/Build Button Showcase (video 1 trainer)", priority = 89)]
     public static void BuildShowcaseVideo()
     {
         var src = AssetDatabase.LoadAssetAtPath<RunPlaylist>(Video10Setup.ShowcasePath);
