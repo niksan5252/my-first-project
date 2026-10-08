@@ -57,7 +57,8 @@ public static class VideoSilhouetteSetup
     private const VideoSilhouetteSet.Side L = VideoSilhouetteSet.Side.Left, R = VideoSilhouetteSet.Side.Right, N = VideoSilhouetteSet.Side.None;
 
     /// "степ ногой": a step out to the right, arms swinging. Left = mirrored.
-    /// "марширует": knees R 1.83, L 2.375 on one 1.125 s repeat; held = frozen up.
+    /// "марширует": the foot comes DOWN on the note (R lands 2.04, L 2.58 - knees up at 1.83 / 2.375)
+    ///   on one 1.125 s repeat; held = the knee frozen up.
     /// "узкий шаг и широкий шаг": out to a wide stance (2.1) and back - the wider of the two jack
     ///   takes (feet 71 px apart against 45 for "чередует прыжок, ноги врозь, узкие").
     /// "прыжок на месте": the top of the jump (2.33), apex to apex 1.5 s.
@@ -72,7 +73,7 @@ public static class VideoSilhouetteSetup
     {
         C("step", M("step", R, 1.0f, 1.67f, 2.4f)),
         C("march",
-            M("march", R, 1.5f, 1.83f, 2.08f, 1.5f, 2.625f), M("march", L, 2.04f, 2.375f, 2.62f, 1.5f, 2.625f),
+            M("march", R, 1.5f, 2.04f, 2.2f, 1.5f, 2.625f), M("march", L, 2.04f, 2.58f, 2.74f, 1.5f, 2.625f),
             M("marchHold", R, 1.5f, 1.83f, 2.08f), M("marchHold", L, 2.04f, 2.375f, 2.62f)),
         C("step_narrow_wide", M("jack", N, 1.55f, 2.1f, 2.8f)),
         C("jump", M("jump", N, 1.55f, 2.33f, 3.25f, 0.83f, 2.33f)),
