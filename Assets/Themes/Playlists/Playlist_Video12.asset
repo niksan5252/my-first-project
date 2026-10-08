@@ -73,13 +73,13 @@ MonoBehaviour:
   thunderTrackStartVolume: 0.55
   thunderRiseSeconds: 0.8
   finalFadeSeconds: 0
-  trainerMotionSet: {fileID: 11400000, guid: e104a0a2c8786854bbcf1bf744b4b3da, type: 2}
+  trainerMotionSet: {fileID: 0}
   trainerTextured: 0
   trainerPanelInThemeColors: 0
   hideTrainer: 0
-  trainerFilmed: 0
+  trainerFilmed: 1
   trainerMocap3D: 0
-  trainerClassic: 1
+  trainerClassic: 0
   retention: 1
   interludeSeconds: 13
   introCardsSeconds: 9

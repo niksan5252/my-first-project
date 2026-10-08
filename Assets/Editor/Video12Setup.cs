@@ -103,11 +103,13 @@ public static class Video12Setup
         p.wallsInTransition = 0;
         p.finalFadeSeconds = 0f;
         p.thunderFlash = 0.8f;
-        // The first trainer back (the user's call): the Mixamo X Bot as a cyan neon contour.
-        p.trainerMotionSet = AssetDatabase.LoadAssetAtPath<SilhouetteMotionSet>("Assets/SharedAssets/Mixamo/XBotMotionSet.asset");
-        p.trainerFilmed = false;
+        // The trainer from our Gemini clips (the user's call): the filmed video silhouette, solid
+        // black and backlit, a move per note on baked frames (commit 0c0635a) - the scene's
+        // videoSet; no Mixamo set, no mocap.
+        p.trainerMotionSet = null;
+        p.trainerFilmed = true;
         p.trainerMocap3D = false;
-        p.trainerClassic = true;
+        p.trainerClassic = false;
         p.hideTrainer = false;
         p.trainerTextured = false;
         p.trainerPanelInThemeColors = false;
