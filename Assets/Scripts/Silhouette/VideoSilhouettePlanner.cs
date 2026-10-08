@@ -225,6 +225,14 @@ public static class VideoSilhouettePlanner
             }
             else
             {
+                // Out of the stance: the move's "First" variant if the set has one - the take
+                // starting from standing (the march's first step), so the leg is seen going up.
+                if (set.TryFind(set.GroupFor(a.note) + "First", a.side, out var fc, out var fm, out var fmir)
+                    && a.t - (fm.peak - fm.start) - prevDone >= fade)
+                {
+                    a.clip = fc; a.move = fm; a.mirror = fmir;
+                    m = fm;
+                }
                 float pre = m.peak - m.start;
                 float windUp = a.t - pre;                       // at its own speed
                 float freeFrom = prev != null ? prev.t + prev.dur : SilhouettePlanner.SongStart;

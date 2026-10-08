@@ -29,9 +29,9 @@ MonoBehaviour:
       holdLoops: 0
   - name: march
     frames: {fileID: 18700000, guid: d207cf13d66eec04988254710d976cb9, type: 3}
-    frameCount: 32
+    frameCount: 62
     fps: 24
-    bakeStart: 1.4583334
+    bakeStart: 0.20833333
     moves:
     - group: march
       side: 2
@@ -62,6 +62,14 @@ MonoBehaviour:
       start: 2.04
       peak: 2.375
       end: 2.62
+      loopStart: 0
+      loopEnd: 0
+      holdLoops: 0
+    - group: marchFirst
+      side: 2
+      start: 0.25
+      peak: 0.875
+      end: 0.95
       loopStart: 0
       loopEnd: 0
       holdLoops: 0

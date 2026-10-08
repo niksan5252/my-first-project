@@ -75,7 +75,8 @@ public static class VideoSilhouetteSetup
         C("step", M("step", R, 1.0f, 1.67f, 2.4f)),
         C("march",
             M("march", R, 1.5f, 2.04f, 2.2f, 1.5f, 2.625f), M("march", L, 2.04f, 2.58f, 2.74f, 1.5f, 2.625f),
-            M("marchHold", R, 1.5f, 1.83f, 2.08f), M("marchHold", L, 2.04f, 2.375f, 2.62f)),
+            M("marchHold", R, 1.5f, 1.83f, 2.08f), M("marchHold", L, 2.04f, 2.375f, 2.62f),
+            M("marchFirst", R, 0.25f, 0.875f, 0.95f)),          // from standing: the leg goes up, lands on the note (L = mirrored)
         C("step_narrow_wide", M("jack", N, 1.55f, 2.1f, 2.8f)),
         C("jump", M("jump", N, 1.55f, 2.33f, 3.25f, 0.83f, 2.33f)),
         C("narrow_steps", M("rails", N, 2.5f, 3.33f, 4.0f, 3.33f, 5.58f, true)),
