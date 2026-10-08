@@ -106,10 +106,14 @@ public static class Video12Setup
         // The trainer from our Gemini clips (the user's call): the filmed video silhouette, solid
         // black and backlit, a move per note on baked frames (commit 0c0635a) - the scene's
         // videoSet; no Mixamo set, no mocap.
+        // ...and then (the user's call, after trying it): the very first trainer of video 1,
+        // SilhouetteTrainerV5 - Jennifer's cyan contour on Trainer v5.
         p.trainerMotionSet = null;
-        p.trainerFilmed = true;
+        p.trainerFilmed = false;
         p.trainerMocap3D = false;
         p.trainerClassic = false;
+        p.trainerV5 = true;
+        EnsureTrainerV5();
         p.hideTrainer = false;
         p.trainerTextured = false;
         p.trainerPanelInThemeColors = false;
@@ -145,7 +149,7 @@ public static class Video12Setup
     // welcome cards) is taken over, so Video 11 has exactly Video 10's wrapper.
     private static readonly HashSet<string> SetHere = new HashSet<string>
     {
-        "preRoll", "trainerFilmed", "trainerClassic", "trainerMocap3D", "hideTrainer", "trainerTextured", "trainerPanelInThemeColors",
+        "preRoll", "trainerFilmed", "trainerClassic", "trainerV5", "trainerMocap3D", "hideTrainer", "trainerTextured", "trainerPanelInThemeColors",
         "retention", "recordFromContent",
     };
 
@@ -272,10 +276,14 @@ public static class Video12Setup
         if (!File.Exists(ShowcaseVideoPath)) AssetDatabase.CopyAsset(Video10Setup.ShowcasePath, ShowcaseVideoPath);
         var p = AssetDatabase.LoadAssetAtPath<RunPlaylist>(ShowcaseVideoPath);
         p.title = "ShowcaseVideo";
+        // ...and then (the user's call, after trying it): the very first trainer of video 1,
+        // SilhouetteTrainerV5 - Jennifer's cyan contour on Trainer v5.
         p.trainerMotionSet = null;
-        p.trainerFilmed = true;
+        p.trainerFilmed = false;
         p.trainerMocap3D = false;
         p.trainerClassic = false;
+        p.trainerV5 = true;
+        EnsureTrainerV5();
         p.hideTrainer = false;
         p.trainerTextured = false;
         p.segments = new List<PlaylistSegment>(src.segments);
@@ -284,6 +292,37 @@ public static class Video12Setup
         HalloweenPlaylistSetup.Use(ShowcaseVideoPath);
         HalloweenPlaylistSetup.Solo(-1);
         Debug.Log("[ShowcaseVideo] built " + ShowcaseVideoPath);
+    }
+
+
+    /// The video 1 trainer in TunnelScene: a disabled "SilhouetteTrainerV5" object wired like the
+    /// scene's trainer (spawner, HUD) with the v1 settings; PlaylistDirector switches it on for a
+    /// playlist with trainerV5.
+    public static void EnsureTrainerV5()
+    {
+        var scene = UnityEditor.SceneManagement.EditorSceneManager.GetActiveScene();
+        if (scene.path != "Assets/Scenes/TunnelScene.unity") scene = UnityEditor.SceneManagement.EditorSceneManager.OpenScene("Assets/Scenes/TunnelScene.unity");
+        var v5 = Object.FindAnyObjectByType<SilhouetteTrainerV5>(FindObjectsInactive.Include);
+        var main = Object.FindAnyObjectByType<SilhouetteTrainer>(FindObjectsInactive.Include);
+        if (v5 == null)
+        {
+            var go = new GameObject("SilhouetteTrainerV5");
+            v5 = go.AddComponent<SilhouetteTrainerV5>();
+        }
+        var so = new SerializedObject(v5);
+        so.FindProperty("motionSet").objectReferenceValue = AssetDatabase.LoadAssetAtPath<SilhouetteMotionSetV5>("Assets/SharedAssets/Mixamo/JenniferMotionSetV5.asset");
+        so.FindProperty("bodyShader").objectReferenceValue = Shader.Find("Tunnel/SilhouetteBodyV5");
+        so.FindProperty("glowShader").objectReferenceValue = Shader.Find("Tunnel/SilhouetteGlowV5");
+        if (main != null)
+        {
+            var m = new SerializedObject(main);
+            so.FindProperty("cueSpawner").objectReferenceValue = m.FindProperty("cueSpawner").objectReferenceValue;
+            so.FindProperty("hud").objectReferenceValue = m.FindProperty("hud").objectReferenceValue;
+        }
+        so.ApplyModifiedPropertiesWithoutUndo();
+        v5.enabled = false;
+        UnityEditor.SceneManagement.EditorSceneManager.MarkSceneDirty(scene);
+        UnityEditor.SceneManagement.EditorSceneManager.SaveScene(scene);
     }
 
     [MenuItem("Tunnel/Playlist/Use: Video 12", priority = 100)] private static void UseVideo12() => HalloweenPlaylistSetup.Use(PlaylistPath);

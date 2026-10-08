@@ -124,6 +124,9 @@ public class RunPlaylist : ScriptableObject
     // Video 12: the very first trainer - the Mixamo character as a cyan neon contour (the line
     // drawing of videos 1-4), never the filmed clips the scene may be set to.
     public bool trainerClassic;
+    // Video 12: the very first trainer of video 1 (irokz) - SilhouetteTrainerV5, Jennifer's cyan
+    // contour on Trainer v5 (mocap stance + procedural gestures) - in place of the scene's trainer.
+    public bool trainerV5;
 
     [Header("Retention wrapper (video 9) - off for every older playlist")]
     // The whole wrapper: spoiler label over the Spoiler segments, the opening cards, the cards

@@ -73,6 +73,17 @@ public class PlaylistDirector : MonoBehaviour
         spawner.SetTrackInfo(name.Replace(' ', '_'), timeline.Length);
         if (themeApplier != null) themeApplier.SetTheme(timeline.spans[0].segment.theme);
         if (trainer != null && list.hideTrainer) trainer.enabled = false;     // before its Start: the panel is never built
+        if (list.trainerV5 && !list.hideTrainer)
+        {
+            var v5 = Object.FindAnyObjectByType<SilhouetteTrainerV5>(FindObjectsInactive.Include);
+            if (v5 != null)
+            {
+                if (trainer != null) trainer.enabled = false;
+                v5.gameObject.SetActive(true);
+                v5.enabled = true;
+                trainer = null;                                                 // the scene trainer's options below do not apply
+            }
+        }
         else if (trainer != null && list.trainerMotionSet != null) trainer.UseMotionSet(list.trainerMotionSet, list.trainerTextured && !list.trainerFilmed);
         if (trainer != null && list.trainerPanelInThemeColors) trainer.UsePanelPalette();
         if (trainer != null && list.trainerFilmed && !list.hideTrainer) trainer.UseFilmedLook();

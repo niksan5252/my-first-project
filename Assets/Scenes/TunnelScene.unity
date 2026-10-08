@@ -1345,7 +1345,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::RunProfileSelector
   profile: {fileID: 11400000, guid: b1604fb0cc4caf442871a594bb1f0fe6, type: 2}
-  playlist: {fileID: 11400000, guid: eddd29c78df5c9042a331fc7fbbd9f95, type: 2}
+  playlist: {fileID: 11400000, guid: a23a28078d10ea04f88ff3c250ede454, type: 2}
   playlistSolo: -1
   cueSpawner: {fileID: 350241776}
   themeApplier: {fileID: 268705387}
@@ -1358,6 +1358,74 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1091949379}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1124117797
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1124117799}
+  - component: {fileID: 1124117798}
+  m_Layer: 0
+  m_Name: SilhouetteTrainerV5
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1124117798
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1124117797}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b96cae364a54af34a8dbcf826670e689, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SilhouetteTrainerV5
+  motionSet: {fileID: 11400000, guid: 7060fcb516cbdeb4b9204be37c524532, type: 2}
+  cueSpawner: {fileID: 350241776}
+  hud: {fileID: 306773549}
+  bodyShader: {fileID: 4800000, guid: 83b077ecdd10db640af02ea3beea4dfb, type: 3}
+  glowShader: {fileID: 4800000, guid: 6738efcdc44176f4c9d3f50372ceffd3, type: 3}
+  panelSize: {x: 500, y: 800}
+  panelLeftMargin: 36
+  panelRaise: 110
+  glassAlpha: 0.85
+  frameWidth: 3
+  frameCorner: 26
+  frameGlow: 0.45
+  usePrimaryColor: 0
+  outlineOnly: 1
+  contourWidth: 0.0045
+  cameraYaw: 180
+  cameraPitch: 4
+  viewHeight: 3
+  viewCenterY: 1.2
+  viewAheadZ: 0
+  autoFrame: 1
+  frameHeights: 1.7
+  frameCenter: 0.66
+  syncReportNotes: 10
+--- !u!4 &1124117799
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1124117797}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
@@ -1691,3 +1759,4 @@ SceneRoots:
   - {fileID: 306773552}
   - {fileID: 181401618}
   - {fileID: 1091949381}
+  - {fileID: 1124117799}
