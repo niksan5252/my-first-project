@@ -259,5 +259,32 @@ public static class Video12Setup
         dst.SaveAndReimport();
     }
 
+
+    /// The button showcase (every cue and combination on silence, Desktop/витрина_кнопок.txt) with
+    /// Video 12's trainer - the filmed video silhouette from our Gemini clips - to fix its moves.
+    public const string ShowcaseVideoPath = Themes + "Playlists/Playlist_ShowcaseVideo.asset";
+
+    [MenuItem("Tunnel/Playlist/Build Button Showcase (video trainer)", priority = 89)]
+    public static void BuildShowcaseVideo()
+    {
+        var src = AssetDatabase.LoadAssetAtPath<RunPlaylist>(Video10Setup.ShowcasePath);
+        if (src == null) { Video10Setup.BuildShowcase(); src = AssetDatabase.LoadAssetAtPath<RunPlaylist>(Video10Setup.ShowcasePath); }
+        if (!File.Exists(ShowcaseVideoPath)) AssetDatabase.CopyAsset(Video10Setup.ShowcasePath, ShowcaseVideoPath);
+        var p = AssetDatabase.LoadAssetAtPath<RunPlaylist>(ShowcaseVideoPath);
+        p.title = "ShowcaseVideo";
+        p.trainerMotionSet = null;
+        p.trainerFilmed = true;
+        p.trainerMocap3D = false;
+        p.trainerClassic = false;
+        p.hideTrainer = false;
+        p.trainerTextured = false;
+        p.segments = new List<PlaylistSegment>(src.segments);
+        EditorUtility.SetDirty(p);
+        AssetDatabase.SaveAssets();
+        HalloweenPlaylistSetup.Use(ShowcaseVideoPath);
+        HalloweenPlaylistSetup.Solo(-1);
+        Debug.Log("[ShowcaseVideo] built " + ShowcaseVideoPath);
+    }
+
     [MenuItem("Tunnel/Playlist/Use: Video 12", priority = 100)] private static void UseVideo12() => HalloweenPlaylistSetup.Use(PlaylistPath);
 }
