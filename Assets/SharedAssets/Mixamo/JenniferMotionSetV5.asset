@@ -88,3 +88,17 @@ MonoBehaviour:
   maxSpeedUp: 1.7
   crossfadeBeats: 0.35
   maxDrift: 0.6
+  stepScreenRight:
+    clip: {fileID: 7400000, guid: c807d953ce74f4a46b5e4a3ead9a4f76, type: 2}
+    impact: 2.04
+    side: R
+    reverseAfterImpact: 0
+    holdFrame: -1
+  stepScreenLeft:
+    clip: {fileID: 7400000, guid: c807d953ce74f4a46b5e4a3ead9a4f76, type: 2}
+    impact: 2.58
+    side: L
+    reverseAfterImpact: 0
+    holdFrame: -1
+  stepWindUpMax: 0.55
+  stepStay: 0.25

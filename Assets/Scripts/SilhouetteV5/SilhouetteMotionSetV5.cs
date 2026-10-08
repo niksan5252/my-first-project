@@ -59,6 +59,13 @@ public class SilhouetteMotionSetV5 : ScriptableObject
     public List<SilhouetteMotionV5> curb = new List<SilhouetteMotionV5>();       // jump over the kerb
     public SilhouetteMotionV5 duckDown = new SilhouetteMotionV5();   // impact = the bottom of the crouch
     public SilhouetteMotionV5 duckUp = new SilhouetteMotionV5();     // impact = standing again
+    // Video 12: a Kick shown as a real step instead of the procedural foot tap - a take (our march,
+    // mocap from the Gemini clip) whose impact is the foot coming DOWN on the note. Screen sides: the
+    // figure faces the viewer, so its left foot is on the screen's right. Empty = the procedural tap.
+    public SilhouetteMotionV5 stepScreenRight = new SilhouetteMotionV5();
+    public SilhouetteMotionV5 stepScreenLeft = new SilhouetteMotionV5();
+    [Min(0.1f)] public float stepWindUpMax = 0.55f;   // seconds of the take before the landing, at most
+    [Min(0.05f)] public float stepStay = 0.25f;       // seconds after the landing before the stance takes over
 
     [Header("Beat bounce (a light layer over the mocap)")]
     // Knees give a little on every beat, lowest ON the beat - just enough to feel the beat on top

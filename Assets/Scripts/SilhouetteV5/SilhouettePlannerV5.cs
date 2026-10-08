@@ -112,6 +112,28 @@ public static class SilhouettePlannerV5
             bool outer = c.lane == 0 || c.lane == laneCount - 1;
             switch (c.type)
             {
+                case CueType.Kick when (side > 0 ? set.stepScreenRight : set.stepScreenLeft).Valid:
+                {
+                    // A real step from the take: the foot of the pad's side comes down on the note.
+                    var motion = side > 0 ? set.stepScreenRight : set.stepScreenLeft;
+                    float room = float.IsNegativeInfinity(busyUntil) ? 10f : Mathf.Max(0f, c.time - busyUntil);
+                    // At its own speed: the last stepWindUpMax seconds of the take before the landing
+                    // (less if the note before is closer), never sped up.
+                    float real = Mathf.Clamp(Mathf.Min(set.stepWindUpMax, room * 0.85f), 0.12f, motion.impact);
+                    var seg = new SegmentV5
+                    {
+                        motion = motion, start = c.time - real, fade = Mathf.Min(xfade, real * 0.6f),
+                        clipIn = motion.impact - real, speed = 1f, loop = false, impactAt = c.time,
+                    };
+                    seg.note = i;
+                    seg.label = "Step " + motion.clip.name;
+                    stance.Fill(segments, freeFrom, seg.start, returnFade);
+                    segments.Add(seg);
+                    busyUntil = c.time;
+                    returnFade = xfade;
+                    freeFrom = c.time + set.stepStay;
+                    break;
+                }
                 case CueType.Punch:
                 case CueType.Kick:
                 case CueType.PunchHold:

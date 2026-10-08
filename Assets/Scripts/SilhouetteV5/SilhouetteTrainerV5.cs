@@ -218,12 +218,14 @@ public class SilhouetteTrainerV5 : MonoBehaviour
         if (motionSet.idleLively != null) foreach (var m in motionSet.idleLively) Add(m);
         if (motionSet.curb != null) foreach (var m in motionSet.curb) Add(m);
         Add(motionSet.duckDown); Add(motionSet.duckUp);
+        Add(motionSet.stepScreenRight); Add(motionSet.stepScreenLeft);
 
         mixer = AnimationMixerPlayable.Create(graph, clips.Count);
         for (int i = 0; i < clips.Count; i++)
         {
             var p = AnimationClipPlayable.Create(graph, clips[i]);
-            p.SetApplyFootIK(true);
+            bool mocapStep = (motionSet.stepScreenRight.Valid && clips[i] == motionSet.stepScreenRight.clip) || (motionSet.stepScreenLeft.Valid && clips[i] == motionSet.stepScreenLeft.clip);
+            p.SetApplyFootIK(!mocapStep);
             p.Pause();   // time is set by hand every frame
             graph.Connect(p, 0, mixer, i);
             mixer.SetInputWeight(i, 0f);
@@ -460,6 +462,9 @@ public class SilhouetteTrainerV5 : MonoBehaviour
         if (stanceInputs.Count == 0) return 1f;
         float stance = 0f;
         foreach (int i in stanceInputs) stance += weights[i];
+        // The step takes are mocap with no IK goals: pinning the feet to them would fold the legs.
+        foreach (var m in new[] { motionSet.stepScreenRight, motionSet.stepScreenLeft })
+            if (m != null && m.Valid && inputOf.TryGetValue(m.clip, out int si) && weights[si] > 0f) return 0f;
         return Mathf.Clamp01(stance);
     }
 
