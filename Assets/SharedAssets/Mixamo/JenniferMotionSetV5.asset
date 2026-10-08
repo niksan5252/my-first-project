@@ -20,61 +20,70 @@ MonoBehaviour:
     side: 
     reverseAfterImpact: 0
     holdFrame: -1
+    yawFix: 0
   - clip: {fileID: -203655887218126122, guid: 332b3b72d2eb2b14b98b52fc42486f05, type: 3}
     impact: 0
     side: 
     reverseAfterImpact: 0
     holdFrame: -1
+    yawFix: 0
   - clip: {fileID: -203655887218126122, guid: 6d301869bb3e5224a9a4ac6e0cf3b561, type: 3}
     impact: 0
     side: 
     reverseAfterImpact: 0
     holdFrame: -1
+    yawFix: 0
   idleLively:
   - clip: {fileID: -203655887218126122, guid: 2a9199af1a2d04a479e8dbfc161e37f2, type: 3}
     impact: 0
     side: 
     reverseAfterImpact: 0
     holdFrame: -1
+    yawFix: 0
   - clip: {fileID: -203655887218126122, guid: db57f434afc22ae4a936607b7b77a413, type: 3}
     impact: 0
     side: 
     reverseAfterImpact: 0
     holdFrame: -1
+    yawFix: 0
   livelyGapBars: 3
   stanceMinSeconds: 6
   stanceFadeBeats: 1.5
   curb:
-  - clip: {fileID: -203655887218126122, guid: f5e3d2f2f2aedf74985642d7eb270b2d, type: 3}
-    impact: 0.91666645
+  - clip: {fileID: -203655887218126122, guid: 68af8a64ae9c6844389f7e76ab63d259, type: 3}
+    impact: 1.0499997
     side: 
     reverseAfterImpact: 0
     holdFrame: -1
-    yawFix: -55
+    yawFix: 8.69928
   duckDown:
     clip: {fileID: -203655887218126122, guid: 6625688499b932640b8be7315ab68eda, type: 3}
     impact: 0.6
     side: bottom
     reverseAfterImpact: 0
     holdFrame: -1
+    yawFix: 0
   duckUp:
     clip: {fileID: -203655887218126122, guid: c961002e172d17e4f92bb0fb9cd976c2, type: 3}
     impact: 0.46666667
     side: top
     reverseAfterImpact: 0
     holdFrame: -1
+    yawFix: 0
   stepScreenRight:
     clip: {fileID: 0}
     impact: 1.45
     side: R
     reverseAfterImpact: 0
     holdFrame: -1
+    yawFix: 0
   stepScreenLeft:
     clip: {fileID: 0}
     impact: 1.45
     side: L
     reverseAfterImpact: 0
     holdFrame: -1
+    yawFix: 0
   stepWindUpMax: 0.8
   stepStay: 0.08
   stepBlend: 0.35
