@@ -62,6 +62,21 @@ MonoBehaviour:
     side: top
     reverseAfterImpact: 0
     holdFrame: -1
+  stepScreenRight:
+    clip: {fileID: 4061839508520268033, guid: a2458ef801f2c434885f748c02d66d8b, type: 3}
+    impact: 1.45
+    side: R
+    reverseAfterImpact: 0
+    holdFrame: -1
+  stepScreenLeft:
+    clip: {fileID: -203655887218126122, guid: a2458ef801f2c434885f748c02d66d8b, type: 3}
+    impact: 1.45
+    side: L
+    reverseAfterImpact: 0
+    holdFrame: -1
+  stepWindUpMax: 0.8
+  stepStay: 0.08
+  stepBlend: 0.35
   bounceDepth: 0.009
   punchOutOuter: 0.42
   punchOutInner: 0.3
@@ -88,18 +103,3 @@ MonoBehaviour:
   maxSpeedUp: 1.7
   crossfadeBeats: 0.35
   maxDrift: 0.6
-  stepScreenRight:
-    clip: {fileID: 0}
-    impact: 0.875
-    side: R
-    reverseAfterImpact: 0
-    holdFrame: -1
-  stepScreenLeft:
-    clip: {fileID: 0}
-    impact: 0.875
-    side: L
-    reverseAfterImpact: 0
-    holdFrame: -1
-  stepWindUpMax: 0.65
-  stepStay: 0.08
-  stepBlend: 0.4
