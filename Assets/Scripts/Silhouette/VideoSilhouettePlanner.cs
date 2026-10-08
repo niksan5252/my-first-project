@@ -233,8 +233,8 @@ public static class VideoSilhouettePlanner
                 {
                     // Room before it: the stance, or the groove for a long pause.
                     float pause = a.t - freeFrom;
-                    var fill = pause > set.pauseBeats * spb ? Groove(set, grid, prevDone) : null;
-                    if (fill == null) fill = Stance(prev, a, prevDone, grid);
+                    // No groove (the user's call): every pause is the plain standing stance.
+                    var fill = Stance(set, prev, a, prevDone, grid);
                     fill.fade = fade;
                     if (prev == null) fill.from = float.NegativeInfinity;
                     segs.Add(fill);
@@ -285,7 +285,7 @@ public static class VideoSilhouettePlanner
         }
         // After the last note: the stance.
         var last = BeatAt(grids, prev.t);
-        segs.Add(Stance(prev, null, prevDone, last));
+        segs.Add(Stance(set, prev, null, prevDone, last));
         segs.Sort((x, y) => x.from.CompareTo(y.from));
         return segs;
     }
@@ -317,9 +317,10 @@ public static class VideoSilhouettePlanner
         return !float.IsInfinity(best);
     }
 
-    /// Standing between moves, bouncing lightly on the beat: the pose the move before settled in
-    /// (or the next one's first).
-    private static Segment Stance(Action prev, Action next, float from, Grid grid)
+    /// Standing between moves, bouncing lightly on the beat: the plain neutral stance - the
+    /// standing frame of the march take (its first step's start) - whatever move came before.
+    /// Without that take: the pose the move before settled in (or the next one's first).
+    private static Segment Stance(VideoSilhouetteSet set, Action prev, Action next, float from, Grid grid)
     {
         var src = prev ?? next;
         var s = new Segment
@@ -328,6 +329,12 @@ public static class VideoSilhouettePlanner
             spb = grid.secondsPerBeat, anchor = grid.anchor, label = "stance",
         };
         float u = prev != null ? prev.move.end : next.move.start;
+        if (set.TryFind("march", VideoSilhouetteSet.Side.Right, out var neutral, out var nm, out _))
+        {
+            s.clip = neutral;
+            s.mirror = false;
+            u = nm.start;
+        }
         s.Add(from, u);
         return s;
     }
