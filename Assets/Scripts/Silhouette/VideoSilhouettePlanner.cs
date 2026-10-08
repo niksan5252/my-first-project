@@ -317,8 +317,8 @@ public static class VideoSilhouettePlanner
         return !float.IsInfinity(best);
     }
 
-    /// Standing between moves, bouncing lightly on the beat: the plain neutral stance - the
-    /// standing frame of the march take (its first step's start) - whatever move came before.
+    /// Standing between moves: the filmed stance clip breathing in a loop; without it the standing
+    /// frame of the march take (its first step's start), bouncing lightly on the beat.
     /// Without that take: the pose the move before settled in (or the next one's first).
     private static Segment Stance(VideoSilhouetteSet set, Action prev, Action next, float from, Grid grid)
     {
@@ -329,6 +329,19 @@ public static class VideoSilhouettePlanner
             spb = grid.secondsPerBeat, anchor = grid.anchor, label = "stance",
         };
         float u = prev != null ? prev.move.end : next.move.start;
+        if (set.TryFind("stance", VideoSilhouetteSet.Side.None, out var st, out var sm, out _) && sm.HasLoop)
+        {
+            // The filmed stance ("стойка"): standing and breathing, its loop at its own speed
+            // (rounded to whole beats so it stays on the grid).
+            s.clip = st;
+            s.mirror = false;
+            s.bounce = false;
+            s.groove = true;
+            s.loopStart = sm.loopStart;
+            s.loopEnd = sm.loopEnd;
+            s.grooveBeats = Mathf.Max(1f, Mathf.Round((sm.loopEnd - sm.loopStart) / grid.secondsPerBeat));
+            return s;
+        }
         if (set.TryFind("march", VideoSilhouetteSet.Side.Right, out var neutral, out var nm, out _))
         {
             s.clip = neutral;

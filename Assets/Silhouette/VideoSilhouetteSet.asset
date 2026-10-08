@@ -231,6 +231,20 @@ MonoBehaviour:
       loopStart: 3.33
       loopEnd: 5.58
       holdLoops: 0
+  - name: stance
+    frames: {fileID: 18700000, guid: 7e7643f6fa6103945879a408cf6073c9, type: 3}
+    frameCount: 142
+    fps: 24
+    bakeStart: 0.041666668
+    moves:
+    - group: stance
+      side: 0
+      start: 0.1
+      peak: 0.1
+      end: 5.9
+      loopStart: 0.1
+      loopEnd: 5.9
+      holdLoops: 0
   bindings:
   - note: 0
     group: march

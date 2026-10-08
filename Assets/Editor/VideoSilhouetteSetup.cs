@@ -68,7 +68,8 @@ public static class VideoSilhouetteSetup
     /// "рисует круги руками": the left arm round, then the right; looped through a hold.
     /// "присяд сумо": the second squat's bottom (2.38); held = pulsing bottom to half up.
     /// "узодит ввлево с вытянутой ркуой": the side step left, arm out (0.85). Right = mirrored.
-    /// "степы приколные с подтанцовкой": the groove for pauses.
+    /// "степы приколные с подтанцовкой": the groove for pauses (unused since video 12).
+    /// "стойка" (from 4 s): standing and breathing - the stance between moves, looped.
     private static List<VideoSilhouetteSet.Clip> DefaultClips() => new List<VideoSilhouetteSet.Clip>
     {
         C("step", M("step", R, 1.0f, 1.67f, 2.4f)),
@@ -90,6 +91,7 @@ public static class VideoSilhouetteSetup
             M("sumoHold", N, 1.8f, 2.38f, 3.3f, 1.27f, 2.38f, true)),
         C("dodge", M("dodge", L, 0.2f, 0.85f, 1.7f)),
         C("groove", M("groove", N, GrooveStart, GrooveStart, GrooveEnd, GrooveStart, GrooveEnd)),
+        C("stance", M("stance", N, 0.1f, 0.1f, 5.9f, 0.1f, 5.9f)),
     };
 
     private const float GrooveStart = 3.33f, GrooveEnd = 5.58f;
