@@ -88,6 +88,12 @@ public class SilhouetteMotionSetV5 : ScriptableObject
     public float punchHoldRaise = 0.48f;
     public float punchHoldPulse = 0.04f;
 
+    [Header("CurbSplit / SquatHold: feet very wide")]
+    public float wideOut = 0.42f;          // metres each foot goes out (CurbSplit)
+    public float wideSink = 0.12f;
+    public float wideOutSquat = 0.45f;     // SquatHold: a sumo squat
+    public float wideSinkSquat = 0.32f;
+
     [Header("CurbGap: standing on one leg")]
     public float oneLegLift = 0.42f;      // metres the free foot is raised (knee up)
     public float oneLegForward = 0.18f;

@@ -558,6 +558,21 @@ public class SilhouetteTrainerV5 : MonoBehaviour
                         tapping = Mathf.Max(tapping, w);
                         break;
                     }
+                    case SilhouettePlannerV5.GestureKindV5.Wide:
+                    {
+                        // Both feet far out to the sides, the body down between them (side 2 =
+                        // SquatHold: a deeper, wider sumo).
+                        bool squat = g.side == 2;
+                        float o = (squat ? s.wideOutSquat : s.wideOut) * w;
+                        for (int k = 0; k < 2; k++)
+                        {
+                            Vector3 f = new Vector3(k == 0 ? -o : o, 0f, 0f);     // the figure's left foot out to -X (see X())
+                            if (w > footW[k]) { footW[k] = w; foot[k] = f; }
+                        }
+                        body += new Vector3(0f, -(squat ? s.wideSinkSquat : s.wideSink) * w, 0f);
+                        tapping = Mathf.Max(tapping, w);
+                        break;
+                    }
                     case SilhouettePlannerV5.GestureKindV5.OneLeg:
                     {
                         // This knee up and held, the other leg standing; the body leans a touch

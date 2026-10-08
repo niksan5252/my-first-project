@@ -43,7 +43,7 @@ public static class SilhouettePlannerV5
         }
     }
 
-    public enum GestureKindV5 { Punch, PunchHold, Kick, KickHold, Dodge, OneLeg }
+    public enum GestureKindV5 { Punch, PunchHold, Kick, KickHold, Dodge, OneLeg, Wide }
 
     public struct GestureV5
     {
@@ -162,6 +162,21 @@ public static class SilhouettePlannerV5
                     {
                         kind = GestureKindV5.Dodge, side = camSide, outer = true, glide = true,
                         start = begin, impact = commit, holdEnd = release, end = settled, note = i,
+                    });
+                    break;
+                }
+                case CueType.CurbSplit:
+                case CueType.SquatHold:
+                {
+                    // Feet very wide apart (the kerbs on both sides / the lasers along the floor),
+                    // held, the body sinking into a wide stance; SquatHold sinks deeper (video 12).
+                    float a, b, r, e;
+                    if (c.type == CueType.SquatHold) { a = c.time - 0.8f * beat; b = c.time; r = c.time + Mathf.Max(c.duration, beat); e = r + 0.6f * beat; }
+                    else { obstacleTiming(c, out a, out b, out r, out e, out _); a = Mathf.Min(a, b - 0.6f * beat); e += 0.3f * beat; }
+                    gestures.Add(new GestureV5
+                    {
+                        kind = GestureKindV5.Wide, side = c.type == CueType.SquatHold ? 2 : 1, outer = true,
+                        start = a, impact = b, holdEnd = r, end = e, note = i,
                     });
                     break;
                 }
