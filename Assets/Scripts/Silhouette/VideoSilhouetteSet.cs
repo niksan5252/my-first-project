@@ -146,7 +146,7 @@ public class VideoSilhouetteSet : ScriptableObject
     /// The default note -> move table, after the brief: each note its own move.
     public static List<Binding> DefaultBindings() => new List<Binding>
     {
-        B(Note.Kick, "step"),            // a step out to the pad's side
+        B(Note.Kick, "march"),           // the march step of the pad's side (the user's call: "марширует")
         B(Note.March, "march"),          // quick kicks L-R-L-R
         B(Note.KickHold, "marchHold"),   // the knee held up
         B(Note.Jack, "jack"),            // a kick pair wide apart
