@@ -21,8 +21,8 @@ MonoBehaviour:
     theme: {fileID: 11400000, guid: 3b1ca20f3c9fe874f97423d49c28da27, type: 2}
     clipStart: 0
     clipEnd: 0
-    transitionIn: 0
-    transitionSeconds: 4
+    transitionIn: 3
+    transitionSeconds: 3.5
     transitionLook: 0
   - label: Level 2 ToxicGreen
     role: 0
@@ -31,8 +31,8 @@ MonoBehaviour:
     theme: {fileID: 11400000, guid: 587f9ac8aa3271b4b9e3f2f3f3cfa78b, type: 2}
     clipStart: 0
     clipEnd: 0
-    transitionIn: 0
-    transitionSeconds: 4
+    transitionIn: 3
+    transitionSeconds: 3.5
     transitionLook: 0
   - label: Level 3 RioCarnival
     role: 0
@@ -41,8 +41,8 @@ MonoBehaviour:
     theme: {fileID: 11400000, guid: 29b9112d053bd1643baed1f141bd04a1, type: 2}
     clipStart: 0
     clipEnd: 0
-    transitionIn: 0
-    transitionSeconds: 4
+    transitionIn: 3
+    transitionSeconds: 3.5
     transitionLook: 0
   - label: Level 4 IceStorm
     role: 0
@@ -51,8 +51,8 @@ MonoBehaviour:
     theme: {fileID: 11400000, guid: a9a588412a48076498fdddb34d99659b, type: 2}
     clipStart: 0
     clipEnd: 0
-    transitionIn: 0
-    transitionSeconds: 4
+    transitionIn: 3
+    transitionSeconds: 3.5
     transitionLook: 0
   - label: Level 5 GoldFinal
     role: 0
@@ -61,8 +61,8 @@ MonoBehaviour:
     theme: {fileID: 11400000, guid: d8f1cd211c6d8474491b53a6eae8008c, type: 2}
     clipStart: 0
     clipEnd: 0
-    transitionIn: 0
-    transitionSeconds: 4
+    transitionIn: 3
+    transitionSeconds: 3.5
     transitionLook: 0
   preRoll: 1
   noteMarginBeats: 1
@@ -79,6 +79,7 @@ MonoBehaviour:
   hideTrainer: 1
   trainerFilmed: 0
   trainerMocap3D: 1
+  trainerClassic: 0
   retention: 1
   interludeSeconds: 13
   introCardsSeconds: 9

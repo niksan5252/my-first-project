@@ -121,6 +121,9 @@ public class RunPlaylist : ScriptableObject
     public bool trainerFilmed;
     // Video 10: the 3D character on mocap (MocapImport) in the filmed look, without the trail.
     public bool trainerMocap3D;
+    // Video 12: the very first trainer - the Mixamo character as a cyan neon contour (the line
+    // drawing of videos 1-4), never the filmed clips the scene may be set to.
+    public bool trainerClassic;
 
     [Header("Retention wrapper (video 9) - off for every older playlist")]
     // The whole wrapper: spoiler label over the Spoiler segments, the opening cards, the cards

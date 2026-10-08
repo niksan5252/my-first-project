@@ -126,7 +126,7 @@ public static class Video11Setup
             {
                 label = "Level " + (i + 1) + " " + skins[i].name, role = PlaylistSegmentRole.Level,
                 track = tracks[i], beatmapFileName = skins[i].beatmap, theme = themes[i],
-                clipStart = 0f, clipEnd = 0f, transitionIn = PlaylistTransition.Crossfade, transitionSeconds = 4f,
+                clipStart = 0f, clipEnd = 0f, transitionIn = PlaylistTransition.Interlude, transitionSeconds = 3.5f,
                 transitionLook = PlaylistTransitionLook.Veil,
             });
         // Copy Video 10's playlist flags that this script does not name (spoiler/intro off etc.).

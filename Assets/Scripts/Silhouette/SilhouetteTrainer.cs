@@ -194,6 +194,19 @@ public class SilhouetteTrainer : MonoBehaviour
         filmedTrail = 0f;
     }
 
+    /// Video 12: the first trainer back - the 3D character as a cyan neon contour (outline only, the
+    /// trainer's own colour), even where the scene is set to the filmed clips.
+    public void UseClassicContour()
+    {
+        if (built) return;
+        useVideoSilhouette = false;
+        filmed = false;
+        panelPalette = false;
+        textured = false;
+        outlineOnly = true;
+        followThemeColor = false;
+    }
+
     public void UseFilmedLook()
     {
         if (built) return;
