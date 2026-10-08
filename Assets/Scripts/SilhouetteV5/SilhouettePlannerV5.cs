@@ -165,6 +165,9 @@ public static class SilhouettePlannerV5
                     });
                     break;
                 }
+                case CueType.Rails:
+                    // Rails over the outer lanes: just stand (video 12, the user's call).
+                    break;
                 case CueType.CurbSplit:
                 case CueType.SquatHold:
                 {

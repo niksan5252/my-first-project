@@ -79,7 +79,9 @@ ITEMS = [
 
 
 # Items already signed off by the user, left out of the showcase so it starts on the next one to fix.
-DONE = {"Kick - inner lanes", "Kick - outer lanes"}
+DONE = {"Kick - inner lanes", "Kick - outer lanes", "Jump", "KickHold - left, then right",
+        "KickHold - outer (leg out wide)", "Dodge - wall left, then right", "Duck - bar to duck under",
+        "Curb - kerb to jump", "CurbGap - one leg (free lane 3)", "CurbSplit - wide stance"}
 ITEMS = [it for it in ITEMS if it[0] not in DONE]
 
 
