@@ -1,7 +1,7 @@
 // UI shader for the video trainer (VideoSilhouette): draws the baked loops of filmed frames
-// (Texture2DArray, one slice a frame). Each clip is sampled at two neighbouring frames and blended
-// by the fraction between them, so a 24 fps take moves smoothly at any speed; the outgoing clip of
-// a change of move is blended out under the incoming one by `_Mix`. A clip can be mirrored (its
+// (Texture2DArray, one slice a frame). Each clip shows the nearer of its two neighbouring frames and
+// a change of move swaps at the middle of `_Mix` - never a blend of two poses, which reads as two
+// see-through figures (video 12: the user saw the ghosts). A clip can be mirrored (its
 // `.w`: the move done to the other side) and lowered by `_Bounce` (the stance bouncing on the beat).
 // All blends are premultiplied, so the neon contour never darkens at a seam.
 Shader "Tunnel/SilhouetteFrames"
@@ -57,10 +57,10 @@ Shader "Tunnel/SilhouetteFrames"
             {
                 float2 ua = Uv(i.uv, _A.w, _Bounce.x), ub = Uv(i.uv, _B.w, _Bounce.y);
                 float4 a = lerp(Premul(UNITY_SAMPLE_TEX2DARRAY(_FramesA, float3(ua, _A.x))),
-                                Premul(UNITY_SAMPLE_TEX2DARRAY(_FramesA, float3(ua, _A.y))), _A.z);
+                                Premul(UNITY_SAMPLE_TEX2DARRAY(_FramesA, float3(ua, _A.y))), step(0.5, _A.z));
                 float4 b = lerp(Premul(UNITY_SAMPLE_TEX2DARRAY(_FramesB, float3(ub, _B.x))),
-                                Premul(UNITY_SAMPLE_TEX2DARRAY(_FramesB, float3(ub, _B.y))), _B.z);
-                float4 c = lerp(b, a, _Mix);
+                                Premul(UNITY_SAMPLE_TEX2DARRAY(_FramesB, float3(ub, _B.y))), step(0.5, _B.z));
+                float4 c = _Mix >= 0.5 ? a : b;
                 c.rgb *= i.color.rgb;
                 return c * i.color.a;
             }
