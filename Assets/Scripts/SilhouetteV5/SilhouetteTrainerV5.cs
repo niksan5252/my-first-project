@@ -558,6 +558,16 @@ public class SilhouetteTrainerV5 : MonoBehaviour
                         tapping = Mathf.Max(tapping, w);
                         break;
                     }
+                    case SilhouettePlannerV5.GestureKindV5.OneLeg:
+                    {
+                        // This knee up and held, the other leg standing; the body leans a touch
+                        // over the standing leg.
+                        Vector3 up = new Vector3(0f, s.oneLegLift * w, s.oneLegForward * w);
+                        if (w > footW[limb]) { footW[limb] = w; foot[limb] = up; }
+                        body += new Vector3(-x * s.oneLegShift * w, 0f, 0f);
+                        tapping = Mathf.Max(tapping, w);
+                        break;
+                    }
                     case SilhouettePlannerV5.GestureKindV5.Dodge:
                     {
                         body += new Vector3(x * s.dodgeShift * w, -0.02f * w, 0f);

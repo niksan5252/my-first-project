@@ -43,7 +43,7 @@ public static class SilhouettePlannerV5
         }
     }
 
-    public enum GestureKindV5 { Punch, PunchHold, Kick, KickHold, Dodge }
+    public enum GestureKindV5 { Punch, PunchHold, Kick, KickHold, Dodge, OneLeg }
 
     public struct GestureV5
     {
@@ -162,6 +162,18 @@ public static class SilhouettePlannerV5
                     {
                         kind = GestureKindV5.Dodge, side = camSide, outer = true, glide = true,
                         start = begin, impact = commit, holdEnd = release, end = settled, note = i,
+                    });
+                    break;
+                }
+                case CueType.CurbGap:
+                {
+                    // A kerb with one lane free: stand on the leg of the free lane, the other knee
+                    // up and held while the kerb passes, then down (video 12: the user's call).
+                    obstacleTiming(c, out float begin, out float commit, out float release, out float settled, out _);
+                    gestures.Add(new GestureV5
+                    {
+                        kind = GestureKindV5.OneLeg, side = -side, outer = false,
+                        start = Mathf.Min(begin, commit - 0.6f * beat), impact = commit, holdEnd = release, end = settled + 0.3f * beat, note = i,
                     });
                     break;
                 }

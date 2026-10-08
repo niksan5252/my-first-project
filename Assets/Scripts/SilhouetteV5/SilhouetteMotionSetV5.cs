@@ -88,6 +88,11 @@ public class SilhouetteMotionSetV5 : ScriptableObject
     public float punchHoldRaise = 0.48f;
     public float punchHoldPulse = 0.04f;
 
+    [Header("CurbGap: standing on one leg")]
+    public float oneLegLift = 0.42f;      // metres the free foot is raised (knee up)
+    public float oneLegForward = 0.18f;
+    public float oneLegShift = 0.06f;     // the body over the standing leg
+
     [Header("Kick: a foot taps the tile")]
     // One foot taps and comes back while the other stays planted - the next note taps with the
     // other foot. Metres from where the tapping foot stands: out to the side for an outer lane,
