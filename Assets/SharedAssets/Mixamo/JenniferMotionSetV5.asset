@@ -63,13 +63,13 @@ MonoBehaviour:
     reverseAfterImpact: 0
     holdFrame: -1
   stepScreenRight:
-    clip: {fileID: 4061839508520268033, guid: a2458ef801f2c434885f748c02d66d8b, type: 3}
+    clip: {fileID: 0}
     impact: 1.45
     side: R
     reverseAfterImpact: 0
     holdFrame: -1
   stepScreenLeft:
-    clip: {fileID: -203655887218126122, guid: a2458ef801f2c434885f748c02d66d8b, type: 3}
+    clip: {fileID: 0}
     impact: 1.45
     side: L
     reverseAfterImpact: 0
