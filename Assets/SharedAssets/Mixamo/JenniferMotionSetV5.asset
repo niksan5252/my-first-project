@@ -45,9 +45,9 @@ MonoBehaviour:
   stanceMinSeconds: 6
   stanceFadeBeats: 1.5
   curb:
-  - clip: {fileID: -203655887218126122, guid: 71ec7fa682e86e845835a73d53333cf5, type: 3}
-    impact: 1.0333333
-    side: apex
+  - clip: {fileID: -203655887218126122, guid: f5e3d2f2f2aedf74985642d7eb270b2d, type: 3}
+    impact: 0.91666645
+    side: 
     reverseAfterImpact: 0
     holdFrame: -1
   duckDown:
