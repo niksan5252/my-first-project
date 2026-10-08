@@ -16,7 +16,7 @@ ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..")
 BPM = 120.0
 BEAT = 60.0 / BPM
 LANES = 4
-START = 4.0          # song seconds before the first item
+START = 1.0          # song seconds before the first item (was 4: the user waited too long)
 GAP = 2              # beats of nothing after each item
 
 # (label, kind, payload). raw: [(beat, type, lane, duration_beats, extra)], set: (exercise, beats, mirror)

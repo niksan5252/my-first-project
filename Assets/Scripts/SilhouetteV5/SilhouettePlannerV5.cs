@@ -122,7 +122,7 @@ public static class SilhouettePlannerV5
                     float real = Mathf.Clamp(Mathf.Min(set.stepWindUpMax, room * 0.85f), 0.12f, motion.impact);
                     var seg = new SegmentV5
                     {
-                        motion = motion, start = c.time - real, fade = Mathf.Min(xfade, real * 0.6f),
+                        motion = motion, start = c.time - real, fade = Mathf.Min(set.stepBlend, real * 0.8f),
                         clipIn = motion.impact - real, speed = 1f, loop = false, impactAt = c.time,
                     };
                     seg.note = i;
@@ -130,7 +130,7 @@ public static class SilhouettePlannerV5
                     stance.Fill(segments, freeFrom, seg.start, returnFade);
                     segments.Add(seg);
                     busyUntil = c.time;
-                    returnFade = xfade;
+                    returnFade = set.stepBlend;      // a slow settle back into the stance, not a snap
                     freeFrom = c.time + set.stepStay;
                     break;
                 }

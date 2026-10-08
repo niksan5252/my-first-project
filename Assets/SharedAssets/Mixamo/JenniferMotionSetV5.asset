@@ -90,15 +90,16 @@ MonoBehaviour:
   maxDrift: 0.6
   stepScreenRight:
     clip: {fileID: 7400000, guid: c807d953ce74f4a46b5e4a3ead9a4f76, type: 2}
-    impact: 2.04
+    impact: 0.875
     side: R
     reverseAfterImpact: 0
     holdFrame: -1
   stepScreenLeft:
-    clip: {fileID: 7400000, guid: c807d953ce74f4a46b5e4a3ead9a4f76, type: 2}
-    impact: 2.58
+    clip: {fileID: 7400000, guid: ccc18d736d68ee244ad749354b27613d, type: 2}
+    impact: 0.875
     side: L
     reverseAfterImpact: 0
     holdFrame: -1
-  stepWindUpMax: 0.55
-  stepStay: 0.25
+  stepWindUpMax: 0.65
+  stepStay: 0.08
+  stepBlend: 0.4

@@ -66,6 +66,7 @@ public class SilhouetteMotionSetV5 : ScriptableObject
     public SilhouetteMotionV5 stepScreenLeft = new SilhouetteMotionV5();
     [Min(0.1f)] public float stepWindUpMax = 0.55f;   // seconds of the take before the landing, at most
     [Min(0.05f)] public float stepStay = 0.25f;       // seconds after the landing before the stance takes over
+    [Min(0.05f)] public float stepBlend = 0.4f;       // seconds of crossfade into a step and back to the stance
 
     [Header("Beat bounce (a light layer over the mocap)")]
     // Knees give a little on every beat, lowest ON the beat - just enough to feel the beat on top
