@@ -7,33 +7,134 @@
   "events": [
     {
       "time": 2.232,
-      "type": "SquatHold",
+      "type": "Rails",
       "lane": 1,
-      "duration": 7.193,
+      "duration": 3.083,
+      "intensity": 0.45
+    },
+    {
+      "time": 2.746,
+      "type": "PunchHigh",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 0.45
+    },
+    {
+      "time": 3.26,
+      "type": "PunchHigh",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 0.45
+    },
+    {
+      "time": 3.774,
+      "type": "PunchHigh",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 0.45
+    },
+    {
+      "time": 4.287,
+      "type": "PunchHigh",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 0.45
+    },
+    {
+      "time": 4.801,
+      "type": "PunchHigh",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 0.45
+    },
+    {
+      "time": 5.315,
+      "type": "PunchHigh",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 0.45
+    },
+    {
+      "time": 6.343,
+      "type": "KickHold",
+      "lane": 1,
+      "duration": 0.948,
+      "intensity": 0.45
+    },
+    {
+      "time": 7.37,
+      "type": "KickHold",
+      "lane": 2,
+      "duration": 0.948,
+      "intensity": 0.45
+    },
+    {
+      "time": 8.398,
+      "type": "KickHold",
+      "lane": 1,
+      "duration": 0.948,
+      "intensity": 0.45
+    },
+    {
+      "time": 9.425,
+      "type": "KickHold",
+      "lane": 2,
+      "duration": 0.431,
       "intensity": 0.45
     },
     {
       "time": 10.453,
-      "type": "ArcHold",
-      "lane": 1,
-      "duration": 3.083,
-      "intensity": 0.45,
-      "arc": -450.0,
-      "radius": 0.8
-    },
-    {
-      "time": 10.453,
-      "type": "ArcHold",
-      "lane": 2,
-      "duration": 3.083,
-      "intensity": 0.45,
-      "arc": 450.0,
-      "radius": 0.8
+      "type": "CurbGap",
+      "lane": 3,
+      "duration": 3.594,
+      "intensity": 0.45
     },
     {
       "time": 14.563,
-      "type": "Dodge",
-      "lane": 0,
+      "type": "PunchHold",
+      "lane": 1,
+      "duration": 0.899,
+      "intensity": 0.45
+    },
+    {
+      "time": 14.563,
+      "type": "PunchHold",
+      "lane": 2,
+      "duration": 0.899,
+      "intensity": 0.45
+    },
+    {
+      "time": 15.591,
+      "type": "Kick",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 0.45
+    },
+    {
+      "time": 16.105,
+      "type": "Kick",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 0.45
+    },
+    {
+      "time": 16.619,
+      "type": "PunchHold",
+      "lane": 1,
+      "duration": 0.899,
+      "intensity": 0.45
+    },
+    {
+      "time": 16.619,
+      "type": "PunchHold",
+      "lane": 2,
+      "duration": 0.899,
+      "intensity": 0.45
+    },
+    {
+      "time": 17.646,
+      "type": "Kick",
+      "lane": 1,
       "duration": 0.0,
       "intensity": 0.45
     },
@@ -347,20 +448,27 @@
     },
     {
       "time": 37.171,
-      "type": "Punch",
+      "type": "Rails",
+      "lane": 1,
+      "duration": 3.083,
+      "intensity": 0.45
+    },
+    {
+      "time": 37.685,
+      "type": "PunchHigh",
       "lane": 1,
       "duration": 0.0,
       "intensity": 0.45
     },
     {
-      "time": 37.685,
-      "type": "Punch",
+      "time": 38.199,
+      "type": "PunchHigh",
       "lane": 2,
       "duration": 0.0,
       "intensity": 0.45
     },
     {
-      "time": 38.199,
+      "time": 38.712,
       "type": "PunchHigh",
       "lane": 1,
       "duration": 0.0,
@@ -368,22 +476,22 @@
     },
     {
       "time": 39.226,
-      "type": "Punch",
-      "lane": 1,
+      "type": "PunchHigh",
+      "lane": 2,
       "duration": 0.0,
       "intensity": 0.45
     },
     {
       "time": 39.74,
-      "type": "Punch",
-      "lane": 2,
+      "type": "PunchHigh",
+      "lane": 1,
       "duration": 0.0,
       "intensity": 0.45
     },
     {
       "time": 40.254,
       "type": "PunchHigh",
-      "lane": 1,
+      "lane": 2,
       "duration": 0.0,
       "intensity": 0.45
     },
@@ -1271,8 +1379,8 @@
     },
     {
       "time": 113.214,
-      "type": "CurbGap",
-      "lane": 3,
+      "type": "CurbSplit",
+      "lane": 1,
       "duration": 3.594,
       "intensity": 0.45
     },
@@ -2295,30 +2403,38 @@
   "sets": [
     {
       "index": 0,
-      "exercise": "Squat",
+      "exercise": "RailsHigh",
       "start": 2.229,
-      "end": 9.936,
-      "restEnd": 10.45,
-      "notes": 1
+      "end": 5.826,
+      "restEnd": 6.34,
+      "notes": 7
     },
     {
       "index": 1,
-      "exercise": "Arc",
-      "start": 10.45,
-      "end": 14.047,
-      "restEnd": 14.561,
-      "notes": 2
+      "exercise": "KickHold",
+      "start": 6.34,
+      "end": 9.936,
+      "restEnd": 10.45,
+      "notes": 4
     },
     {
       "index": 2,
-      "exercise": "Dodge",
-      "start": 14.561,
-      "end": 18.157,
-      "restEnd": 18.671,
+      "exercise": "Balance",
+      "start": 10.45,
+      "end": 14.047,
+      "restEnd": 14.561,
       "notes": 1
     },
     {
       "index": 3,
+      "exercise": "PressHold",
+      "start": 14.561,
+      "end": 18.157,
+      "restEnd": 18.671,
+      "notes": 7
+    },
+    {
+      "index": 4,
       "exercise": "HighLow",
       "start": 18.671,
       "end": 20.213,
@@ -2326,7 +2442,7 @@
       "notes": 3
     },
     {
-      "index": 4,
+      "index": 5,
       "exercise": "Cross",
       "start": 20.726,
       "end": 22.268,
@@ -2334,7 +2450,7 @@
       "notes": 4
     },
     {
-      "index": 5,
+      "index": 6,
       "exercise": "SpeedStep",
       "start": 22.782,
       "end": 26.378,
@@ -2342,7 +2458,7 @@
       "notes": 14
     },
     {
-      "index": 6,
+      "index": 7,
       "exercise": "Curb",
       "start": 26.892,
       "end": 30.489,
@@ -2350,7 +2466,7 @@
       "notes": 1
     },
     {
-      "index": 7,
+      "index": 8,
       "exercise": "SpeedPunch",
       "start": 31.002,
       "end": 34.599,
@@ -2358,7 +2474,7 @@
       "notes": 14
     },
     {
-      "index": 8,
+      "index": 9,
       "exercise": "PowerJump",
       "start": 35.113,
       "end": 36.654,
@@ -2366,20 +2482,12 @@
       "notes": 8
     },
     {
-      "index": 9,
-      "exercise": "HighLow",
-      "start": 37.168,
-      "end": 38.71,
-      "restEnd": 39.223,
-      "notes": 3
-    },
-    {
       "index": 10,
-      "exercise": "HighLow",
-      "start": 39.223,
+      "exercise": "RailsHigh",
+      "start": 37.168,
       "end": 40.765,
       "restEnd": 41.279,
-      "notes": 3
+      "notes": 7
     },
     {
       "index": 11,
