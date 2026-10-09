@@ -87,6 +87,29 @@ MonoBehaviour:
   stepWindUpMax: 0.8
   stepStay: 0.08
   stepBlend: 0.35
+  jumpForward:
+    clip: {fileID: -203655887218126122, guid: 4ffaa40e2d651fc429b07a1edd754f0f, type: 3}
+    impact: 1.2
+    side: 
+    reverseAfterImpact: 0
+    holdFrame: -1
+    yawFix: 0
+  jumpSideScreenRight:
+    clip: {fileID: -203655887218126122, guid: fa65469605ddee945bdbccc048da151a, type: 3}
+    impact: 1.5
+    side: 
+    reverseAfterImpact: 0
+    holdFrame: -1
+    yawFix: 0
+  jumpSideScreenLeft:
+    clip: {fileID: -203655887218126122, guid: fa65469605ddee945bdbccc048da151a, type: 3}
+    impact: 0.5
+    side: 
+    reverseAfterImpact: 0
+    holdFrame: -1
+    yawFix: 0
+  jumpSideTail: 0.35
+  jackHop: 0.12
   bounceDepth: 0.009
   punchOutOuter: 0.42
   punchOutInner: 0.3
@@ -94,6 +117,13 @@ MonoBehaviour:
   punchDrop: -0.04
   punchHoldRaise: 0.48
   punchHoldPulse: 0.04
+  wideOut: 0.42
+  wideSink: 0.12
+  wideOutSquat: 0.45
+  wideSinkSquat: 0.32
+  oneLegLift: 0.42
+  oneLegForward: 0.18
+  oneLegShift: 0.06
   kickOutOuter: 0.42
   kickOutInner: 0.2
   kickForward: 0.16

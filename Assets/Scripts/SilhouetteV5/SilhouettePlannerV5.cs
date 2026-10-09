@@ -43,7 +43,7 @@ public static class SilhouettePlannerV5
         }
     }
 
-    public enum GestureKindV5 { Punch, PunchHold, Kick, KickHold, Dodge, OneLeg, Wide }
+    public enum GestureKindV5 { Punch, PunchHold, Kick, KickHold, Dodge, OneLeg, Wide, Hop }
 
     public struct GestureV5
     {
@@ -106,11 +106,76 @@ public static class SilhouettePlannerV5
         for (int i = 0; i < chart.Count; i++) order.Add(i);
         order.Sort((a, b) => chart[a].time.CompareTo(chart[b].time));
 
+        // Two Kicks at the same moment are a two-foot jump (video 13, the user's call): the partner
+        // of each such Kick, and whether an outer pair (a jumping jack) is near a given time.
+        int PartnerOf(int k)
+        {
+            var a = chart[k];
+            if (a.type != CueType.Kick) return -1;
+            for (int j = 0; j < chart.Count; j++)
+                if (j != k && chart[j].type == CueType.Kick && chart[j].lane != a.lane && Mathf.Abs(chart[j].time - a.time) < 0.03f) return j;
+            return -1;
+        }
+        bool OuterPairNear(float time)
+        {
+            for (int j = 0; j < chart.Count; j++)
+            {
+                var b = chart[j];
+                if (b.type != CueType.Kick || b.lane != 0 || Mathf.Abs(b.time - time) > 1.2f * beat || Mathf.Abs(b.time - time) < 0.03f) continue;
+                int p = PartnerOf(j);
+                if (p >= 0 && chart[p].lane == laneCount - 1) return true;
+            }
+            return false;
+        }
+        // A take on the timeline with its impact on `commit`; the stance comes back `tail` seconds
+        // after it at the latest.
+        var segList = segments;   // an out parameter cannot be captured
+        void PlayClip(SilhouetteMotionV5 motion, float commit, int note, string label, float tail)
+        {
+            float room = float.IsNegativeInfinity(busyUntil) ? 10f : Mathf.Max(0f, commit - busyUntil);
+            var seg = WindUp(motion, commit, room, set.maxSpeedUp, xfade);
+            seg.note = note;
+            seg.label = label + " " + motion.clip.name;
+            stance.Fill(segList, freeFrom, seg.start, returnFade);
+            segList.Add(seg);
+            busyUntil = commit;
+            returnFade = xfade;
+            float clipDone = seg.start + (motion.Length - seg.clipIn) / seg.speed;
+            freeFrom = Mathf.Max(commit, Mathf.Min(clipDone - xfade, commit + tail));
+        }
+        var paired = new HashSet<int>();
+
         foreach (int i in order)
         {
             var c = chart[i];
             int side = c.lane < laneCount * 0.5f ? -1 : 1;
             bool outer = c.lane == 0 || c.lane == laneCount - 1;
+            if (paired.Contains(i)) continue;
+            int mate = PartnerOf(i);
+            if (mate >= 0)
+            {
+                paired.Add(mate);
+                int lo = Mathf.Min(c.lane, chart[mate].lane), hi = Mathf.Max(c.lane, chart[mate].lane);
+                bool outerPair = lo == 0 && hi == laneCount - 1;
+                bool innerPair = lo == 1 && hi == laneCount - 2;
+                bool sidePair = hi - lo == 1 && !innerPair;
+                if (outerPair || (innerPair && (OuterPairNear(c.time) || !set.jumpForward.Valid)) || (sidePair && !(lo == 0 ? set.jumpSideScreenLeft : set.jumpSideScreenRight).Valid))
+                {
+                    // A jumping jack: hop out wide on the outer pair, hop in on the inner one.
+                    gestures.Add(new GestureV5
+                    {
+                        kind = GestureKindV5.Hop, side = outerPair ? 1 : 0, outer = outerPair,
+                        start = c.time - 0.5f * beat, impact = c.time, holdEnd = c.time + 0.1f * beat, end = c.time + 0.5f * beat, note = i,
+                    });
+                }
+                else if (innerPair) PlayClip(set.jumpForward, c.time, i, "JumpForward", 10f);
+                else
+                {
+                    var m = lo == 0 ? set.jumpSideScreenLeft : set.jumpSideScreenRight;
+                    PlayClip(m, c.time, i, "JumpSide", set.jumpSideTail);
+                }
+                continue;
+            }
             switch (c.type)
             {
                 case CueType.Kick when (side > 0 ? set.stepScreenRight : set.stepScreenLeft).Valid:

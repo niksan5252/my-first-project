@@ -71,6 +71,18 @@ public class SilhouetteMotionSetV5 : ScriptableObject
     [Min(0.05f)] public float stepStay = 0.25f;       // seconds after the landing before the stance takes over
     [Min(0.05f)] public float stepBlend = 0.4f;       // seconds of crossfade into a step and back to the stance
 
+    [Header("Two-foot jumps (video 13)")]
+    // Two Kicks together on the inner lanes: a jump forward (impact = the landing).
+    public SilhouetteMotionV5 jumpForward = new SilhouetteMotionV5();
+    // Two Kicks together on one side (0+1 / 2+3): a hop landing on that side of the screen.
+    public SilhouetteMotionV5 jumpSideScreenRight = new SilhouetteMotionV5();
+    public SilhouetteMotionV5 jumpSideScreenLeft = new SilhouetteMotionV5();
+    // A side hop lets the stance back this many seconds after its landing, at most.
+    [Min(0.1f)] public float jumpSideTail = 0.35f;
+    // Jumping jacks (outer pair 0+3 / inner pair 1+2 in turn): posed, the body hopping this high
+    // between the landings, the feet wide (wideOut) or together.
+    [Min(0f)] public float jackHop = 0.12f;
+
     [Header("Beat bounce (a light layer over the mocap)")]
     // Knees give a little on every beat, lowest ON the beat - just enough to feel the beat on top
     // of the motion capture, which is what keeps the body alive.

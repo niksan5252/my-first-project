@@ -219,6 +219,7 @@ public class SilhouetteTrainerV5 : MonoBehaviour
         if (motionSet.curb != null) foreach (var m in motionSet.curb) Add(m);
         Add(motionSet.duckDown); Add(motionSet.duckUp);
         Add(motionSet.stepScreenRight); Add(motionSet.stepScreenLeft);
+        Add(motionSet.jumpForward); Add(motionSet.jumpSideScreenRight); Add(motionSet.jumpSideScreenLeft);
 
         mixer = AnimationMixerPlayable.Create(graph, clips.Count);
         for (int i = 0; i < clips.Count; i++)
@@ -500,6 +501,7 @@ public class SilhouetteTrainerV5 : MonoBehaviour
         void One(SilhouetteMotionV5 m) { if (m != null && m.Valid && m.yawFix != 0f && inputOf.TryGetValue(m.clip, out int i)) y += weights[i] * m.yawFix; }
         if (motionSet.curb != null) foreach (var m in motionSet.curb) One(m);
         One(motionSet.duckDown); One(motionSet.duckUp); One(motionSet.stepScreenRight); One(motionSet.stepScreenLeft);
+        One(motionSet.jumpForward); One(motionSet.jumpSideScreenRight); One(motionSet.jumpSideScreenLeft);
         return y;
     }
 
@@ -572,6 +574,22 @@ public class SilhouetteTrainerV5 : MonoBehaviour
                             if (w > footW[k]) { footW[k] = w; foot[k] = f; }
                         }
                         body += new Vector3(0f, -(squat ? s.wideSinkSquat : s.wideSink) * w, 0f);
+                        tapping = Mathf.Max(tapping, w);
+                        break;
+                    }
+                    case SilhouettePlannerV5.GestureKindV5.Hop:
+                    {
+                        // A jumping jack: in the air from take-off to the landing on the note, the
+                        // feet landing wide (side 1) or together (side 0).
+                        float air = now > g.start && now < g.impact ? Mathf.Sin(Mathf.PI * (now - g.start) / Mathf.Max(0.01f, g.impact - g.start)) : 0f;
+                        float lift = air * s.jackHop;
+                        float o = g.side == 1 ? s.wideOut * w : 0f;
+                        for (int k = 0; k < 2; k++)
+                        {
+                            Vector3 f = new Vector3(k == 0 ? -o : o, lift, 0f);     // the figure's left foot out to -X (see X())
+                            if (w > footW[k]) { footW[k] = w; foot[k] = f; }
+                        }
+                        body += new Vector3(0f, lift - (g.side == 1 ? s.wideSink * 0.5f * w : 0f), 0f);
                         tapping = Mathf.Max(tapping, w);
                         break;
                     }
