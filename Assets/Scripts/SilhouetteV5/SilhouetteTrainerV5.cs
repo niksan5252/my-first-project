@@ -552,6 +552,16 @@ public class SilhouetteTrainerV5 : MonoBehaviour
                     case SilhouettePlannerV5.GestureKindV5.Kick:
                     case SilhouettePlannerV5.GestureKindV5.KickHold:
                     {
+                        if (g.kind == SilhouettePlannerV5.GestureKindV5.Kick && !g.outer)
+                        {
+                            // An inner lane (the user's call): the knee simply comes up and the foot
+                            // goes down on the note, in place - no reach out to the side and back.
+                            float up = now < g.impact ? s.kickLift * 1.2f * 4f * w * (1f - w) : 0f;
+                            Vector3 march = new Vector3(0f, up, up * 0.35f);
+                            if (w > footW[limb]) { footW[limb] = w; foot[limb] = march; }
+                            tapping = Mathf.Max(tapping, w);
+                            break;
+                        }
                         float out_ = g.outer ? s.kickOutOuter : s.kickOutInner;
                         // Lifted on the way there and back, flat on the tile at the note. Only
                         // this foot moves; the other stays pinned where the stance put it.
@@ -584,7 +594,7 @@ public class SilhouetteTrainerV5 : MonoBehaviour
                         float air = now > g.start && now < g.impact ? Mathf.Sin(Mathf.PI * (now - g.start) / Mathf.Max(0.01f, g.impact - g.start)) : 0f;
                         // ...and the knees give on the landing, so it reads as a jump, not a twitch.
                         float land = now >= g.impact && now < g.end ? Mathf.Sin(Mathf.PI * (now - g.impact) / Mathf.Max(0.01f, g.end - g.impact)) : 0f;
-                        float lift = air * s.jackHop - land * 0.07f;
+                        float lift = air * s.jackHop - land * 0.12f;
                         float o = g.side == 1 ? s.wideOut * w : 0f;
                         for (int k = 0; k < 2; k++)
                         {
@@ -602,11 +612,11 @@ public class SilhouetteTrainerV5 : MonoBehaviour
                         float air = now > g.start && now < g.impact ? Mathf.Sin(Mathf.PI * (now - g.start) / Mathf.Max(0.01f, g.impact - g.start)) : 0f;
                         float land = now >= g.impact && now < g.end ? Mathf.Sin(Mathf.PI * (now - g.impact) / Mathf.Max(0.01f, g.end - g.impact)) : 0f;
                         float hop = air * s.jackHop;
-                        Vector3 up = new Vector3(0f, s.oneLegLift * 0.8f * w + hop, s.oneLegForward * w);
+                        Vector3 up = new Vector3(0f, s.oneLegLift * 1.3f * w + hop, s.oneLegForward * 1.6f * w);   // the knee well up (the user's call)
                         if (w > footW[limb]) { footW[limb] = w; foot[limb] = up; }
                         int other = 1 - limb;
                         if (w > footW[other]) { footW[other] = w; foot[other] = new Vector3(0f, hop, 0f); }
-                        body += new Vector3(-x * s.oneLegShift * w, hop - land * 0.07f, 0f);
+                        body += new Vector3(-x * s.oneLegShift * w, hop - land * 0.12f, 0f);
                         tapping = Mathf.Max(tapping, w);
                         break;
                     }
