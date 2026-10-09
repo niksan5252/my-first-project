@@ -169,16 +169,14 @@ public static class SilhouettePlannerV5
                     // Rails over the outer lanes: just stand (video 12, the user's call).
                     break;
                 case CueType.CurbSplit:
-                case CueType.SquatHold:
                 {
-                    // Feet very wide apart (the kerbs on both sides / the lasers along the floor),
-                    // held, the body sinking into a wide stance; SquatHold sinks deeper (video 12).
-                    float a, b, r, e;
-                    if (c.type == CueType.SquatHold) { a = c.time - 0.8f * beat; b = c.time; r = c.time + Mathf.Max(c.duration, beat); e = r + 0.6f * beat; }
-                    else { obstacleTiming(c, out a, out b, out r, out e, out _); a = Mathf.Min(a, b - 0.6f * beat); e += 0.3f * beat; }
+                    // Feet very wide apart (the kerbs on both sides), held, the body sinking into
+                    // a wide stance (video 12).
+                    obstacleTiming(c, out float a, out float b, out float r, out float e, out _);
+                    a = Mathf.Min(a, b - 0.6f * beat); e += 0.3f * beat;
                     gestures.Add(new GestureV5
                     {
-                        kind = GestureKindV5.Wide, side = c.type == CueType.SquatHold ? 2 : 1, outer = true,
+                        kind = GestureKindV5.Wide, side = 1, outer = true,
                         start = a, impact = b, holdEnd = r, end = e, note = i,
                     });
                     break;
@@ -195,10 +193,17 @@ public static class SilhouettePlannerV5
                     });
                     break;
                 }
-                default:   // Curb (and the retired Jump, read as Curb) and Duck: clips
+                default:   // Curb (and the retired Jump, read as Curb), Duck and SquatHold: clips
                 {
-                    obstacleTiming(c, out _, out float commit, out float release, out float settled, out _);
-                    bool duck = c.type == CueType.Duck;
+                    float commit, release, settled;
+                    if (c.type == CueType.SquatHold)
+                    {
+                        // The held squat is the duck held (the user's call): down on the note,
+                        // stay down for the whole hold, up at its end.
+                        commit = c.time; release = c.time + Mathf.Max(c.duration, beat); settled = release + 0.6f * beat;
+                    }
+                    else obstacleTiming(c, out _, out commit, out release, out settled, out _);
+                    bool duck = c.type == CueType.Duck || c.type == CueType.SquatHold;
                     var motion = duck ? (set.duckDown.Valid ? set.duckDown : null) : Pick(set.curb, ref lastCurb, rng);
                     if (motion == null) break;
                     float room = float.IsNegativeInfinity(busyUntil) ? 10f : Mathf.Max(0f, commit - busyUntil);
