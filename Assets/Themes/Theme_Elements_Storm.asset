@@ -1,0 +1,43 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 94c0c3a29fbf85f4a89ff12e7504245b, type: 3}
+  m_Name: Theme_Elements_Storm
+  m_EditorClassIdentifier: Assembly-CSharp::TunnelTheme
+  primaryColor: {r: 0.45, g: 0.6, b: 1, a: 1}
+  secondaryColor: {r: 0.8, g: 0.3, b: 1, a: 1}
+  accentEmissionIntensity: 1.35
+  cueColorsByHand: 1
+  leftHandColor: {r: 0, g: 0.9, b: 1, a: 1}
+  rightHandColor: {r: 1, g: 0.1, b: 0.72, a: 1}
+  ringArchPrefab: {fileID: 6150854898782858257, guid: 0e8bc3715cdaa4a45860b8e92896fa6d, type: 3}
+  floorMaterialOverride: {fileID: 0}
+  floorColor: {r: 0.03, g: 0.03, b: 0.06, a: 1}
+  floorMetallic: 0.15
+  floorSmoothness: 0.7
+  floorGridLineColor: {r: 0.5, g: 0.6, b: 1, a: 1}
+  floorGridGlintIntensity: 0.45
+  laneLineColor: {r: 0.85, g: 0.4, b: 1, a: 1}
+  laneLineEmissionIntensity: 0.7
+  fogColor: {r: 0.06, g: 0.06, b: 0.13, a: 1}
+  fogStartRatio: 0.45
+  fogEndRatio: 1
+  ambientOverride: {r: 0.124, g: 0.124, b: 0.232, a: 1}
+  lightIntensity: 0.4
+  lightColor: {r: 0.75, g: 0.8, b: 1, a: 1}
+  skyboxMaterial: {fileID: 0}
+  cameraBackgroundColor: {r: 0.06, g: 0.06, b: 0.13, a: 1}
+  environmentPrefab: {fileID: 8628092380068416097, guid: 55ea9cfaef0f58049b3a079cd745a402, type: 3}
+  gatePrefab: {fileID: 0}
+  airParticles: {fileID: 11400000, guid: ac7bc643f59cc7547af8c4125a0acd4c, type: 2}
+  postProcessingProfile: {fileID: 11400000, guid: 30103cfd9562d614a9071dfaeb123b71, type: 2}
+  hudComboTextColor: {r: 0.45, g: 0.6, b: 1, a: 1}
+  hudBannerBorderColor: {r: 0.8, g: 0.3, b: 1, a: 1}

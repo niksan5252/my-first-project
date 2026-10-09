@@ -1521,6 +1521,100 @@ CHARACTER_PLANS.update({
     },
 })
 
+CHARACTER_PLANS.update({
+    # Video 13 ("Five Elements"): the user's call - "from level 1 something interesting, not just
+    # arms: walls, jumps, dodges, squats, legs and arms, all combined". Every phrase mixes an
+    # obstacle (wall, kerb, duck, dodge, squat, balance) with a leg set and an arm set, and the very
+    # first phrase of each level is a showpiece. Five plans, no phrase shared, so the levels differ
+    # by their combinations; the density climbs from 1 to 5.
+    "mix-1": {
+        "normal": [
+            [(WALL_RUN, 2), (JAB_KICK, 2), (CURB, 2), (LEG_HOLD_PUNCH, 2)],
+            [(SIDE_JUMP, 2), (DUCK, 2), (HIGH_LOW, 2), (SQUAT, 2)],
+            [(STEP_REACH, 2), (DODGE, 2), (JACK, 2, ), (CURB, 2)],
+            [(PUNCH_KICK, 2), (BALANCE, 2), (FAN, 2), (DUCK, 2)],
+            [(SHIFT, 2), (DODGE, 2, "R"), (HOLD_JAB, 2), (WALL_RUN, 2)],
+            [(LUNGE, 2), (LUNGE, 2, "R"), (POWER_JUMP, 2), (DUCK, 2)],
+        ],
+        "drop": [[(CROSS, 1), (POWER_JUMP, 2), (CURB, 2), (JAB_KICK, 2), (SIDE_JUMP, 1)],
+                 [(CROSS, 1), (JACK, 2), (DUCK, 2), (MIRROR, 2), (SHIFT, 1)]],
+        "calm": [[(SQUAT, 4), (STEP_REACH, 2), (CURB, 2)],
+                 [(BALANCE, 2), (ARC_PUNCH, 2), (DODGE, 2), ("KickHold", 2)]],
+        "fill": PUNCH_KICK, "drop_bars": 8, "lead_in": False, "calm_first": True,
+        "limits": {ARC: 1}, "finale": CROSS,
+        "arcs": [(360.0, 4, 0.75)],
+    },
+    "mix-2": {
+        "normal": [
+            [(CURB, 2), (SPEED_STEP, 2), (WALL_RUN, 2), (PUNCH_PAIR, 2)],
+            [(JACK, 2), (SQUAT, 2), (MIRROR, 2), (DODGE, 2)],
+            [(LEG_HOLD_PUNCH, 2, "R"), (DUCK, 2), (SIDE_JUMP, 2, "R"), (CURB, 2)],
+            [(RAILS_HIGH, 2), (POWER_JUMP, 2), (BALANCE, 2), (JAB_KICK, 2, "R")],
+            [(WIDE, 2), (DODGE, 2, "R"), (SPEED_PUNCH, 2), (DUCK, 2)],
+            [(CHORD, 2), (WALL_RUN, 2), (STEP_TAP, 2), (CURB, 2)],
+        ],
+        "drop": [[(CROSS, 1), (SIDE_JUMP, 2), (DUCK, 2), (PUNCH_KICK, 2), (JACK, 1)],
+                 [(CROSS, 1), (CURB, 2), (FAN, 2), (DODGE, 2), (POWER_JUMP, 1)]],
+        "calm": [[(LUNGE, 2), (LUNGE, 2, "R"), (SQUAT, 4)],
+                 [(PRESS_HOLD, 2), (BALANCE, 2), ("PunchHold", 2), (CURB, 2)]],
+        "fill": KICK, "drop_bars": 8, "lead_in": False, "calm_first": True,
+        "limits": {ARC: 1}, "finale": CROSS,
+        "arcs": [(360.0, 4, 0.75)],
+    },
+    "mix-3": {
+        "normal": [
+            [(DUCK, 2), (POWER_JUMP, 2), (DODGE, 2), (HOLD_JAB, 2, "R")],
+            [(SHIFT, 2, "R"), (CURB, 2), (LEG_HOLD_PUNCH, 2), (WALL_RUN, 2)],
+            [(JAB_KICK, 2), (SQUAT, 2), (SPEED_STEP, 2), (DUCK, 2)],
+            [(SIDE_JUMP, 2), (BALANCE, 2), (HIGH_LOW, 2, "R"), (CURB, 2)],
+            [(PUNCH_KICK, 2, "R"), (DODGE, 2), (JACK, 2), (SQUAT, 2)],
+            [(STEP_REACH, 2, "R"), (WALL_RUN, 2), (CHORD, 2), (DUCK, 2)],
+        ],
+        "drop": [[(CROSS, 1), (SPEED_STEP, 2), (CURB, 2), (SPEED_PUNCH, 2), (POWER_JUMP, 1)],
+                 [(CROSS, 1), (SHIFT, 2), (DUCK, 2), (LEG_HOLD_PUNCH, 2, "R"), (JACK, 1)]],
+        "calm": [[(SQUAT, 4), (ARC, 2), (DODGE, 2)],
+                 [(RAILS_HIGH, 2), ("KickHold", 2), (BALANCE, 2), (PRESS_HOLD, 2)]],
+        "fill": HIGH_LOW, "drop_bars": 8, "lead_in": False, "calm_first": True,
+        "limits": {ARC: 2}, "finale": CROSS,
+        "arcs": [(450.0, 6, 0.8)],
+    },
+    "mix-4": {
+        "normal": [
+            [(WALL_RUN, 2), (SIDE_JUMP, 2), (DUCK, 2), (SPEED_PUNCH, 2)],
+            [(CURB, 2), (MIRROR, 2), (SQUAT, 2), (JACK, 2)],
+            [(DODGE, 2), (PUNCH_KICK, 2), (BALANCE, 2), (POWER_JUMP, 2)],
+            [(LUNGE, 2, "R"), (LUNGE, 2), (CURB, 2), (FAN, 2)],
+            [(SPEED_STEP, 2), (DUCK, 2), (HOLD_JAB, 2), (DODGE, 2, "R")],
+            [(CHORD, 2), (SQUAT, 2), (JAB_KICK, 2), (WALL_RUN, 2)],
+        ],
+        "drop": [[(CROSS, 1), (JACK, 2), (CURB, 2), (SPEED_PUNCH, 2), (SIDE_JUMP, 1)],
+                 [(CROSS, 1), (POWER_JUMP, 2), (DODGE, 2), (PUNCH_KICK, 2), (SHIFT, 1)]],
+        "calm": [[(WIDE, 2), (PRESS_HOLD, 2), (SQUAT, 4)],
+                 [(ARC_PUNCH, 2), (CURB, 2), ("PunchHold", 2), (BALANCE, 2)]],
+        "fill": PUNCH_KICK, "drop_bars": 8, "lead_in": False, "calm_first": True,
+        "limits": {ARC: 1}, "finale": CROSS,
+        "arcs": [(540.0, 8, 0.85)],
+    },
+    "mix-5": {
+        "normal": [
+            [(POWER_JUMP, 2), (WALL_RUN, 2), (SPEED_STEP, 2), (CURB, 2)],
+            [(JAB_KICK, 1), (JAB_KICK, 1, "R"), (DUCK, 2), (JACK, 2), (SQUAT, 2)],
+            [(SPEED_PUNCH, 2), (BALANCE, 2), (SIDE_JUMP, 2), (DODGE, 2)],
+            [(LEG_HOLD_PUNCH, 2), (CURB, 2), (SHIFT, 2), (DUCK, 2)],
+            [(PUNCH_KICK, 2), (DODGE, 2, "R"), (CHORD, 2), (WALL_RUN, 2)],
+            [(HOLD_JAB, 2), (SQUAT, 2), (POWER_JUMP, 2), (CURB, 2)],
+        ],
+        "drop": [[(CROSS, 1), (SPEED_STEP, 2), (DUCK, 2), (SPEED_PUNCH, 2), (JACK, 1)],
+                 [(CROSS, 1), (SIDE_JUMP, 2), (CURB, 2), (PUNCH_KICK, 2), (POWER_JUMP, 1)],
+                 [(CROSS, 1), (SHIFT, 2), (WALL_RUN, 2), (FAN, 2), (CHORD, 1)]],
+        "calm": [[(SQUAT, 4), (LUNGE, 2), (LUNGE, 2, "R")],
+                 [(RAILS_HIGH, 2), (BALANCE, 2), (ARC, 2), (CURB, 2)]],
+        "fill": PUNCH_KICK, "drop_bars": 8, "lead_in": False, "calm_first": True,
+        "limits": {ARC: 1}, "finale": CROSS,
+        "arcs": [(720.0, 8, 0.85)],
+    },
+})
+
 # ArcHold circles for a plan without its own `arcs`: (degrees, beats, radius m).
 ARC_SHAPES = [(360.0, 6, 0.75), (270.0, 4, 0.7), (450.0, 6, 0.8), (540.0, 8, 0.85)]
 # An ArcHold is never shorter than this many beats; an Arc set too short for it gets punches.
