@@ -535,11 +535,13 @@ public class SilhouetteTrainerV5 : MonoBehaviour
                     case SilhouettePlannerV5.GestureKindV5.Punch:
                     case SilhouettePlannerV5.GestureKindV5.PunchHold:
                     {
-                        bool high = g.kind == SilhouettePlannerV5.GestureKindV5.PunchHold;
-                        Vector3 t = high
+                        bool holdHigh = g.kind == SilhouettePlannerV5.GestureKindV5.PunchHold;
+                        bool high = holdHigh || g.high;
+                        Vector3 t = holdHigh
                             ? shoulder + new Vector3(x * s.punchOutInner, s.punchHoldRaise, s.punchForward * 0.35f)
+                            : g.high ? shoulder + new Vector3(x * (g.outer ? s.punchOutOuter : s.punchOutInner) * 0.8f, s.punchHoldRaise * 0.9f, s.punchForward)
                             : shoulder + new Vector3(x * (g.outer ? s.punchOutOuter : s.punchOutInner), -s.punchDrop, s.punchForward);
-                        if (high && now >= g.impact && now <= g.holdEnd)
+                        if (holdHigh && now >= g.impact && now <= g.holdEnd)
                             t.y += s.punchHoldPulse * (0.5f + 0.5f * Mathf.Cos(beats * 2f * Mathf.PI));
                         Vector3 elbow = shoulder + new Vector3(x * (high ? 0.3f : 0.22f), high ? 0.05f : -0.3f, -0.12f);
                         Take(ref hand[limb], w, t, elbow);

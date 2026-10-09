@@ -50,6 +50,7 @@ public static class SilhouettePlannerV5
         public GestureKindV5 kind;
         public int side;         // -1 screen left, +1 screen right
         public bool outer;       // an outer lane: the wider reach / the wide stance
+        public bool high;        // a punch at overhead height (PunchHigh)
         public float start;      // weight starts rising
         public float impact;     // weight is 1: the touch, the reach, the camera fully committed
         public float holdEnd;    // weight leaves 1
@@ -134,6 +135,24 @@ public static class SilhouettePlannerV5
                     freeFrom = c.time + set.stepStay;
                     break;
                 }
+                case CueType.PunchHigh:
+                    // An overhead punch: the punch reaching up (it fell through to the kerb jump before).
+                    gestures.Add(new GestureV5
+                    {
+                        kind = GestureKindV5.Punch, side = side, outer = outer, high = true,
+                        start = c.time - rise, impact = c.time, holdEnd = c.time, end = c.time + fall, note = i,
+                    });
+                    break;
+                case CueType.ArcHold:
+                case CueType.PunchSweep:
+                    // A circle / a sweep with the fist: the arm held out for its length (these fell
+                    // through to the kerb jump before).
+                    gestures.Add(new GestureV5
+                    {
+                        kind = GestureKindV5.PunchHold, side = side, outer = outer,
+                        start = c.time - rise, impact = c.time, holdEnd = c.time + Mathf.Max(c.duration, beat), end = c.time + Mathf.Max(c.duration, beat) + fall, note = i,
+                    });
+                    break;
                 case CueType.Punch:
                 case CueType.Kick:
                 case CueType.PunchHold:
