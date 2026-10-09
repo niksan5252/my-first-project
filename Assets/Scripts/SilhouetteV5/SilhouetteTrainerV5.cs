@@ -595,6 +595,21 @@ public class SilhouetteTrainerV5 : MonoBehaviour
                         tapping = Mathf.Max(tapping, w);
                         break;
                     }
+                    case SilhouettePlannerV5.GestureKindV5.HopOne:
+                    {
+                        // A hop on one foot: this knee up, the body (and the standing foot) in the
+                        // air before the note, landing on the other foot with the knees giving.
+                        float air = now > g.start && now < g.impact ? Mathf.Sin(Mathf.PI * (now - g.start) / Mathf.Max(0.01f, g.impact - g.start)) : 0f;
+                        float land = now >= g.impact && now < g.end ? Mathf.Sin(Mathf.PI * (now - g.impact) / Mathf.Max(0.01f, g.end - g.impact)) : 0f;
+                        float hop = air * s.jackHop;
+                        Vector3 up = new Vector3(0f, s.oneLegLift * 0.8f * w + hop, s.oneLegForward * w);
+                        if (w > footW[limb]) { footW[limb] = w; foot[limb] = up; }
+                        int other = 1 - limb;
+                        if (w > footW[other]) { footW[other] = w; foot[other] = new Vector3(0f, hop, 0f); }
+                        body += new Vector3(-x * s.oneLegShift * w, hop - land * 0.07f, 0f);
+                        tapping = Mathf.Max(tapping, w);
+                        break;
+                    }
                     case SilhouettePlannerV5.GestureKindV5.OneLeg:
                     {
                         // This knee up and held, the other leg standing; the body leans a touch

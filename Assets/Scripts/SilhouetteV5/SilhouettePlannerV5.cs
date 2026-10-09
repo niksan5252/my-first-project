@@ -43,7 +43,7 @@ public static class SilhouettePlannerV5
         }
     }
 
-    public enum GestureKindV5 { Punch, PunchHold, Kick, KickHold, Dodge, OneLeg, Wide, Hop }
+    public enum GestureKindV5 { Punch, PunchHold, Kick, KickHold, Dodge, OneLeg, Wide, Hop, HopOne }
 
     public struct GestureV5
     {
@@ -140,6 +140,19 @@ public static class SilhouettePlannerV5
             }
             return false;
         }
+        // A single Kick within 0.6 s of a two-foot pair (or the other way round): the step-pair
+        // rhythm - hop on both feet, hop on one, both again (the user's call).
+        bool KickNear(float time, int a, int b, bool wantPair)
+        {
+            for (int j = 0; j < chart.Count; j++)
+            {
+                if (j == a || j == b || chart[j].type != CueType.Kick) continue;
+                float d = Mathf.Abs(chart[j].time - time);
+                if (d < 0.03f || d > 0.6f) continue;
+                if ((PartnerOf(j) >= 0) == wantPair) return true;
+            }
+            return false;
+        }
         // A take on the timeline with its impact on `commit`; the stance comes back `tail` seconds
         // after it at the latest.
         var segList = segments;   // an out parameter cannot be captured
@@ -165,6 +178,16 @@ public static class SilhouettePlannerV5
             bool outer = c.lane == 0 || c.lane == laneCount - 1;
             if (paired.Contains(i)) continue;
             int mate = PartnerOf(i);
+            if (mate < 0 && c.type == CueType.Kick && KickNear(c.time, i, -1, true))
+            {
+                // Hop on the foot of this tile's side, the other knee up.
+                gestures.Add(new GestureV5
+                {
+                    kind = GestureKindV5.HopOne, side = -side, outer = outer,
+                    start = c.time - 0.45f * beat, impact = c.time, holdEnd = c.time + 0.1f * beat, end = c.time + 0.45f * beat, note = i,
+                });
+                continue;
+            }
             if (mate >= 0)
             {
                 paired.Add(mate);
@@ -172,7 +195,7 @@ public static class SilhouettePlannerV5
                 bool outerPair = lo == 0 && hi == laneCount - 1;
                 bool innerPair = lo == 1 && hi == laneCount - 2;
                 bool sidePair = hi - lo == 1 && !innerPair;
-                if (outerPair || (innerPair && (OuterPairNear(c.time) || InnerPairNear(c.time, i, mate) || !set.jumpForward.Valid)) || (sidePair && !(lo == 0 ? set.jumpSideScreenLeft : set.jumpSideScreenRight).Valid))
+                if (outerPair || (innerPair && (OuterPairNear(c.time) || InnerPairNear(c.time, i, mate) || KickNear(c.time, i, mate, false) || !set.jumpForward.Valid)) || (sidePair && !(lo == 0 ? set.jumpSideScreenLeft : set.jumpSideScreenRight).Valid))
                 {
                     // A jumping jack: hop out wide on the outer pair, hop in on the inner one.
                     gestures.Add(new GestureV5
