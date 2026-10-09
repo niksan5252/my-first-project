@@ -534,6 +534,20 @@ public class SilhouetteTrainerV5 : MonoBehaviour
 
                 switch (g.kind)
                 {
+                    case SilhouettePlannerV5.GestureKindV5.Arc:
+                    {
+                        // The fist rides the cube's circle: at its top on the note, then round it
+                        // with the cube (CueSpawner.RebuildArc: angle = 90 - sweep * progress, in
+                        // screen space), drawn in front of the shoulder, scaled to the arm.
+                        float p = Mathf.Clamp01((now - g.impact) / Mathf.Max(0.01f, g.holdEnd - g.impact));
+                        float a = (90f - g.arcSweep * p) * Mathf.Deg2Rad;
+                        float rr = 0.34f * g.arcRadius / 0.75f;
+                        Vector3 centre = shoulder + new Vector3(x * 0.36f, 0.08f, s.punchForward + 0.12f);   // out from the head
+                        Vector3 t = centre + new Vector3(X(1) * Mathf.Cos(a) * rr, Mathf.Sin(a) * rr, 0f);
+                        Vector3 elbow = shoulder + new Vector3(x * 0.32f, -0.05f, -0.12f);
+                        Take(ref hand[limb], w, t, elbow);
+                        break;
+                    }
                     case SilhouettePlannerV5.GestureKindV5.Punch:
                     case SilhouettePlannerV5.GestureKindV5.PunchHold:
                     {

@@ -43,7 +43,7 @@ public static class SilhouettePlannerV5
         }
     }
 
-    public enum GestureKindV5 { Punch, PunchHold, Kick, KickHold, Dodge, OneLeg, Wide, Hop, HopOne }
+    public enum GestureKindV5 { Punch, PunchHold, Kick, KickHold, Dodge, OneLeg, Wide, Hop, HopOne, Arc }
 
     public struct GestureV5
     {
@@ -51,6 +51,8 @@ public static class SilhouettePlannerV5
         public int side;         // -1 screen left, +1 screen right
         public bool outer;       // an outer lane: the wider reach / the wide stance
         public bool high;        // a punch at overhead height (PunchHigh)
+        public float arcSweep;   // Arc: degrees the fist travels from the top (sign = direction, as CueSpawner)
+        public float arcRadius;  // Arc: the cube's circle radius, metres in the tunnel
         public float start;      // weight starts rising
         public float impact;     // weight is 1: the touch, the reach, the camera fully committed
         public float holdEnd;    // weight leaves 1
@@ -245,6 +247,15 @@ public static class SilhouettePlannerV5
                     });
                     break;
                 case CueType.ArcHold:
+                    // The fist goes round the cube's circle: up to its top before the note, then
+                    // round with the cube for the hold (the user's call).
+                    gestures.Add(new GestureV5
+                    {
+                        kind = GestureKindV5.Arc, side = side, outer = outer,
+                        arcSweep = Mathf.Abs(c.arc) < 1f ? 180f * side : c.arc, arcRadius = c.radius > 0.01f ? c.radius : 0.75f,
+                        start = c.time - rise, impact = c.time, holdEnd = c.time + Mathf.Max(c.duration, beat), end = c.time + Mathf.Max(c.duration, beat) + fall, note = i,
+                    });
+                    break;
                 case CueType.PunchSweep:
                     // A circle / a sweep with the fist: the arm held out for its length (these fell
                     // through to the kerb jump before).
