@@ -112,7 +112,8 @@ public static class Video13Setup
         p.trainerMocap3D = false;
         p.trainerClassic = false;
         p.trainerV5 = true;
-        p.hideTrainer = true;                 // the user's final call: video 12 goes out without a trainer
+        p.hideTrainer = false;                // video 13 goes out with the trained V5 trainer (the user's call)
+        Video12Setup.EnsureTrainerV5();
         p.trainerTextured = false;
         p.trainerPanelInThemeColors = false;
         p.retention = true;
