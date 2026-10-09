@@ -582,11 +582,13 @@ public class SilhouetteTrainerV5 : MonoBehaviour
                         // A jumping jack: in the air from take-off to the landing on the note, the
                         // feet landing wide (side 1) or together (side 0).
                         float air = now > g.start && now < g.impact ? Mathf.Sin(Mathf.PI * (now - g.start) / Mathf.Max(0.01f, g.impact - g.start)) : 0f;
-                        float lift = air * s.jackHop;
+                        // ...and the knees give on the landing, so it reads as a jump, not a twitch.
+                        float land = now >= g.impact && now < g.end ? Mathf.Sin(Mathf.PI * (now - g.impact) / Mathf.Max(0.01f, g.end - g.impact)) : 0f;
+                        float lift = air * s.jackHop - land * 0.07f;
                         float o = g.side == 1 ? s.wideOut * w : 0f;
                         for (int k = 0; k < 2; k++)
                         {
-                            Vector3 f = new Vector3(k == 0 ? -o : o, lift, 0f);     // the figure's left foot out to -X (see X())
+                            Vector3 f = new Vector3(k == 0 ? -o : o, air * s.jackHop, 0f);     // the figure's left foot out to -X (see X())
                             if (w > footW[k]) { footW[k] = w; foot[k] = f; }
                         }
                         body += new Vector3(0f, lift - (g.side == 1 ? s.wideSink * 0.5f * w : 0f), 0f);

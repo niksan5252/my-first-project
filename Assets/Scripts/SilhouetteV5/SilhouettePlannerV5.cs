@@ -127,6 +127,19 @@ public static class SilhouettePlannerV5
             }
             return false;
         }
+        // Another inner pair less than 0.8 s away: too quick for the jump take, small hops instead.
+        bool InnerPairNear(float time, int a, int b)
+        {
+            for (int j = 0; j < chart.Count; j++)
+            {
+                if (j == a || j == b || chart[j].type != CueType.Kick || chart[j].lane != 1) continue;
+                float d = Mathf.Abs(chart[j].time - time);
+                if (d < 0.03f || d > 0.8f) continue;
+                int p = PartnerOf(j);
+                if (p >= 0 && chart[p].lane == laneCount - 2) return true;
+            }
+            return false;
+        }
         // A take on the timeline with its impact on `commit`; the stance comes back `tail` seconds
         // after it at the latest.
         var segList = segments;   // an out parameter cannot be captured
@@ -159,7 +172,7 @@ public static class SilhouettePlannerV5
                 bool outerPair = lo == 0 && hi == laneCount - 1;
                 bool innerPair = lo == 1 && hi == laneCount - 2;
                 bool sidePair = hi - lo == 1 && !innerPair;
-                if (outerPair || (innerPair && (OuterPairNear(c.time) || !set.jumpForward.Valid)) || (sidePair && !(lo == 0 ? set.jumpSideScreenLeft : set.jumpSideScreenRight).Valid))
+                if (outerPair || (innerPair && (OuterPairNear(c.time) || InnerPairNear(c.time, i, mate) || !set.jumpForward.Valid)) || (sidePair && !(lo == 0 ? set.jumpSideScreenLeft : set.jumpSideScreenRight).Valid))
                 {
                     // A jumping jack: hop out wide on the outer pair, hop in on the inner one.
                     gestures.Add(new GestureV5
