@@ -104,6 +104,7 @@ public class SilhouetteTrainerV5 : MonoBehaviour
     private Transform lHandBone, rHandBone, lFootBone, rFootBone;
 
     private List<SilhouettePlannerV5.SegmentV5> plan;
+    private float bodyRestY;
     private List<SilhouettePlannerV5.GestureV5> gestures;
     private float beatAnchor, secondsPerBeat = 0.5f;
     private int cursor;
@@ -404,6 +405,7 @@ public class SilhouetteTrainerV5 : MonoBehaviour
         if (!a.isHuman) { measured = true; return; }
         lShoulder = stage.transform.InverseTransformPoint(a.GetBoneTransform(HumanBodyBones.LeftUpperArm).position);
         rShoulder = stage.transform.InverseTransformPoint(a.GetBoneTransform(HumanBodyBones.RightUpperArm).position);
+        bodyRestY = a.bodyPosition.y;
         lFootRest = stage.transform.InverseTransformPoint(lFootBone.position);
         rFootRest = stage.transform.InverseTransformPoint(rFootBone.position);
         if (autoFrame) FrameToFigure();
@@ -508,7 +510,7 @@ public class SilhouetteTrainerV5 : MonoBehaviour
     private SilhouettePoseJobV5 Pose(float now, float stance)
     {
         var s = motionSet;
-        var job = new SilhouettePoseJobV5 { forward = stage.transform.forward, pin = stance };
+        var job = new SilhouettePoseJobV5 { forward = stage.transform.forward, pin = stance, bodyRestY = bodyRestY };
 
         // The mocap stance is what keeps the body alive; on top of it the knees only give a little
         // on every beat (lowest ON the beat), so the beat is felt without a mechanical rhythm.
@@ -526,7 +528,9 @@ public class SilhouetteTrainerV5 : MonoBehaviour
             {
                 // A gesture only shapes the stance: while a jump or a crouch owns the body the
                 // gesture gives way, or the tail of a wall's lean would twist the jump.
-                float w = g.Weight(now) * stance;
+                // The arms are free though: a punch or a circle goes on over a jump (PowerJump).
+                bool arms = g.kind == SilhouettePlannerV5.GestureKindV5.Punch || g.kind == SilhouettePlannerV5.GestureKindV5.PunchHold || g.kind == SilhouettePlannerV5.GestureKindV5.Arc;
+                float w = g.Weight(now) * (arms ? 1f : stance);
                 if (w <= 0f) continue;
                 int limb = g.side > 0 ? 0 : 1;           // the screen's right is the figure's left
                 float x = X(g.side);

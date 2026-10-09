@@ -23,6 +23,7 @@ public struct SilhouettePoseJobV5 : IAnimationJob
     public Vector3 lHand, rHand, lElbow, rElbow;
     public Vector3 lFootOffset, rFootOffset;
     public float pin;             // 0 while a clip (jump, crouch) owns the legs, 1 otherwise
+    public float bodyRestY;       // the body's height standing (world): hand targets ride up and down with it
 
     public void ProcessRootMotion(AnimationStream stream) { }
 
@@ -35,6 +36,8 @@ public struct SilhouettePoseJobV5 : IAnimationJob
         Quaternion lfr = h.GetGoalRotation(AvatarIKGoal.LeftFoot), rfr = h.GetGoalRotation(AvatarIKGoal.RightFoot);
         Vector3 lh = h.GetGoalPosition(AvatarIKGoal.LeftHand), rh = h.GetGoalPosition(AvatarIKGoal.RightHand);
 
+        // A jump take lifts the body: the hands' targets (posed for standing) go up with it.
+        Vector3 rise = bodyRestY != 0f ? new Vector3(0f, h.bodyPosition.y - bodyRestY, 0f) : Vector3.zero;
         h.bodyPosition += bodyOffset;
         if (leanDegrees != 0f || turnDegrees != 0f)
             h.bodyRotation = Quaternion.AngleAxis(leanDegrees, forward) * Quaternion.AngleAxis(turnDegrees, Vector3.up) * h.bodyRotation;
@@ -42,8 +45,8 @@ public struct SilhouettePoseJobV5 : IAnimationJob
         // A stepping foot is always driven, even while a clip owns the legs.
         Foot(ref h, AvatarIKGoal.LeftFoot, lf + lFootOffset, lfr, lFootOffset.sqrMagnitude > 1e-8f ? 1f : pin);
         Foot(ref h, AvatarIKGoal.RightFoot, rf + rFootOffset, rfr, rFootOffset.sqrMagnitude > 1e-8f ? 1f : pin);
-        Hand(ref h, AvatarIKGoal.LeftHand, AvatarIKHint.LeftElbow, lh + bodyOffset, lHand, lElbow, lHandW);
-        Hand(ref h, AvatarIKGoal.RightHand, AvatarIKHint.RightElbow, rh + bodyOffset, rHand, rElbow, rHandW);
+        Hand(ref h, AvatarIKGoal.LeftHand, AvatarIKHint.LeftElbow, lh + bodyOffset, lHand + rise, lElbow + rise, lHandW);
+        Hand(ref h, AvatarIKGoal.RightHand, AvatarIKHint.RightElbow, rh + bodyOffset, rHand + rise, rElbow + rise, rHandW);
         h.SolveIK();
     }
 
