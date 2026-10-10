@@ -1615,6 +1615,118 @@ CHARACTER_PLANS.update({
     },
 })
 
+CHARACTER_PLANS.update({
+    # Video 14 - "the best workout of your life": a coach's routine per level. Every phrase is a
+    # little story - an opener, an obstacle, a power move, a finisher - and both sides work
+    # ("R"). Holds always carry work on top, a jump is followed by something for the arms, and the
+    # sets after an obstacle are filled (--fill-obstacles), so there is no standing about.
+    # 1 Steampunk (117 BPM) - power: heavy combos, holds, big jumps.
+    "pro-1": {
+        "normal": [
+            [(JAB_KICK, 2), (CURB, 2), (HOLD_JAB, 2), (SIDE_JUMP, 2)],
+            [(STEP_REACH, 2), (DUCK, 2), (PUNCH_KICK, 2), (JACK, 2)],
+            [(LEG_HOLD_PUNCH, 2), (DODGE, 2), (MIRROR, 2), (POWER_JUMP, 2)],
+            [(SHIFT, 2), (SQUAT, 2), (FAN, 2), (CURB, 2)],
+            [(LUNGE, 2), (LUNGE, 2, "R"), (SPEED_PUNCH, 2), (DUCK, 2)],
+            [(CHORD, 2), (WALL_RUN, 2), (HIGH_LOW, 2), (STEP_PAIR, 2)],
+            [(JAB_KICK, 2, "R"), (BALANCE, 2), (PRESS_HOLD, 2), (SIDE_JUMP, 2, "R")],
+        ],
+        "drop": [[(CROSS, 1), (POWER_JUMP, 2), (SPEED_PUNCH, 2), (JACK, 2), (FAN, 1)],
+                 [(CROSS, 1), (SIDE_JUMP, 2), (CURB, 2), (PUNCH_KICK, 2), (SHIFT, 1)],
+                 [(CROSS, 1), (CHORD, 2), (DUCK, 2), (MIRROR, 2), (POWER_JUMP, 1)]],
+        "calm": [[(RAILS_HIGH, 2), (STEP_REACH, 2), (ARC, 2), (CURB, 2)],
+                 [(BALANCE, 2), (HOLD_JAB, 2), (SQUAT, 4)],
+                 [(WIDE, 2), (ARC_PUNCH, 2), (DODGE, 2), ("KickHold", 2)]],
+        "fill": PUNCH_KICK, "drop_bars": 8, "lead_in": False, "calm_first": True,
+        "limits": {ARC: 2}, "finale": CROSS,
+        "arcs": [(360.0, 4, 0.75), (450.0, 6, 0.8)],
+    },
+    # 2 Chinese festival (136 BPM) - flow: the dragon dance - side jumps, fans, circles, shifts.
+    "pro-2": {
+        "normal": [
+            [(SIDE_JUMP, 2), (FAN, 2), (DODGE, 2), (JAB_KICK, 2)],
+            [(SHIFT, 2), (HOLD_JAB, 2, "R"), (CURB, 2), (MIRROR, 2)],
+            [(STEP_TAP, 2), (DUCK, 2), (LEG_HOLD_PUNCH, 2), (SIDE_JUMP, 2, "R")],
+            [(PUNCH_KICK, 2), (WALL_RUN, 2), (FAN, 2), (JACK, 2)],
+            [(STEP_REACH, 2, "R"), (BALANCE, 2), (SPEED_PUNCH, 2), (CURB, 2)],
+            [(CHORD, 2), (DODGE, 2, "R"), (HIGH_LOW, 2), (POWER_JUMP, 2)],
+            [(LUNGE, 2, "R"), (LUNGE, 2), (MIRROR, 2), (DUCK, 2)],
+        ],
+        "drop": [[(CROSS, 1), (SIDE_JUMP, 2), (FAN, 2), (SHIFT, 2), (SPEED_PUNCH, 1)],
+                 [(CROSS, 1), (JACK, 2), (DODGE, 2), (PUNCH_KICK, 2), (SIDE_JUMP, 1)],
+                 [(CROSS, 1), (POWER_JUMP, 2), (MIRROR, 2), (CURB, 2), (FAN, 1)]],
+        "calm": [[(ARC_PUNCH, 2), (STEP_TOUCH, 2), (ARC, 2), (DODGE, 2)],
+                 [(PRESS_HOLD, 2), (BALANCE, 2), ("PunchHold", 2), (CURB, 2)],
+                 [(RAILS_HIGH, 2), (WIDE, 2), (SQUAT, 4)]],
+        "fill": HIGH_LOW, "drop_bars": 8, "lead_in": False, "calm_first": True,
+        "limits": {ARC: 2}, "finale": CROSS,
+        "arcs": [(540.0, 8, 0.85), (360.0, 4, 0.75)],
+    },
+    # 3 Crystal cave (144 BPM, the longest) - agility: quick feet, ducks under stalactites, dodges.
+    "pro-3": {
+        "normal": [
+            [(SPEED_STEP, 2), (DUCK, 2), (JAB_KICK, 2), (SHIFT, 2)],
+            [(STEP_PAIR, 2), (DODGE, 2), (SPEED_PUNCH, 2), (CURB, 2)],
+            [(HIGH_LOW, 2), (SQUAT, 2), (SIDE_JUMP, 2), (DUCK, 2)],
+            [(PUNCH_KICK, 2, "R"), (WALL_RUN, 2), (STEP_TAP, 2), (JACK, 2)],
+            [(LEG_HOLD_PUNCH, 2, "R"), (CURB, 2), (MIRROR, 2), (DODGE, 2, "R")],
+            [(SPEED_STEP, 2), (BALANCE, 2), (FAN, 2), (POWER_JUMP, 2)],
+            [(CHORD, 2), (DUCK, 2), (HOLD_JAB, 2), (SHIFT, 2)],
+        ],
+        "drop": [[(CROSS, 1), (SPEED_STEP, 2), (DUCK, 2), (SPEED_PUNCH, 2), (JACK, 1)],
+                 [(CROSS, 1), (SHIFT, 2), (CURB, 2), (JAB_KICK, 2), (SIDE_JUMP, 1)],
+                 [(CROSS, 1), (STEP_PAIR, 2), (DODGE, 2), (PUNCH_KICK, 2), (POWER_JUMP, 1)]],
+        "calm": [[(BALANCE, 2), (ARC_PUNCH, 2), (DUCK, 2), ("KickHold", 2)],
+                 [(LUNGE, 2), (LUNGE, 2, "R"), (SQUAT, 4)],
+                 [(RAILS_HIGH, 2), (PRESS_HOLD, 2), (ARC, 2), (CURB, 2)]],
+        "fill": PUNCH_KICK, "drop_bars": 8, "lead_in": False, "calm_first": True,
+        "limits": {ARC: 1}, "finale": CROSS,
+        "arcs": [(450.0, 6, 0.8)],
+    },
+    # 4 Night funfair (117 BPM) - fun: jacks, jumps, mirrors and punch fans like a ride.
+    "pro-4": {
+        "normal": [
+            [(JACK, 2), (MIRROR, 2), (CURB, 2), (STEP_REACH, 2)],
+            [(POWER_JUMP, 2), (DODGE, 2), (FAN, 2), (STEP_PAIR, 2)],
+            [(SIDE_JUMP, 2), (DUCK, 2), (HOLD_JAB, 2), (JACK, 2)],
+            [(LUNGE, 2), (LUNGE, 2, "R"), (PUNCH_KICK, 2), (CURB, 2)],
+            [(SHIFT, 2, "R"), (SQUAT, 2), (HIGH_LOW, 2, "R"), (WALL_RUN, 2)],
+            [(JAB_KICK, 2), (BALANCE, 2), (MIRROR, 2), (POWER_JUMP, 2)],
+            [(CHORD, 2), (DUCK, 2), (LEG_HOLD_PUNCH, 2), (SIDE_JUMP, 2)],
+        ],
+        "drop": [[(CROSS, 1), (JACK, 2), (MIRROR, 2), (POWER_JUMP, 2), (FAN, 1)],
+                 [(CROSS, 1), (SIDE_JUMP, 2), (DUCK, 2), (SPEED_PUNCH, 2), (JACK, 1)],
+                 [(CROSS, 1), (STEP_PAIR, 2), (CURB, 2), (FAN, 2), (CHORD, 1)]],
+        "calm": [[(WIDE, 2), (ARC, 2), (DODGE, 2), (PRESS_HOLD, 2)],
+                 [(RAILS_HIGH, 2), ("PunchHold", 2), (BALANCE, 2), (CURB, 2)],
+                 [(ARC_PUNCH, 2), (STEP_TOUCH, 2), (SQUAT, 4)]],
+        "fill": KICK, "drop_bars": 8, "lead_in": False, "calm_first": True,
+        "limits": {ARC: 2}, "finale": CROSS,
+        "arcs": [(360.0, 4, 0.75), (720.0, 8, 0.85)],
+    },
+    # 5 Olympus (129 BPM, the finale) - everything at once, the densest: the gods' trial.
+    "pro-5": {
+        "normal": [
+            [(POWER_JUMP, 2), (WALL_RUN, 2), (SPEED_PUNCH, 2), (CURB, 2)],
+            [(JAB_KICK, 1), (JAB_KICK, 1, "R"), (DUCK, 2), (JACK, 2), (LEG_HOLD_PUNCH, 2)],
+            [(SPEED_STEP, 2), (DODGE, 2), (FAN, 2), (SIDE_JUMP, 2)],
+            [(HOLD_JAB, 2), (SQUAT, 2), (PUNCH_KICK, 2), (SHIFT, 2)],
+            [(CHORD, 2), (CURB, 2), (MIRROR, 2), (DUCK, 2)],
+            [(STEP_REACH, 2), (BALANCE, 2), (SPEED_PUNCH, 2), (POWER_JUMP, 2)],
+            [(LEG_HOLD_PUNCH, 2, "R"), (DODGE, 2, "R"), (HIGH_LOW, 2), (JACK, 2)],
+        ],
+        "drop": [[(CROSS, 1), (POWER_JUMP, 2), (DUCK, 2), (SPEED_PUNCH, 2), (SIDE_JUMP, 1)],
+                 [(CROSS, 1), (SPEED_STEP, 2), (CURB, 2), (PUNCH_KICK, 2), (JACK, 1)],
+                 [(CROSS, 1), (SHIFT, 2), (WALL_RUN, 2), (FAN, 2), (POWER_JUMP, 1)]],
+        "calm": [[(RAILS_HIGH, 2), (BALANCE, 2), (ARC, 2), (CURB, 2)],
+                 [(PRESS_HOLD, 2), (DODGE, 2), (ARC_PUNCH, 2), ("KickHold", 2)],
+                 [(LUNGE, 2), (LUNGE, 2, "R"), (SQUAT, 4)]],
+        "fill": PUNCH_KICK, "drop_bars": 8, "lead_in": False, "calm_first": True,
+        "limits": {ARC: 2}, "finale": CROSS,
+        "arcs": [(720.0, 8, 0.85), (450.0, 6, 0.8)],
+    },
+})
+
 # ArcHold circles for a plan without its own `arcs`: (degrees, beats, radius m).
 ARC_SHAPES = [(360.0, 6, 0.75), (270.0, 4, 0.7), (450.0, 6, 0.8), (540.0, 8, 0.85)]
 # An ArcHold is never shorter than this many beats; an Arc set too short for it gets punches.
@@ -1985,6 +2097,52 @@ def expand_compound(events: List[Event], sets: List[WorkoutSet], beat: float, la
         out.extend(made)
     out.sort(key=lambda e: e.time)
     return out
+
+
+def fill_obstacle_sets(events: List[Event], sets: List[WorkoutSet], beat: float, lane_count: int) -> List[Event]:
+    """Video 14 (the user: "you just get going and - a pause, standing doing nothing"): a Curb,
+    Duck or Dodge set holds ONE obstacle (space_obstacles keeps one per set) and left the rest of
+    its two bars empty. Now the obstacle stays on its beat and two beats after it a combo runs to
+    the set's end, one note a beat, picked so it follows from the obstacle:
+      * after a Duck (coming up from the crouch): uppercuts, then a punch+kick combo;
+      * after a Curb (just landed): alternating steps with a double punch, or knee taps;
+      * after a Dodge (back in the middle): jab-cross with a step on every other beat.
+    The variants take turns per obstacle type, so no two obstacle sets end the same way."""
+    turn = {DUCK: 0, CURB: 0, DODGE: 0}
+    added: List[Event] = []
+    inner = (1, lane_count - 2)
+    for block in sets:
+        if block.exercise not in (DUCK, CURB, DODGE): continue
+        obst = [e for e in events if e.set_index == block.index and e.type in OBSTACLE_TYPES]
+        src = obst[0] if obst else None
+        t0 = src.time if src else block.start - 2 * beat
+        kind = block.exercise
+        v = turn[kind]
+        turn[kind] += 1
+        n = 0
+        t = t0 + 2 * beat
+        while t < block.end - 0.25 * beat:
+            base = Event(time=t, type=PUNCH, intensity=src.intensity if src else 0.8, lane=inner[n % 2],
+                         acoustic=PUNCH, set_index=block.index)
+            def put(type_: str, lane: int) -> None:
+                added.append(Event(time=t, type=type_, intensity=base.intensity, lane=lane, acoustic=base.acoustic, set_index=block.index))
+            side = inner[n % 2]
+            other = inner[(n + 1) % 2]
+            if kind == DUCK:
+                if v % 2 == 0: put(PUNCH_HIGH, side)                       # uppercuts out of the crouch
+                else: put(PUNCH, side); put(KICK, other) if n % 2 == 1 else None   # punch, punch+kick
+            elif kind == CURB:
+                if v % 2 == 0:
+                    put(KICK, side)                                         # steps...
+                    if n % 2 == 1: put(PUNCH, inner[0]); put(PUNCH, inner[1])   # ...with a double punch
+                else: put(KICK, 0 if n % 2 == 0 else lane_count - 1)        # wide knee taps
+            else:
+                put(PUNCH, side)                                            # jab-cross...
+                if n % 2 == 1: put(KICK, other)                             # ...a step every other beat
+            n += 1
+            t += beat
+        block.notes += n
+    return sorted(events + added, key=lambda e: e.time)
 
 
 def melody_onset_events(y: np.ndarray, sr: int, hop: int, start: float, end: float, beat: float,
@@ -2459,6 +2617,8 @@ def analyse(path: Path, cfg) -> Tuple[List[Event], float, float, int, List[Worko
         events = expand_chords(events, sets, cfg.chord_punch_every, pairs[CHORD], cfg.lanes)
         arc_shapes = CHARACTER_PLANS[cfg.pattern].get("arcs") if cfg.pattern in CHARACTER_PLANS else None
         events = expand_compound(events, sets, beat, cfg.lanes, random.Random(cfg.seed), arc_shapes)
+        if cfg.fill_obstacles:
+            events = fill_obstacle_sets(events, sets, beat, cfg.lanes)
         mirror_sets(events, sets, cfg.lanes)
         if cfg.fill_gaps_dodge:
             cfg.gap_walls = fill_gaps_with_dodges(events, bar_lines, beat, track_end, cfg)
@@ -2822,6 +2982,9 @@ def build_parser() -> argparse.ArgumentParser:
                         "as well as inside a set. The camera performs the movement and has to be "
                         "back at centre before the next one starts; the longest reaction (the "
                         "dodge) runs 1.59 s. Default 8 beats = 3.43 s at 140 BPM.")
+    g.add_argument("--fill-obstacles", action="store_true",
+                   help="after the obstacle of a Curb/Duck/Dodge set, a combo to the set's end "
+                        "instead of two empty bars (video 14)")
     g.add_argument("--fill-gaps-dodge", action="store_true",
                    help="put Dodge walls, alternating sides, into every stretch without notes: "
                         "the intro, breakdowns, the outro")

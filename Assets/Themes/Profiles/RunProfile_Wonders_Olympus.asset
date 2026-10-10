@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8df2127823c1a8742b7fe42d95e0f31f, type: 3}
+  m_Name: RunProfile_Wonders_Olympus
+  m_EditorClassIdentifier: Assembly-CSharp::RunProfile
+  track: {fileID: 8300000, guid: 8d25bf84d414af641ae312c9a340155d, type: 3}
+  beatmapFileName: track14_5.json
+  theme: {fileID: 11400000, guid: 11cb1dc7db4329e40a21959fc2422b21, type: 2}
+  overrideIntro: 0
+  introBars: 0
+  introSkipsPartialSet: 0
+  preRoll: 1
+  hideTrainer: 0
