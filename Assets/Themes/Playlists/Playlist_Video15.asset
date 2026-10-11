@@ -1,0 +1,103 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3bb9640588ee8e744972f872bcd42a92, type: 3}
+  m_Name: Playlist_Video15
+  m_EditorClassIdentifier: Assembly-CSharp::RunPlaylist
+  title: Video15
+  segments:
+  - label: Level 1 Racing
+    role: 0
+    track: {fileID: 8300000, guid: cceea09af58d57e4785a0c9f5c199a66, type: 3}
+    beatmapFileName: track15_1.json
+    theme: {fileID: 11400000, guid: bf30c217fc8ad0c489b510ba6b1185b4, type: 2}
+    clipStart: 0
+    clipEnd: 0
+    transitionIn: 3
+    transitionSeconds: 3.5
+    transitionLook: 0
+  - label: Level 2 Alien
+    role: 0
+    track: {fileID: 8300000, guid: c9ca520ff3a787647af2b022efbc1525, type: 3}
+    beatmapFileName: track15_2.json
+    theme: {fileID: 11400000, guid: c3d6cc0517b5bdf4e90e822caef7c8c9, type: 2}
+    clipStart: 0
+    clipEnd: 0
+    transitionIn: 3
+    transitionSeconds: 3.5
+    transitionLook: 0
+  - label: Level 3 WildWest
+    role: 0
+    track: {fileID: 8300000, guid: 0dea99d2098ce094a948cba76a16988b, type: 3}
+    beatmapFileName: track15_3.json
+    theme: {fileID: 11400000, guid: 9b9b9f4c13b30c14d89a2a47777b7910, type: 2}
+    clipStart: 0
+    clipEnd: 0
+    transitionIn: 3
+    transitionSeconds: 3.5
+    transitionLook: 0
+  - label: Level 4 Pirate
+    role: 0
+    track: {fileID: 8300000, guid: fd33c05d657cb0d47a77fb5bbc545f27, type: 3}
+    beatmapFileName: track15_4.json
+    theme: {fileID: 11400000, guid: 5a59877b61dce764488c8f07a5a691cc, type: 2}
+    clipStart: 0
+    clipEnd: 0
+    transitionIn: 3
+    transitionSeconds: 3.5
+    transitionLook: 0
+  - label: Level 5 Aztec
+    role: 0
+    track: {fileID: 8300000, guid: 9773c7d8556e6364cab0cdb31823d17e, type: 3}
+    beatmapFileName: track15_5.json
+    theme: {fileID: 11400000, guid: af05e3c148438fb47b2fa60425ba6991, type: 2}
+    clipStart: 0
+    clipEnd: 0
+    transitionIn: 3
+    transitionSeconds: 3.5
+    transitionLook: 0
+  preRoll: 1
+  noteMarginBeats: 1
+  wallsInTransition: 0
+  veilFogEnd: 22
+  thunderFlash: 0.8
+  thunderVolume: 1
+  thunderTrackStartVolume: 0.55
+  thunderRiseSeconds: 0.8
+  finalFadeSeconds: 0
+  trainerMotionSet: {fileID: 0}
+  trainerTextured: 0
+  trainerPanelInThemeColors: 0
+  hideTrainer: 0
+  trainerFilmed: 0
+  trainerMocap3D: 0
+  trainerClassic: 0
+  trainerV5: 1
+  scrollSpeedScale: 2
+  cameraFov: 75
+  retention: 1
+  interludeSeconds: 13
+  introCardsSeconds: 9
+  outroSeconds: 26
+  endScreenSeconds: 20
+  loopVolume: 0.22
+  loopBars: 4
+  recordFromContent: 1
+  welcomeText: WELCOME TO BEAT TUNNEL
+  ratingWords:
+  - WELL DONE
+  - AWESOME
+  - FLAWLESS
+  - PERFECT
+  - THAT'S INCREDIBLE
+  - EPIC
+  - THAT'S AMAZING
+  ratingCombos: 0a000000190000002d00000046000000640000008c000000be000000i

@@ -58,6 +58,9 @@ public class PlaylistDirector : MonoBehaviour
         int lanes = 4;
         var tunnel = themeApplier != null ? themeApplier.Tunnel : null;
         if (tunnel != null) lanes = tunnel.LaneCount;
+        if (tunnel != null && list.scrollSpeedScale > 0.01f && Mathf.Abs(list.scrollSpeedScale - 1f) > 0.001f)
+            tunnel.SetScrollSpeed(tunnel.ScrollSpeed * list.scrollSpeedScale);
+        if (list.cameraFov > 1f && Camera.main != null) Camera.main.fieldOfView = list.cameraFov;
         timeline = PlaylistTimeline.Build(list, solo, lanes, out string error);
         if (timeline == null)
         {

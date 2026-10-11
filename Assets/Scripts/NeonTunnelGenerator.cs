@@ -144,6 +144,8 @@ public class NeonTunnelGenerator : MonoBehaviour
     // Pure getters over the serialized fields, valid before Build() ever runs.
     public float TunnelLength => ringCount * ringSpacing;
     public float ScrollSpeed => scrollSpeed;
+    /// A playlist's speed (PlaylistDirector.Configure), before Build: the default is the scene's 12 m/s.
+    public void SetScrollSpeed(float speed) { if (speed > 0.1f) scrollSpeed = speed; }
     public float FloorWidth => floorWidth;
     public int LaneCount => laneCount;
     // The floor's own grid pitch, so a cue that wants to be "N cells long" can be sized against

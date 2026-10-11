@@ -1727,6 +1727,105 @@ CHARACTER_PLANS.update({
     },
 })
 
+CHARACTER_PLANS.update({
+    # Video 15 - fast tracks (135+ BPM) and a twice-as-fast tunnel: routines built on speed and
+    # rhythm - quick feet and fast hands between the obstacles, jumps on the drops, and the big
+    # holds only on the breaks. Same rules as pro-*: every phrase mixes an obstacle, legs, arms and
+    # a jump; both sides work; obstacle sets are filled (--fill-obstacles).
+    # 1 Race track - sprint: speed steps, jabs, dodges like overtaking.
+    "turbo-1": {
+        "normal": [
+            [(SPEED_STEP, 2), (DODGE, 2), (JAB_KICK, 2), (SIDE_JUMP, 2)],
+            [(SPEED_PUNCH, 2), (CURB, 2), (STEP_PAIR, 2), (DODGE, 2, "R")],
+            [(PUNCH_KICK, 2), (DUCK, 2), (SHIFT, 2), (HIGH_LOW, 2)],
+            [(JACK, 2), (WALL_RUN, 2), (MIRROR, 2), (POWER_JUMP, 2)],
+            [(STEP_TAP, 2), (CURB, 2), (HOLD_JAB, 2), (SIDE_JUMP, 2, "R")],
+            [(SPEED_STEP, 2), (DODGE, 2), (FAN, 2), (CHORD, 2)],
+        ],
+        "drop": [[(CROSS, 1), (SPEED_STEP, 2), (DODGE, 2), (SPEED_PUNCH, 2), (JACK, 1)],
+                 [(CROSS, 1), (SIDE_JUMP, 2), (CURB, 2), (PUNCH_KICK, 2), (POWER_JUMP, 1)]],
+        "calm": [[(RAILS_HIGH, 2), (STEP_REACH, 2), (ARC_PUNCH, 2), (CURB, 2)],
+                 [(BALANCE, 2), (PRESS_HOLD, 2), (SQUAT, 4)]],
+        "fill": PUNCH_KICK, "drop_bars": 8, "lead_in": False, "calm_first": True,
+        "limits": {ARC: 1}, "finale": CROSS,
+        "arcs": [(360.0, 4, 0.75)],
+    },
+    # 2 Alien planet - weightless: jumps, jacks, circles, holds floating on top.
+    "turbo-2": {
+        "normal": [
+            [(JACK, 2), (MIRROR, 2), (DUCK, 2), (STEP_REACH, 2)],
+            [(POWER_JUMP, 2), (HOLD_JAB, 2), (DODGE, 2), (SHIFT, 2)],
+            [(SIDE_JUMP, 2), (FAN, 2), (CURB, 2), (LEG_HOLD_PUNCH, 2)],
+            [(CHORD, 2), (SQUAT, 2), (SPEED_PUNCH, 2), (JACK, 2)],
+            [(LUNGE, 2), (LUNGE, 2, "R"), (WALL_RUN, 2), (MIRROR, 2)],
+            [(STEP_PAIR, 2), (DUCK, 2), (HIGH_LOW, 2, "R"), (POWER_JUMP, 2)],
+        ],
+        "drop": [[(CROSS, 1), (JACK, 2), (MIRROR, 2), (POWER_JUMP, 2), (FAN, 1)],
+                 [(CROSS, 1), (SHIFT, 2), (DUCK, 2), (SPEED_PUNCH, 2), (SIDE_JUMP, 1)]],
+        "calm": [[(ARC, 2), (BALANCE, 2), ("PunchHold", 2), (DODGE, 2)],
+                 [(WIDE, 2), (ARC_PUNCH, 2), (SQUAT, 4)]],
+        "fill": HIGH_LOW, "drop_bars": 8, "lead_in": False, "calm_first": True,
+        "limits": {ARC: 2}, "finale": CROSS,
+        "arcs": [(540.0, 8, 0.85), (360.0, 4, 0.75)],
+    },
+    # 3 Wild West - the gunfight: quick-draw punches, ducks behind cover, kerb jumps like a horse.
+    "turbo-3": {
+        "normal": [
+            [(JAB_KICK, 2), (DUCK, 2), (SPEED_PUNCH, 2), (CURB, 2)],
+            [(STEP_TAP, 2), (DODGE, 2), (PUNCH_KICK, 2, "R"), (SIDE_JUMP, 2)],
+            [(HIGH_LOW, 2), (CURB, 2), (STEP_PAIR, 2), (DUCK, 2)],
+            [(SHIFT, 2), (WALL_RUN, 2), (FAN, 2), (JACK, 2)],
+            [(LEG_HOLD_PUNCH, 2, "R"), (DODGE, 2, "R"), (SPEED_STEP, 2), (POWER_JUMP, 2)],
+            [(JAB_KICK, 2, "R"), (SQUAT, 2), (MIRROR, 2), (CURB, 2)],
+        ],
+        "drop": [[(CROSS, 1), (SPEED_PUNCH, 2), (DUCK, 2), (SPEED_STEP, 2), (SIDE_JUMP, 1)],
+                 [(CROSS, 1), (JACK, 2), (CURB, 2), (FAN, 2), (POWER_JUMP, 1)]],
+        "calm": [[(RAILS_HIGH, 2), (STEP_REACH, 2), (ARC, 2), (DUCK, 2)],
+                 [(LUNGE, 2), (LUNGE, 2, "R"), (SQUAT, 4)]],
+        "fill": PUNCH_KICK, "drop_bars": 8, "lead_in": False, "calm_first": True,
+        "limits": {ARC: 1}, "finale": CROSS,
+        "arcs": [(450.0, 6, 0.8)],
+    },
+    # 4 Pirate cove - on deck: rolling side jumps, rope climbs (high punches), cannon ducks.
+    "turbo-4": {
+        "normal": [
+            [(SIDE_JUMP, 2), (HIGH_LOW, 2), (DUCK, 2), (STEP_REACH, 2, "R")],
+            [(SHIFT, 2), (CURB, 2), (HOLD_JAB, 2, "R"), (JACK, 2)],
+            [(PUNCH_KICK, 2), (DODGE, 2), (FAN, 2), (STEP_PAIR, 2)],
+            [(POWER_JUMP, 2), (WALL_RUN, 2), (SPEED_PUNCH, 2), (SIDE_JUMP, 2, "R")],
+            [(LEG_HOLD_PUNCH, 2), (SQUAT, 2), (MIRROR, 2), (CURB, 2)],
+            [(SPEED_STEP, 2), (DUCK, 2), (JAB_KICK, 2), (CHORD, 2)],
+        ],
+        "drop": [[(CROSS, 1), (SIDE_JUMP, 2), (DUCK, 2), (MIRROR, 2), (JACK, 1)],
+                 [(CROSS, 1), (POWER_JUMP, 2), (DODGE, 2), (SPEED_PUNCH, 2), (SHIFT, 1)]],
+        "calm": [[(PRESS_HOLD, 2), (BALANCE, 2), (ARC_PUNCH, 2), (CURB, 2)],
+                 [(WIDE, 2), ("KickHold", 2), (SQUAT, 4)]],
+        "fill": KICK, "drop_bars": 8, "lead_in": False, "calm_first": True,
+        "limits": {ARC: 1}, "finale": CROSS,
+        "arcs": [(360.0, 4, 0.75)],
+    },
+    # 5 Aztec city - the finale: the temple trial, everything, the densest.
+    "turbo-5": {
+        "normal": [
+            [(POWER_JUMP, 2), (DUCK, 2), (SPEED_PUNCH, 2), (SIDE_JUMP, 2)],
+            [(JAB_KICK, 1), (JAB_KICK, 1, "R"), (CURB, 2), (JACK, 2), (HOLD_JAB, 2)],
+            [(SPEED_STEP, 2), (WALL_RUN, 2), (FAN, 2), (SHIFT, 2)],
+            [(LEG_HOLD_PUNCH, 2), (DODGE, 2), (MIRROR, 2), (POWER_JUMP, 2)],
+            [(CHORD, 2), (SQUAT, 2), (PUNCH_KICK, 2, "R"), (CURB, 2)],
+            [(STEP_PAIR, 2), (DUCK, 2), (HIGH_LOW, 2), (JACK, 2)],
+        ],
+        "drop": [[(CROSS, 1), (POWER_JUMP, 2), (CURB, 2), (SPEED_PUNCH, 2), (SIDE_JUMP, 1)],
+                 [(CROSS, 1), (SPEED_STEP, 2), (DUCK, 2), (FAN, 2), (JACK, 1)],
+                 [(CROSS, 1), (SHIFT, 2), (DODGE, 2), (PUNCH_KICK, 2), (POWER_JUMP, 1)]],
+        "calm": [[(RAILS_HIGH, 2), (BALANCE, 2), (ARC, 2), (CURB, 2)],
+                 [(PRESS_HOLD, 2), (DUCK, 2), (ARC_PUNCH, 2), ("KickHold", 2)],
+                 [(LUNGE, 2), (LUNGE, 2, "R"), (SQUAT, 4)]],
+        "fill": PUNCH_KICK, "drop_bars": 8, "lead_in": False, "calm_first": True,
+        "limits": {ARC: 2}, "finale": CROSS,
+        "arcs": [(720.0, 8, 0.85), (450.0, 6, 0.8)],
+    },
+})
+
 # ArcHold circles for a plan without its own `arcs`: (degrees, beats, radius m).
 ARC_SHAPES = [(360.0, 6, 0.75), (270.0, 4, 0.7), (450.0, 6, 0.8), (540.0, 8, 0.85)]
 # An ArcHold is never shorter than this many beats; an Arc set too short for it gets punches.
@@ -2471,8 +2570,11 @@ def analyse(path: Path, cfg) -> Tuple[List[Event], float, float, int, List[Worko
     # tempogram, which is quantised to its own bins and was wrong by 2.5% on this project's
     # techno track. Everything downstream - the bar grid, the set boundaries - is then laid on
     # the same beats the number describes, so the reported BPM and the structure cannot disagree.
+    # --bpm-hint: a fast track (170+) can lock onto 2/3 of its tempo (video 15: 172 read as 115);
+    # the tracker then starts its search at the hint.
+    hint = {"start_bpm": cfg.bpm_hint} if getattr(cfg, "bpm_hint", None) else {}
     beat_frames = np.asarray(librosa.beat.beat_track(
-        onset_envelope=detect_env, sr=sr, hop_length=hop, units="frames"
+        onset_envelope=detect_env, sr=sr, hop_length=hop, units="frames", **hint
     )[1])
     beat_times = librosa.frames_to_time(beat_frames, sr=sr, hop_length=hop)
 
@@ -2982,6 +3084,8 @@ def build_parser() -> argparse.ArgumentParser:
                         "as well as inside a set. The camera performs the movement and has to be "
                         "back at centre before the next one starts; the longest reaction (the "
                         "dodge) runs 1.59 s. Default 8 beats = 3.43 s at 140 BPM.")
+    g.add_argument("--bpm-hint", type=float, default=None,
+                   help="the tempo to start the beat search at, for a track the tracker gets wrong")
     g.add_argument("--fill-obstacles", action="store_true",
                    help="after the obstacle of a Curb/Duck/Dodge set, a combo to the set's end "
                         "instead of two empty bars (video 14)")

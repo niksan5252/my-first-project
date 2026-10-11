@@ -127,6 +127,11 @@ public class RunPlaylist : ScriptableObject
     // Video 12: the very first trainer of video 1 (irokz) - SilhouetteTrainerV5, Jennifer's cyan
     // contour on Trainer v5 (mocap stance + procedural gestures) - in place of the scene's trainer.
     public bool trainerV5;
+    // Video 15 (the competitor's feel): the tunnel and every note fly this many times faster (the
+    // notes stay on the song clock, only their flight is shorter) and the camera's field of view
+    // (0 = the scene's own). Old playlists keep 1 and 0.
+    public float scrollSpeedScale = 1f;
+    public float cameraFov = 0f;
 
     [Header("Retention wrapper (video 9) - off for every older playlist")]
     // The whole wrapper: spoiler label over the Spoiler segments, the opening cards, the cards
