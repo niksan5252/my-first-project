@@ -98,6 +98,14 @@ JAB_KICK = "JabKick"         # set: jab (lead), cross (rear), jab (lead), kick w
 STEP_REACH = "StepReach"     # set: step lead foot + reach up with the rear hand, then the other side (contralateral)
 ARC_PUNCH = "ArcPunch"       # set: the lead hand circles (one ArcHold) while the rear hand punches every beat
 POWER_JUMP = "PowerJump"     # set: a two-foot jump with both fists overhead, every other beat
+# Video 17 - new moves (the user: "three or four videos with about the same buttons"):
+STAR_JUMP = "StarJump"       # set: star (feet 0+3, both fists up 0+3), then tuck (feet 1+2), in turn
+SKATER = "Skater"            # set: skater bounds - one foot to an outer lane, the opposite fist across
+WINDMILL = "Windmill"        # set: a high punch to an outer lane, the opposite foot steps in, side to side
+LADDER = "Ladder"            # set: punch ladder - low, low, high, high, both high
+HOPSCOTCH = "Hopscotch"      # set: both feet in the middle, one out to the side, both, the other side
+KNEE_CLINCH = "KneeClinch"   # set: both fists up (the clinch) and a knee held a beat, sides in turn
+CROSS_JACK = "CrossJack"     # set: a side jump with the far fist reaching up the other way
 # Video 9 (the competitor's vocabulary, --competitor-style). Two new JSON types, both held poses
 # with a duration: Rails (rails over the two outer lanes - stand narrow) and SquatHold (floor
 # lasers and a bar over the road every beat - a wide squat, pulsing).
@@ -120,6 +128,7 @@ PRESS_HOLD = "PressHold"     # set: both fists pressed out and held 2 beats, the
 HOLD_SETS_V10 = {HOLD_JAB, LEG_HOLD_PUNCH, SQUAT_PUNCH, RAILS_HIGH, PRESS_HOLD}
 COMPOUND = {HOLD_JAB, LEG_HOLD_PUNCH, SQUAT_PUNCH, RAILS_HIGH, PRESS_HOLD, CROSS, WALL_RUN, SIDE_JUMP, HIGH_LOW, JACK, SHIFT, BALANCE, ARC, FAN, STEP_TAP, MIRROR, PUNCH_KICK,
             STEP_TOUCH, JAB_CROSS, JAB_KICK, STEP_REACH, ARC_PUNCH, POWER_JUMP,
+            STAR_JUMP, SKATER, WINDMILL, LADDER, HOPSCOTCH, KNEE_CLINCH, CROSS_JACK,
             STEP_PAIR, PUNCH_PAIR, SPEED_PUNCH, SPEED_STEP, SQUAT, RAILS, LUNGE, WIDE}
 # Types that may carry a duration in the JSON: the holds, a long Dodge wall, the balance kerbs.
 DURATION_TYPES = {"KickHold", "PunchHold", "PunchSweep", "Dodge", CURB_GAP, CURB_SPLIT, ARC_HOLD, "Rails", "SquatHold"}
@@ -717,7 +726,8 @@ ALL_EXERCISES = (PUNCH, KICK, "PunchHold", "KickHold", SWEEP, CHORD, DODGE, CURB
                  CROSS, WALL_RUN, SIDE_JUMP, HIGH_LOW, JACK, SHIFT, BALANCE, ARC, FAN,
                  STEP_TAP, MIRROR, PUNCH_KICK, STEP_TOUCH, JAB_CROSS, JAB_KICK, STEP_REACH, ARC_PUNCH,
                  POWER_JUMP, STEP_PAIR, PUNCH_PAIR, SPEED_PUNCH, SPEED_STEP, SQUAT, RAILS, LUNGE, WIDE,
-                 HOLD_JAB, LEG_HOLD_PUNCH, SQUAT_PUNCH, RAILS_HIGH, PRESS_HOLD)
+                 HOLD_JAB, LEG_HOLD_PUNCH, SQUAT_PUNCH, RAILS_HIGH, PRESS_HOLD,
+                 STAR_JUMP, SKATER, WINDMILL, LADDER, HOPSCOTCH, KNEE_CLINCH, CROSS_JACK)
 
 # Named set orders. A pattern is a list of (exercise, how many sets in a row), cycled until the
 # track runs out. This is the one place the shape of the workout lives: changing the routine
@@ -792,6 +802,8 @@ DEFAULT_SPACING_BEATS: Dict[str, float] = {
     STEP_PAIR: 1.0, PUNCH_PAIR: 1.0, SPEED_PUNCH: 1.0, SPEED_STEP: 1.0, SQUAT: 1.0, RAILS: 1.0, LUNGE: 1.0, WIDE: 1.0,
     # Video 10: the held-pose sets read every beat; the hold itself is written from the set's beats.
     HOLD_JAB: 1.0, LEG_HOLD_PUNCH: 1.0, SQUAT_PUNCH: 1.0, RAILS_HIGH: 1.0, PRESS_HOLD: 1.0,
+    # Video 17: the new moves read every beat (the knee clinch every other).
+    STAR_JUMP: 1.0, SKATER: 1.0, WINDMILL: 1.0, LADDER: 1.0, HOPSCOTCH: 1.0, KNEE_CLINCH: 2.0, CROSS_JACK: 1.0,
     # Obstacles are spaced far wider than any note, and the number is not a taste judgement: the
     # camera performs the movement and has to be back at centre before the next one starts. The
     # longest reaction is the dodge, whose lead-in, hold and return together run 1.59 s - so at
@@ -1826,6 +1838,97 @@ CHARACTER_PLANS.update({
     },
 })
 
+CHARACTER_PLANS.update({
+    # Video 17 ("Legends") - the user: "three or four videos with about the same buttons". Built
+    # around the seven new moves (StarJump, Skater, Windmill, Ladder, Hopscotch, KneeClinch,
+    # CrossJack); the familiar ones only as links between them. Each level leans on its own pair.
+    # 1 Jurassic - big animals: star jumps and skater bounds.
+    "legend-1": {
+        "normal": [
+            [(STAR_JUMP, 2), (CURB, 2), (WINDMILL, 2), (SKATER, 2)],
+            [(LADDER, 2), (DUCK, 2), (SKATER, 2, "R"), (HOPSCOTCH, 2)],
+            [(KNEE_CLINCH, 2), (DODGE, 2), (STAR_JUMP, 2), (JAB_KICK, 2)],
+            [(CROSS_JACK, 2), (SQUAT, 2), (LADDER, 2), (SKATER, 2)],
+            [(HOPSCOTCH, 2), (WALL_RUN, 2), (WINDMILL, 2, "R"), (STAR_JUMP, 2)],
+        ],
+        "drop": [[(CROSS, 1), (STAR_JUMP, 2), (SKATER, 2), (CROSS_JACK, 2), (LADDER, 1)],
+                 [(CROSS, 1), (SKATER, 2), (CURB, 2), (WINDMILL, 2), (STAR_JUMP, 1)]],
+        "calm": [[(KNEE_CLINCH, 2), (ARC_PUNCH, 2), (BALANCE, 2), (LADDER, 2)],
+                 [(LUNGE, 2), (LUNGE, 2, "R"), (WINDMILL, 2), (DODGE, 2)]],
+        "fill": WINDMILL, "drop_bars": 8, "lead_in": False, "calm_first": True,
+        "limits": {ARC: 1}, "finale": CROSS,
+        "arcs": [(360.0, 4, 0.75)],
+    },
+    # 2 Magic - spells: windmills, the punch ladder, circles.
+    "legend-2": {
+        "normal": [
+            [(WINDMILL, 2), (DUCK, 2), (LADDER, 2), (HOPSCOTCH, 2)],
+            [(CROSS_JACK, 2), (CURB, 2), (KNEE_CLINCH, 2), (WINDMILL, 2, "R")],
+            [(LADDER, 2), (DODGE, 2, "R"), (STAR_JUMP, 2), (SKATER, 2)],
+            [(HOPSCOTCH, 2), (SQUAT, 2), (WINDMILL, 2), (CROSS_JACK, 2, "R")],
+            [(SKATER, 2), (WALL_RUN, 2), (LADDER, 2), (KNEE_CLINCH, 2)],
+        ],
+        "drop": [[(CROSS, 1), (WINDMILL, 2), (CROSS_JACK, 2), (LADDER, 2), (STAR_JUMP, 1)],
+                 [(CROSS, 1), (LADDER, 2), (DUCK, 2), (SKATER, 2), (WINDMILL, 1)]],
+        "calm": [[(ARC, 2), (KNEE_CLINCH, 2), (BALANCE, 2), (WINDMILL, 2)],
+                 [(PRESS_HOLD, 2), (HOPSCOTCH, 2), (ARC_PUNCH, 2), (CURB, 2)]],
+        "fill": LADDER, "drop_bars": 8, "lead_in": False, "calm_first": True,
+        "limits": {ARC: 2}, "finale": CROSS,
+        "arcs": [(540.0, 8, 0.85), (360.0, 4, 0.75)],
+    },
+    # 3 Starship - zero-g: hopscotch and cross jacks, quick and light.
+    "legend-3": {
+        "normal": [
+            [(HOPSCOTCH, 2), (DODGE, 2), (CROSS_JACK, 2), (LADDER, 2)],
+            [(SKATER, 2, "R"), (DUCK, 2), (HOPSCOTCH, 2), (WINDMILL, 2)],
+            [(CROSS_JACK, 2), (CURB, 2), (KNEE_CLINCH, 2), (STAR_JUMP, 2)],
+            [(LADDER, 2), (WALL_RUN, 2), (HOPSCOTCH, 2), (SKATER, 2)],
+            [(WINDMILL, 2), (SQUAT, 2), (CROSS_JACK, 2, "R"), (HOPSCOTCH, 2)],
+        ],
+        "drop": [[(CROSS, 1), (HOPSCOTCH, 2), (DODGE, 2), (CROSS_JACK, 2), (SKATER, 1)],
+                 [(CROSS, 1), (CROSS_JACK, 2), (STAR_JUMP, 2), (LADDER, 2), (HOPSCOTCH, 1)]],
+        "calm": [[(RAILS_HIGH, 2), (WINDMILL, 2), (BALANCE, 2), (KNEE_CLINCH, 2)],
+                 [(ARC_PUNCH, 2), (LADDER, 2), (DUCK, 2), ("KickHold", 2)]],
+        "fill": HOPSCOTCH, "drop_bars": 8, "lead_in": False, "calm_first": True,
+        "limits": {ARC: 1}, "finale": CROSS,
+        "arcs": [(450.0, 6, 0.8)],
+    },
+    # 4 Rome - the gladiator: knee clinches, the ladder, skater bounds.
+    "legend-4": {
+        "normal": [
+            [(KNEE_CLINCH, 2), (CURB, 2), (LADDER, 2), (SKATER, 2)],
+            [(WINDMILL, 2), (DUCK, 2), (KNEE_CLINCH, 2, "R"), (STAR_JUMP, 2)],
+            [(SKATER, 2), (DODGE, 2), (LADDER, 2), (CROSS_JACK, 2)],
+            [(HOPSCOTCH, 2), (SQUAT, 2), (KNEE_CLINCH, 2), (WINDMILL, 2)],
+        ],
+        "drop": [[(CROSS, 1), (KNEE_CLINCH, 2), (SKATER, 2), (LADDER, 2), (STAR_JUMP, 1)],
+                 [(CROSS, 1), (STAR_JUMP, 2), (CURB, 2), (WINDMILL, 2), (SKATER, 1)]],
+        "calm": [[(PRESS_HOLD, 2), (LADDER, 2), (BALANCE, 2), (DUCK, 2)],
+                 [(LUNGE, 2), (LUNGE, 2, "R"), (KNEE_CLINCH, 2), (CURB, 2)]],
+        "fill": SKATER, "drop_bars": 8, "lead_in": False, "calm_first": True,
+        "limits": {ARC: 1}, "finale": CROSS,
+        "arcs": [(360.0, 4, 0.75)],
+    },
+    # 5 Viking - the finale: every new move, the densest mix.
+    "legend-5": {
+        "normal": [
+            [(STAR_JUMP, 2), (WALL_RUN, 2), (SKATER, 2), (LADDER, 2)],
+            [(CROSS_JACK, 2), (DUCK, 2), (WINDMILL, 2), (HOPSCOTCH, 2)],
+            [(KNEE_CLINCH, 2), (CURB, 2), (STAR_JUMP, 2), (SKATER, 2, "R")],
+            [(LADDER, 2), (DODGE, 2), (CROSS_JACK, 2, "R"), (WINDMILL, 2)],
+            [(HOPSCOTCH, 2), (SQUAT, 2), (KNEE_CLINCH, 2), (STAR_JUMP, 2)],
+        ],
+        "drop": [[(CROSS, 1), (STAR_JUMP, 2), (CROSS_JACK, 2), (SKATER, 2), (WINDMILL, 1)],
+                 [(CROSS, 1), (WINDMILL, 2), (DUCK, 2), (LADDER, 2), (STAR_JUMP, 1)],
+                 [(CROSS, 1), (HOPSCOTCH, 2), (CURB, 2), (KNEE_CLINCH, 2), (CROSS_JACK, 1)]],
+        "calm": [[(RAILS_HIGH, 2), (BALANCE, 2), (ARC, 2), (LADDER, 2)],
+                 [(LUNGE, 2), (LUNGE, 2, "R"), (WINDMILL, 2), (CURB, 2)]],
+        "fill": STAR_JUMP, "drop_bars": 8, "lead_in": False, "calm_first": True,
+        "limits": {ARC: 1}, "finale": CROSS,
+        "arcs": [(720.0, 8, 0.85)],
+    },
+})
+
 # ArcHold circles for a plan without its own `arcs`: (degrees, beats, radius m).
 ARC_SHAPES = [(360.0, 6, 0.75), (270.0, 4, 0.7), (450.0, 6, 0.8), (540.0, 8, 0.85)]
 # An ArcHold is never shorter than this many beats; an Arc set too short for it gets punches.
@@ -2125,6 +2228,44 @@ def expand_compound(events: List[Event], sets: List[WorkoutSet], beat: float, la
                 for lane in (1, 2):
                     made.append(note(ev, KICK, lane))
                     made.append(note(ev, PUNCH_HIGH, lane))
+        elif ex == STAR_JUMP:
+            for n, ev in enumerate(members):
+                if n % 2 == 0:
+                    for lane in (0, lane_count - 1):
+                        made.append(note(ev, KICK, lane))
+                        made.append(note(ev, PUNCH_HIGH, lane))
+                else:
+                    made.append(note(ev, KICK, 1)); made.append(note(ev, KICK, lane_count - 2))
+        elif ex == SKATER:
+            for n, ev in enumerate(members):
+                out_lane = 0 if n % 2 == 0 else lane_count - 1
+                made.append(note(ev, KICK, out_lane))
+                made.append(note(ev, PUNCH, lane_count - 2 if out_lane == 0 else 1))
+        elif ex == WINDMILL:
+            for n, ev in enumerate(members):
+                high = 0 if n % 2 == 0 else lane_count - 1
+                made.append(note(ev, PUNCH_HIGH, high))
+                made.append(note(ev, KICK, lane_count - 2 if high == 0 else 1))
+        elif ex == LADDER:
+            for n, ev in enumerate(members):
+                k = n % 5
+                if k < 2: made.append(note(ev, PUNCH, 1 + k))
+                elif k < 4: made.append(note(ev, PUNCH_HIGH, 1 + (k - 2)))
+                else: made.append(note(ev, PUNCH_HIGH, 1)); made.append(note(ev, PUNCH_HIGH, 2))
+        elif ex == HOPSCOTCH:
+            for n, ev in enumerate(members):
+                k = n % 4
+                if k % 2 == 0: made.append(note(ev, KICK, 1)); made.append(note(ev, KICK, lane_count - 2))
+                else: made.append(note(ev, KICK, 0 if k == 1 else lane_count - 1))
+        elif ex == KNEE_CLINCH:
+            for n, ev in enumerate(members):
+                made.append(note(ev, "KickHold", 1 if n % 2 == 0 else lane_count - 2, beat))
+                made.append(note(ev, PUNCH_HIGH, 1)); made.append(note(ev, PUNCH_HIGH, lane_count - 2))
+        elif ex == CROSS_JACK:
+            for n, ev in enumerate(members):
+                left = n % 2 == 0
+                made.append(note(ev, KICK, 0 if left else 2)); made.append(note(ev, KICK, 1 if left else 3))
+                made.append(note(ev, PUNCH_HIGH, lane_count - 1 if left else 0))
         elif ex == STEP_TAP:
             for n, ev in enumerate(members):
                 # step L, jab R, step R, jab L: one limb a beat, crossing the body.
