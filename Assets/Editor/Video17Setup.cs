@@ -109,7 +109,7 @@ public static class Video17Setup
         p.trainerMocap3D = false;
         p.trainerClassic = false;
         p.trainerV5 = true;
-        p.scrollSpeedScale = 2f;              // the notes fly ~3.4 s instead of ~6.9 s
+        p.scrollSpeedScale = 1.75f;           // the notes fly ~3.9 s (x2 was a touch fast - the user's call)
         p.cameraFov = 75f;                    // a wider lens: the notes rush in at the end
         p.hideTrainer = false;                // video 17 goes out with the trained V5 trainer (the user's call)
         Video12Setup.EnsureTrainerV5();
