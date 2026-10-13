@@ -106,6 +106,13 @@ LADDER = "Ladder"            # set: punch ladder - low, low, high, high, both hi
 HOPSCOTCH = "Hopscotch"      # set: both feet in the middle, one out to the side, both, the other side
 KNEE_CLINCH = "KneeClinch"   # set: both fists up (the clinch) and a knee held a beat, sides in turn
 CROSS_JACK = "CrossJack"     # set: a side jump with the far fist reaching up the other way
+# Video 18 - Latin dance-fitness moves (the music went guaracha / latin house):
+CUMBIA = "Cumbia"            # set: step out wide with the opposite fist high, step back in, the other side
+MERENGUE = "Merengue"        # set: marching feet on every beat, a double punch on the fourth
+SALSA = "Salsa"              # set: salsa basic - three steps (L R L) and a high reach on four, then mirrored
+SAMBA = "Samba"              # set: a two-foot bounce, then both arms open wide (outer fists), in turn
+MARACAS = "Maracas"          # set: shake the maracas - high and low fists on the diagonals, every beat
+TORERO = "Torero"            # set: a long lunge out to an outer lane (held) with the far fist reaching high - ole
 # Video 9 (the competitor's vocabulary, --competitor-style). Two new JSON types, both held poses
 # with a duration: Rails (rails over the two outer lanes - stand narrow) and SquatHold (floor
 # lasers and a bar over the road every beat - a wide squat, pulsing).
@@ -129,6 +136,7 @@ HOLD_SETS_V10 = {HOLD_JAB, LEG_HOLD_PUNCH, SQUAT_PUNCH, RAILS_HIGH, PRESS_HOLD}
 COMPOUND = {HOLD_JAB, LEG_HOLD_PUNCH, SQUAT_PUNCH, RAILS_HIGH, PRESS_HOLD, CROSS, WALL_RUN, SIDE_JUMP, HIGH_LOW, JACK, SHIFT, BALANCE, ARC, FAN, STEP_TAP, MIRROR, PUNCH_KICK,
             STEP_TOUCH, JAB_CROSS, JAB_KICK, STEP_REACH, ARC_PUNCH, POWER_JUMP,
             STAR_JUMP, SKATER, WINDMILL, LADDER, HOPSCOTCH, KNEE_CLINCH, CROSS_JACK,
+            CUMBIA, MERENGUE, SALSA, SAMBA, MARACAS, TORERO,
             STEP_PAIR, PUNCH_PAIR, SPEED_PUNCH, SPEED_STEP, SQUAT, RAILS, LUNGE, WIDE}
 # Types that may carry a duration in the JSON: the holds, a long Dodge wall, the balance kerbs.
 DURATION_TYPES = {"KickHold", "PunchHold", "PunchSweep", "Dodge", CURB_GAP, CURB_SPLIT, ARC_HOLD, "Rails", "SquatHold"}
@@ -727,7 +735,8 @@ ALL_EXERCISES = (PUNCH, KICK, "PunchHold", "KickHold", SWEEP, CHORD, DODGE, CURB
                  STEP_TAP, MIRROR, PUNCH_KICK, STEP_TOUCH, JAB_CROSS, JAB_KICK, STEP_REACH, ARC_PUNCH,
                  POWER_JUMP, STEP_PAIR, PUNCH_PAIR, SPEED_PUNCH, SPEED_STEP, SQUAT, RAILS, LUNGE, WIDE,
                  HOLD_JAB, LEG_HOLD_PUNCH, SQUAT_PUNCH, RAILS_HIGH, PRESS_HOLD,
-                 STAR_JUMP, SKATER, WINDMILL, LADDER, HOPSCOTCH, KNEE_CLINCH, CROSS_JACK)
+                 STAR_JUMP, SKATER, WINDMILL, LADDER, HOPSCOTCH, KNEE_CLINCH, CROSS_JACK,
+                 CUMBIA, MERENGUE, SALSA, SAMBA, MARACAS, TORERO)
 
 # Named set orders. A pattern is a list of (exercise, how many sets in a row), cycled until the
 # track runs out. This is the one place the shape of the workout lives: changing the routine
@@ -804,6 +813,7 @@ DEFAULT_SPACING_BEATS: Dict[str, float] = {
     HOLD_JAB: 1.0, LEG_HOLD_PUNCH: 1.0, SQUAT_PUNCH: 1.0, RAILS_HIGH: 1.0, PRESS_HOLD: 1.0,
     # Video 17: the new moves read every beat (the knee clinch every other).
     STAR_JUMP: 1.0, SKATER: 1.0, WINDMILL: 1.0, LADDER: 1.0, HOPSCOTCH: 1.0, KNEE_CLINCH: 2.0, CROSS_JACK: 1.0,
+    CUMBIA: 1.0, MERENGUE: 1.0, SALSA: 1.0, SAMBA: 1.0, MARACAS: 1.0, TORERO: 2.0,
     # Obstacles are spaced far wider than any note, and the number is not a taste judgement: the
     # camera performs the movement and has to be back at centre before the next one starts. The
     # longest reaction is the dodge, whose lead-in, hold and return together run 1.59 s - so at
@@ -1843,6 +1853,78 @@ CHARACTER_PLANS.update({
     # around the seven new moves (StarJump, Skater, Windmill, Ladder, Hopscotch, KneeClinch,
     # CrossJack); the familiar ones only as links between them. Each level leans on its own pair.
     # 1 Jurassic - big animals: star jumps and skater bounds.
+    # Video 18 "Fiesta": the Latin moves (Cumbia, Merengue, Salsa, Samba, Maracas, Torero) as the
+    # spine of every level, mixed with the obstacles and a few moves not used since video 14.
+    "fiesta-1": {
+        "normal": [
+            [(CUMBIA, 2), (DUCK, 2), (MARACAS, 2), (SAMBA, 2)],
+            [(SALSA, 2), (CURB, 2), (MERENGUE, 2), (TORERO, 2)],
+            [(SAMBA, 2), (DODGE, 2), (CUMBIA, 2, "R"), (MARACAS, 2)],
+            [(MERENGUE, 2), (SQUAT, 2), (SALSA, 2), (POWER_JUMP, 2)],
+            [(TORERO, 2), (WALL_RUN, 2), (MARACAS, 2, "R"), (CUMBIA, 2)],
+        ],
+        "drop": [[(CROSS, 1), (SAMBA, 2), (CUMBIA, 2), (MARACAS, 2), (MERENGUE, 1)],
+                 [(CROSS, 1), (MARACAS, 2), (DUCK, 2), (SAMBA, 2), (SALSA, 1)]],
+        "calm": [[(SALSA, 2), (ARC_PUNCH, 2), (TORERO, 2), (MERENGUE, 2)],
+                 [(CUMBIA, 2), (BALANCE, 2), (MARACAS, 2), (DODGE, 2)]],
+        "fill": MARACAS, "drop_bars": 8, "lead_in": False, "calm_first": True,
+    },
+    "fiesta-2": {
+        "normal": [
+            [(SAMBA, 2), (CURB, 2), (SALSA, 2), (MARACAS, 2)],
+            [(MERENGUE, 2), (DUCK, 2), (TORERO, 2), (CUMBIA, 2)],
+            [(MARACAS, 2), (DODGE, 2, "R"), (SAMBA, 2), (SPEED_STEP, 2)],
+            [(CUMBIA, 2), (SQUAT, 2), (MERENGUE, 2), (SALSA, 2, "R")],
+            [(TORERO, 2), (CURB, 2), (SAMBA, 2), (HIGH_LOW, 2)],
+        ],
+        "drop": [[(CROSS, 1), (MERENGUE, 2), (SAMBA, 2), (CUMBIA, 2), (MARACAS, 1)],
+                 [(CROSS, 1), (SAMBA, 2), (WALL_RUN, 2), (MARACAS, 2), (CUMBIA, 1)]],
+        "calm": [[(TORERO, 2), (FAN, 2), (SALSA, 2), (MERENGUE, 2)],
+                 [(MARACAS, 2), (LUNGE, 2), (LUNGE, 2, "R"), (DUCK, 2)]],
+        "fill": SAMBA, "drop_bars": 8, "lead_in": False, "calm_first": True,
+    },
+    "fiesta-3": {
+        "normal": [
+            [(SALSA, 2), (DODGE, 2), (SAMBA, 2), (MARACAS, 2)],
+            [(CUMBIA, 2), (DUCK, 2), (MERENGUE, 2), (TORERO, 2)],
+            [(MARACAS, 2), (CURB, 2), (SALSA, 2, "R"), (SAMBA, 2)],
+            [(MERENGUE, 2), (WALL_RUN, 2), (CUMBIA, 2), (POWER_JUMP, 2)],
+        ],
+        "drop": [[(CROSS, 1), (SAMBA, 2), (MARACAS, 2), (CUMBIA, 2), (SALSA, 1)],
+                 [(CROSS, 1), (CUMBIA, 2), (DUCK, 2), (SAMBA, 2), (MERENGUE, 1)]],
+        "calm": [[(SALSA, 2), (TORERO, 2), (MARACAS, 2), (DODGE, 2)]],
+        "fill": CUMBIA, "drop_bars": 8, "lead_in": False, "calm_first": True,
+    },
+    "fiesta-4": {
+        "normal": [
+            [(MARACAS, 2), (SQUAT, 2), (CUMBIA, 2), (SAMBA, 2)],
+            [(TORERO, 2), (DODGE, 2), (MERENGUE, 2), (SALSA, 2)],
+            [(SAMBA, 2), (CURB, 2), (MARACAS, 2, "R"), (SPEED_STEP, 2)],
+            [(SALSA, 2), (DUCK, 2), (TORERO, 2, "R"), (CUMBIA, 2)],
+            [(MERENGUE, 2), (WALL_RUN, 2), (SAMBA, 2), (HIGH_LOW, 2)],
+            [(CUMBIA, 2), (DUCK, 2), (MARACAS, 2), (POWER_JUMP, 2)],
+        ],
+        "drop": [[(CROSS, 1), (CUMBIA, 2), (SAMBA, 2), (MERENGUE, 2), (MARACAS, 1)],
+                 [(CROSS, 1), (MARACAS, 2), (CURB, 2), (SAMBA, 2), (CUMBIA, 1)]],
+        "calm": [[(TORERO, 2), (ARC_PUNCH, 2), (SALSA, 2), (MERENGUE, 2)],
+                 [(SALSA, 2), (BALANCE, 2), (CUMBIA, 2), (DODGE, 2)]],
+        "fill": MERENGUE, "drop_bars": 8, "lead_in": False, "calm_first": True,
+    },
+    "fiesta-5": {
+        "normal": [
+            [(TORERO, 2), (CURB, 2), (MARACAS, 2), (SALSA, 2)],
+            [(SAMBA, 2), (DUCK, 2), (CUMBIA, 2), (MERENGUE, 2)],
+            [(SALSA, 2), (DODGE, 2), (TORERO, 2, "R"), (SAMBA, 2)],
+            [(MARACAS, 2), (SQUAT, 2), (MERENGUE, 2, "R"), (POWER_JUMP, 2)],
+            [(CUMBIA, 2), (WALL_RUN, 2), (SAMBA, 2), (MARACAS, 2)],
+        ],
+        "drop": [[(CROSS, 1), (SAMBA, 2), (CUMBIA, 2), (TORERO, 2), (MARACAS, 1)],
+                 [(CROSS, 1), (MERENGUE, 2), (DUCK, 2), (SAMBA, 2), (SALSA, 1)],
+                 [(CROSS, 1), (MARACAS, 2), (CURB, 2), (CUMBIA, 2), (SAMBA, 1)]],
+        "calm": [[(SALSA, 2), (FAN, 2), (TORERO, 2), (MERENGUE, 2)],
+                 [(CUMBIA, 2), (LUNGE, 2), (LUNGE, 2, "R"), (DODGE, 2)]],
+        "fill": TORERO, "drop_bars": 8, "lead_in": False, "calm_first": True,
+    },
     "legend-1": {
         "normal": [
             [(STAR_JUMP, 2), (CURB, 2), (WINDMILL, 2), (SKATER, 2)],
@@ -2266,6 +2348,37 @@ def expand_compound(events: List[Event], sets: List[WorkoutSet], beat: float, la
                 left = n % 2 == 0
                 made.append(note(ev, KICK, 0 if left else 2)); made.append(note(ev, KICK, 1 if left else 3))
                 made.append(note(ev, PUNCH_HIGH, lane_count - 1 if left else 0))
+        elif ex == CUMBIA:
+            for n, ev in enumerate(members):
+                k = n % 4           # out L + right fist high, in L, out R + left fist high, in R
+                if k == 0: made.append(note(ev, KICK, 0)); made.append(note(ev, PUNCH_HIGH, lane_count - 1))
+                elif k == 1: made.append(note(ev, KICK, 1))
+                elif k == 2: made.append(note(ev, KICK, lane_count - 1)); made.append(note(ev, PUNCH_HIGH, 0))
+                else: made.append(note(ev, KICK, lane_count - 2))
+        elif ex == MERENGUE:
+            for n, ev in enumerate(members):
+                made.append(note(ev, KICK, 1 + n % 2))
+                if n % 4 == 3: made.append(note(ev, PUNCH, 1)); made.append(note(ev, PUNCH, 2))
+        elif ex == SALSA:
+            for n, ev in enumerate(members):
+                k = n % 8           # L R L reach-R-high | R L R reach-L-high
+                if k == 3: made.append(note(ev, PUNCH_HIGH, lane_count - 1))
+                elif k == 7: made.append(note(ev, PUNCH_HIGH, 0))
+                else: made.append(note(ev, KICK, 1 if k in (0, 2, 5) else 2))
+        elif ex == SAMBA:
+            for n, ev in enumerate(members):
+                if n % 2 == 0: made.append(note(ev, KICK, 1)); made.append(note(ev, KICK, lane_count - 2))
+                else: made.append(note(ev, PUNCH, 0)); made.append(note(ev, PUNCH, lane_count - 1))
+        elif ex == MARACAS:
+            for n, ev in enumerate(members):
+                k = n % 4           # high L + low R, then low L + high R: the diagonals in turn
+                made.append(note(ev, PUNCH_HIGH if k in (0, 3) else PUNCH, 1))
+                made.append(note(ev, PUNCH if k in (0, 3) else PUNCH_HIGH, 2))
+        elif ex == TORERO:
+            for n, ev in enumerate(members):
+                out_lane = 0 if n % 2 == 0 else lane_count - 1
+                made.append(note(ev, "KickHold", out_lane, 1.5 * beat))
+                made.append(note(ev, PUNCH_HIGH, lane_count - 1 - out_lane))
         elif ex == STEP_TAP:
             for n, ev in enumerate(members):
                 # step L, jab R, step R, jab L: one limb a beat, crossing the body.
