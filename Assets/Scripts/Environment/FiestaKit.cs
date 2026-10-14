@@ -35,7 +35,7 @@ public class FiestaKit
         foreach (var c in go.GetComponentsInChildren<Collider>()) Object.Destroy(c);
         foreach (var a in go.GetComponentsInChildren<Animator>()) Object.Destroy(a);
 
-        float h = 0f;
+        float h = 0f, wide = 0f;
         foreach (var mf in go.GetComponentsInChildren<MeshFilter>())
         {
             if (mf.sharedMesh == null) continue;
@@ -44,10 +44,16 @@ public class FiestaKit
             for (int i = 0; i < 8; i++)
             {
                 var corner = b.center + Vector3.Scale(b.extents, new Vector3((i & 1) == 0 ? -1 : 1, (i & 2) == 0 ? -1 : 1, (i & 4) == 0 ? -1 : 1));
-                h = Mathf.Max(h, m.MultiplyPoint(corner).y);
+                var q = m.MultiplyPoint(corner);
+                h = Mathf.Max(h, q.y);
+                wide = Mathf.Max(wide, Mathf.Abs(q.x), Mathf.Abs(q.z));
             }
         }
-        if (h > 1e-3f) t.localScale = Vector3.one * (height / h);
+        // A flat model (a pizza, a plate) sized by its height alone would come out tens of metres
+        // wide: it is also kept no wider than its height asks for.
+        float k = h > 1e-3f ? height / h : 1f;
+        if (wide > 1e-3f) k = Mathf.Min(k, height * 1.25f / wide);
+        t.localScale = Vector3.one * k;
 
         foreach (var r in go.GetComponentsInChildren<Renderer>())
         {

@@ -145,7 +145,7 @@ public partial class FiestaEnvironment
                 scrollers.Add(new Mover { t = d });
             }
         // Fast-food signs on poles by the road, turning: a burger, fries, a soda, a hot dog.
-        string[] food = { "burger-cheese-double", "fries", "soda", "hot-dog", "pizza", "frappe" };
+        string[] food = { "burger-cheese-double", "fries", "soda", "hot-dog", "frappe", "burger" };
         int f = 0;
         for (float z = -Behind; z < Far; z += 7f)
             foreach (int side in new[] { -1, 1 })
@@ -163,6 +163,22 @@ public partial class FiestaEnvironment
         foreach (int side in new[] { -1, 1 })
             for (int k = 0; k < 4; k++, ci++)
                 Vehicle(root, cars[ci % cars.Length], side * 10.5f, k % 2 == 0 ? 0.5f : 1.6f, 1.6f, paint[ci % paint.Length], 0.5f);
+        // Googie starbursts hanging in the night sky, turning slowly - the 50s space-age signs.
+        for (float z = -Behind; z < Far; z += 14f)
+        {
+            int side = Side();
+            var st = Prop(root, "Starburst", new Vector3(side * Rand(9f, 20f), Rand(11f, 18f), z));
+            var spin = Prop(st, "Spin", Vector3.zero);
+            for (int k = 0; k < 8; k++)
+            {
+                float a = k * Mathf.PI / 4f;
+                Vector3 d = new Vector3(Mathf.Cos(a), Mathf.Sin(a), 0f);
+                RemixGeo.Beam(spin, "Ray", cube, G(k % 2 == 0 ? 1 : 3), Vector3.zero, d * (k % 2 == 0 ? 2.2f : 1.3f), 0.18f);
+            }
+            pulsers.Add(new Mover { t = Place("Core", sphere, G(2), st, Vector3.zero, Vector3.one * 0.6f).transform, group = 2, size = 0.6f });
+            floaters.Add(new Mover { t = spin, basePos = Vector3.zero, seed = Rand(0f, 6.28f), speed = side * 30f, group = -18 });
+            scrollers.Add(new Mover { t = st });
+        }
         Fireworks(Root("Fireworks"), 0, 1);
         glowSkyMat = SkyQuad("Moon", new Vector3(60f, 80f, 340f), 24f, 24f, new Color(1f, 0.9f, 0.8f, 1f), Sprite(128, 0.55f), 1f);
         SkyQuad("Glow", new Vector3(0f, 22f, 350f), 260f, 50f, new Color(0.9f, 0.2f, 0.5f, 0.5f), Sprite(128, 1.5f), 0.6f);
