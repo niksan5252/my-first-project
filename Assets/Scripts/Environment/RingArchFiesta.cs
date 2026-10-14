@@ -5,7 +5,7 @@ using UnityEngine;
 /// feather crown, a Havana colonial portal with a bulb-lit sign, a string of fiesta bulbs between
 /// two cacti with a star piñata, a Moorish horseshoe arch in red and white. Feet 6.8 m out, top at
 /// ~8 m. Light from ClubBeat; Kenney models (FiestaKit) for the candles, cacti and lanterns.
-public class RingArchFiesta : MonoBehaviour, IThemeAccent
+public partial class RingArchFiesta : MonoBehaviour, IThemeAccent
 {
     [SerializeField] private FiestaSkin skin;
     [SerializeField] private float halfBase = 6.8f;
@@ -27,7 +27,8 @@ public class RingArchFiesta : MonoBehaviour, IThemeAccent
         : skin == FiestaSkin.Carnival ? new Color(0.1f, 1f, 0.35f)
         : skin == FiestaSkin.Havana ? new Color(0.3f, 1f, 0.75f)
         : skin == FiestaSkin.Pinata ? new Color(0.1f, 0.85f, 1f)
-        : new Color(1f, 0.92f, 0.8f);
+        : skin == FiestaSkin.Flamenco ? new Color(1f, 0.92f, 0.8f)
+        : FunSecond();
 
     private void Bloom(Transform t) { if (t == null) return; blooms.Add(t); bloomScale.Add(t.localScale); }
 
@@ -167,7 +168,10 @@ public class RingArchFiesta : MonoBehaviour, IThemeAccent
                 Bloom(star);
                 break;
             }
-            default:    // Flamenco
+            default:
+                BuildFun(cube, sphere, cyl, props, c, r, a0, a1);
+                break;
+            case FiestaSkin.Flamenco:
             {
                 // A Moorish horseshoe arch, alternating red and white voussoirs, lanterns at the springing.
                 float x = halfBase - 0.2f;
@@ -212,7 +216,8 @@ public class RingArchFiesta : MonoBehaviour, IThemeAccent
               : skin == FiestaSkin.Carnival ? new Color(1f, 0.85f, 0.1f)
               : skin == FiestaSkin.Havana ? new Color(1f, 0.2f, 0.6f)
               : skin == FiestaSkin.Pinata ? new Color(1f, 0.15f, 0.65f)
-              : new Color(1f, 0.1f, 0.15f);
+              : skin == FiestaSkin.Flamenco ? new Color(1f, 0.1f, 0.15f)
+              : FunPrimary();
         emissionIntensity = Mathf.Min(newIntensity, 1.4f);
     }
 

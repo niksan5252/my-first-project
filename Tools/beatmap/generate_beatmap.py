@@ -1202,6 +1202,14 @@ def plan_sets_v2(bar_lines: np.ndarray, bar_map: List[str], rest_beats: float, b
 #   * after a drop the "drop" phrases play for drop_bars (the brightest links of the track);
 #   * a phrase that starts in a stretch without drums is a "calm" one (holds - a breather).
 # This table is the whole policy: to change what a track asks for, edit it, nothing else.
+# Video 19's decks are sparser than the earlier plans: single notes a beat apart at least, and the
+# jumps and two-limb moves every other beat (about two notes a second, as the competitor).
+DECK19_SPACING: Dict[str, float] = {
+    PUNCH: 1.0, KICK: 1.0, STAR_JUMP: 2.0, JACK: 2.0, SIDE_JUMP: 2.0, CROSS_JACK: 2.0, HOPSCOTCH: 2.0,
+    SAMBA: 2.0, SKATER: 2.0, SHIFT: 2.0, MIRROR: 2.0, PUNCH_KICK: 2.0, WINDMILL: 2.0, MARACAS: 2.0,
+    PUNCH_PAIR: 2.0,
+}
+
 CHARACTER_PLANS: Dict[str, dict] = {
     # Arms: punches on the beats, two levels, the star; the legs only come in for a bar-pair now and then.
     "intense-v2-arms": {
@@ -1853,6 +1861,51 @@ CHARACTER_PLANS.update({
     # around the seven new moves (StarJump, Skater, Windmill, Ladder, Hopscotch, KneeClinch,
     # CrossJack); the familiar ones only as links between them. Each level leans on its own pair.
     # 1 Jurassic - big animals: star jumps and skater bounds.
+    # Video 19: seven decks (plan_sets_deck), one per level, with as few moves shared between
+    # levels as the catalogue allows - each level has its own signature moves; holds and walls
+    # make up about 40% of every deck; single notes are a beat apart at least (sparser).
+    "deck19-1": {
+        "deck": [(STEP_TOUCH, 2), (PUNCH_PAIR, 2), (SKATER, 2), (CROSS, 2), (FAN, 2), (JACK, 2),
+                 ("KickHold", 2), (SWEEP, 2), (RAILS, 4), (ARC, 2),
+                 (DODGE, 1), (DUCK, 1), (WALL_RUN, 4)],
+        "spacing": DECK19_SPACING, "fill": STEP_TOUCH, "finale": CROSS,
+    },
+    "deck19-2": {
+        "deck": [(SALSA, 2), (MARACAS, 2), (HIGH_LOW, 2), (STAR_JUMP, 2), (SIDE_JUMP, 2), (MIRROR, 2),
+                 (LUNGE, 2), (PRESS_HOLD, 2), ("PunchHold", 2),
+                 (CURB, 1), (SQUAT, 2), (DODGE, 1), (BALANCE, 2)],
+        "spacing": DECK19_SPACING, "fill": MIRROR, "finale": STAR_JUMP,
+    },
+    "deck19-3": {
+        "deck": [(CUMBIA, 2), (WINDMILL, 2), (POWER_JUMP, 2), (JAB_KICK, 2), (STEP_REACH, 2),
+                 (KNEE_CLINCH, 2), (RAILS_HIGH, 2), (ARC_PUNCH, 2),
+                 (DUCK, 1), (WALL_RUN, 4), (DODGE, 1)],
+        "spacing": DECK19_SPACING, "fill": STEP_REACH, "finale": POWER_JUMP,
+    },
+    "deck19-4": {
+        "deck": [(SAMBA, 2), (LADDER, 2), (HOPSCOTCH, 2), (SPEED_PUNCH, 2), (SHIFT, 2),
+                 (LEG_HOLD_PUNCH, 2), (WIDE, 2), (TORERO, 2), (SQUAT_PUNCH, 2),
+                 (CURB, 1), (DUCK, 1), (DODGE, 1)],
+        "spacing": DECK19_SPACING, "fill": SAMBA, "finale": HOPSCOTCH,
+    },
+    "deck19-5": {
+        "deck": [(MERENGUE, 2), (CROSS_JACK, 2), (STEP_TAP, 2), (CHORD, 2), (PUNCH_KICK, 2), (SPEED_STEP, 2),
+                 (HOLD_JAB, 2), ("KickHold", 2), (SWEEP, 2),
+                 (WALL_RUN, 4), (DUCK, 1), (BALANCE, 2), (CURB, 1)],
+        "spacing": DECK19_SPACING, "fill": STEP_TAP, "finale": CROSS_JACK,
+    },
+    "deck19-6": {
+        "deck": [(JAB_CROSS, 2), (STEP_PAIR, 2), (PUNCH, 2), (KICK, 2), (WINDMILL, 2), (FAN, 2),
+                 (ARC, 2), (LUNGE, 2), (PRESS_HOLD, 2), (RAILS, 4),
+                 (DODGE, 1), (SQUAT, 2), (WALL_RUN, 4)],
+        "spacing": DECK19_SPACING, "fill": JAB_CROSS, "finale": CROSS,
+    },
+    "deck19-7": {
+        "deck": [(STAR_JUMP, 2), (JACK, 2), (SAMBA, 2), (CUMBIA, 2), (CROSS, 2), (POWER_JUMP, 2),
+                 (TORERO, 2), (KNEE_CLINCH, 2), ("PunchHold", 2),
+                 (DUCK, 1), (CURB, 1), (DODGE, 1), (BALANCE, 2)],
+        "spacing": DECK19_SPACING, "fill": SAMBA, "finale": STAR_JUMP,
+    },
     # Video 18 "Fiesta": the Latin moves (Cumbia, Merengue, Salsa, Samba, Maracas, Torero) as the
     # spine of every level, mixed with the obstacles and a few moves not used since video 14.
     "fiesta-1": {
@@ -2022,10 +2075,87 @@ ARC_MIN_BEATS = 4
 FAN_RAYS = [(PUNCH, 1, 2), (PUNCH_HIGH, 0, 3), (PUNCH_HIGH, 1, 2), (PUNCH, 0, 3)]
 
 
+# Video 19 (the user: "every 20-30 seconds the same cue buttons fly in, the same combos - boring"):
+# phrases cycled in a fixed order bring a combo back every minute, and every level of a video was
+# built from the same handful of moves. A "deck" plan instead holds one level's own moves, each
+# drawn once per pass in a shuffled order (seeded by the plan name, so a chart is reproducible);
+# the next pass reshuffles, never opens on a move from the end of the last one, and plays every
+# move on the other side (mirrored) from the time before. Holds and walls make up a large share of
+# each deck - the competitor's long rails and walls - and quiet bars draw a hold first.
+DECK_HOLDS = {"KickHold", "PunchHold", SWEEP, RAILS, ARC, LUNGE, PRESS_HOLD, KNEE_CLINCH, RAILS_HIGH,
+              ARC_PUNCH, LEG_HOLD_PUNCH, WIDE, TORERO, SQUAT_PUNCH, HOLD_JAB, BALANCE, SQUAT}
+
+
+def plan_sets_deck(bar_lines: np.ndarray, bar_map: List[str], rest_beats: float, beat: float,
+                   track_end: float, plan_name: str) -> List[WorkoutSet]:
+    import zlib
+    plan = CHARACTER_PLANS[plan_name]
+    deck: List[tuple] = list(plan["deck"])
+    rng = random.Random(zlib.crc32(plan_name.encode("utf-8")))
+    drops = drops_from_bar_map(bar_map)
+    sets: List[WorkoutSet] = []
+    history: List[str] = []
+    uses: Dict[int, int] = {}
+    queue: List[int] = []
+
+    def refill() -> None:
+        order = list(range(len(deck)))
+        rng.shuffle(order)
+        recent = set(history[-4:])
+        # Never open a pass on a move just played at the end of the last one.
+        for k in range(len(order)):
+            if deck[order[0]][0] not in recent: break
+            order.append(order.pop(0))
+        queue.extend(order)
+
+    def ok(i: int) -> bool:
+        ex = deck[i][0]
+        if history and ex == history[-1]: return False
+        if history and ex in OBSTACLE_SETS and history[-1] in OBSTACLE_SETS: return False
+        if history and ex in DECK_HOLDS and history[-1] in DECK_HOLDS and ex not in OBSTACLE_SETS: return False
+        return True
+
+    def draw(max_bars: int, prefer_hold: bool) -> Optional[int]:
+        if len(queue) < 3: refill()
+        candidates = [j for j, i in enumerate(queue) if deck[i][1] <= max_bars and ok(i)]
+        fresh = [j for j in candidates if deck[queue[j]][0] not in history[-3:]]
+        candidates = fresh or candidates     # a move does not come back within three sets if avoidable
+        if prefer_hold:
+            holds = [j for j in candidates if deck[queue[j]][0] in DECK_HOLDS]
+            candidates = holds or candidates
+        if not candidates: return None
+        return queue.pop(candidates[0])
+
+    bar = _START_BAR[0]
+    while bar < len(bar_lines) - 1:
+        quiet = bar < len(bar_map) and bar_map[bar] != "#"
+        ahead = [d for d in drops if bar < d]
+        room = (ahead[0] - bar) if ahead else 64
+        i = draw(min(room, 64), quiet)
+        if i is None:
+            ex, bars, mirror = plan["fill"], 1, len(sets) % 2 == 1
+        else:
+            item = deck[i]
+            ex, bars = item[0], item[1]
+            uses[i] = uses.get(i, 0) + 1
+            mirror = (uses[i] % 2 == 0) != (len(item) > 2 and item[2] == "R")
+        if bar + bars >= len(bar_lines): break
+        start, boundary = float(bar_lines[bar]), float(bar_lines[bar + bars])
+        if start >= track_end: break
+        end = max(start, boundary - rest_beats * beat)
+        sets.append(WorkoutSet(index=len(sets), exercise=ex, start=start, end=min(end, track_end),
+                               rest_end=min(boundary, track_end), bar=bar, mirror=mirror))
+        history.append(ex)
+        bar += bars
+    return finale(sets)
+
+
 def plan_sets_character(bar_lines: np.ndarray, bar_map: List[str], rest_beats: float, beat: float,
                         track_end: float, plan_name: str) -> List[WorkoutSet]:
     """Sets for a CHARACTER_PLANS routine, laid bar line to bar line like plan_sets."""
     plan = CHARACTER_PLANS[plan_name]
+    if "deck" in plan:
+        return plan_sets_deck(bar_lines, bar_map, rest_beats, beat, track_end, plan_name)
     drops = drops_from_bar_map(bar_map)
     cursor = {"normal": 0, "drop": 0, "calm": 0}
     sets: List[WorkoutSet] = []
@@ -2942,6 +3072,7 @@ def analyse(path: Path, cfg) -> Tuple[List[Event], float, float, int, List[Worko
         set_bars_for = parse_mapping(cfg.set_bars_for, {}, "--set-bars-for",
                                      lambda raw, name, chunk: _positive_int(raw, name, chunk))
         if cfg.pattern in CHARACTER_PLANS:
+            spacing.update(CHARACTER_PLANS[cfg.pattern].get("spacing", {}))
             _FINALE[0] = CHARACTER_PLANS[cfg.pattern].get("finale")
             if cfg.competitor_style and cfg.intro_rest > 0:
                 lines = [float(t) for t in bar_lines]

@@ -1,0 +1,123 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3bb9640588ee8e744972f872bcd42a92, type: 3}
+  m_Name: Playlist_Video19
+  m_EditorClassIdentifier: Assembly-CSharp::RunPlaylist
+  title: Video19
+  segments:
+  - label: Level 1 Candy
+    role: 0
+    track: {fileID: 8300000, guid: af5a492d059fd2e41b0bcae4ff3b750f, type: 3}
+    beatmapFileName: track19_1.json
+    theme: {fileID: 11400000, guid: 6183e440847a06c4e9cebfc8c6c32350, type: 2}
+    clipStart: 0
+    clipEnd: 0
+    transitionIn: 3
+    transitionSeconds: 3.5
+    transitionLook: 0
+  - label: Level 2 Diner
+    role: 0
+    track: {fileID: 8300000, guid: e207bbc4e6d9b0d42956951ed73e0f35, type: 3}
+    beatmapFileName: track19_2.json
+    theme: {fileID: 11400000, guid: 45e5fb9662be1354ba811a86256ad0c0, type: 2}
+    clipStart: 0
+    clipEnd: 0
+    transitionIn: 3
+    transitionSeconds: 3.5
+    transitionLook: 0
+  - label: Level 3 Karts
+    role: 0
+    track: {fileID: 8300000, guid: 3e5c99baf1a23384d8c16ec2966121d1, type: 3}
+    beatmapFileName: track19_3.json
+    theme: {fileID: 11400000, guid: e6fea16313e2216468d232ad71892439, type: 2}
+    clipStart: 0
+    clipEnd: 0
+    transitionIn: 3
+    transitionSeconds: 3.5
+    transitionLook: 0
+  - label: Level 4 Camp
+    role: 0
+    track: {fileID: 8300000, guid: 9e5d6ce2604caa248a84a30279da7dc5, type: 3}
+    beatmapFileName: track19_4.json
+    theme: {fileID: 11400000, guid: c3d2d99de43813b4e9b9449feffd5eea, type: 2}
+    clipStart: 0
+    clipEnd: 0
+    transitionIn: 3
+    transitionSeconds: 3.5
+    transitionLook: 0
+  - label: Level 5 Beach
+    role: 0
+    track: {fileID: 8300000, guid: 214595f4827effd41ba2badd8cd258e1, type: 3}
+    beatmapFileName: track19_5.json
+    theme: {fileID: 11400000, guid: cfa6149a9ba9f1245ad5880c601d5cdc, type: 2}
+    clipStart: 0
+    clipEnd: 0
+    transitionIn: 3
+    transitionSeconds: 3.5
+    transitionLook: 0
+  - label: Level 6 Fruit
+    role: 0
+    track: {fileID: 8300000, guid: c9d75e8eee725734f87b171a0927278a, type: 3}
+    beatmapFileName: track19_6.json
+    theme: {fileID: 11400000, guid: 6cd54f2b854d4374d892407dbdd0e48d, type: 2}
+    clipStart: 0
+    clipEnd: 0
+    transitionIn: 3
+    transitionSeconds: 3.5
+    transitionLook: 0
+  - label: Level 7 Rescue
+    role: 0
+    track: {fileID: 8300000, guid: 928c7fd38bd93bc438f56ab1b4ac3be9, type: 3}
+    beatmapFileName: track19_7.json
+    theme: {fileID: 11400000, guid: 262ad2909042e584286118c55772fa8b, type: 2}
+    clipStart: 0
+    clipEnd: 0
+    transitionIn: 3
+    transitionSeconds: 3.5
+    transitionLook: 0
+  preRoll: 1
+  noteMarginBeats: 1
+  wallsInTransition: 0
+  veilFogEnd: 22
+  thunderFlash: 0.8
+  thunderVolume: 1
+  thunderTrackStartVolume: 0.55
+  thunderRiseSeconds: 0.8
+  finalFadeSeconds: 0
+  trainerMotionSet: {fileID: 0}
+  trainerTextured: 0
+  trainerPanelInThemeColors: 0
+  hideTrainer: 0
+  trainerFilmed: 0
+  trainerMocap3D: 0
+  trainerClassic: 0
+  trainerV5: 1
+  scrollSpeedScale: 1.75
+  cameraFov: 75
+  retention: 1
+  interludeSeconds: 13
+  introCardsSeconds: 9
+  outroSeconds: 26
+  endScreenSeconds: 20
+  loopVolume: 0.22
+  loopBars: 4
+  recordFromContent: 1
+  welcomeText: WELCOME TO BEAT TUNNEL
+  ratingWords:
+  - WELL DONE
+  - AWESOME
+  - FLAWLESS
+  - PERFECT
+  - THAT'S INCREDIBLE
+  - EPIC
+  - THAT'S AMAZING
+  ratingCombos: 0a000000190000002d00000046000000640000008c000000be000000i

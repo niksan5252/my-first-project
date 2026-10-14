@@ -10,6 +10,14 @@ public enum FiestaSkin
     Havana,     // Havana nights: pastel colonial facades, neon signs, old cars cruising, palms, a sunset
     Pinata,     // a Mexican fiesta: swinging star piñatas, cacti, sombreros, maracas, fruit stands
     Flamenco,   // Seville: Moorish walls with horseshoe arches, orange trees, fountains, flamenco fans
+    // Video 19 (FiestaEnvironment.Fun.cs):
+    Candy,      // a candy land: giant lollipops, cupcakes, standing donuts, ice creams, cotton-candy clouds
+    Diner,      // a retro 50s drive-in: neon diners, burger and fries signs, cars cruising
+    Karts,      // a kart race: grandstands, tyre stacks, cones, karts racing alongside, chequered flags
+    Camp,       // a camp night: pine forest, tents and campfires, glowing mushrooms, a lake, the aurora
+    Beach,      // a beach party: the sea, palms, umbrellas, bouncing beach balls, a lifeguard tower, sunset
+    Fruit,      // a fruit paradise: giant fruit bouncing on the kick, smoothie cups, fruit garlands
+    Rescue,     // a rescue city: fire trucks, ambulances and police with sirens on the beat, searchlights
 }
 
 /// Video 18's scenery ("Fiesta"): five Latin worlds, one per level, in the manner of LegendsEnvironment -
@@ -17,7 +25,7 @@ public enum FiestaSkin
 /// (Custom/Starfield), a global Volume pushes the bloom up on a drop, and all motion and light come
 /// from ClubBeat (the song clock). The props are Kenney CC0 models (FiestaKit) where a model fits
 /// (palms, cacti, cars, candles, skeletons, fruit), built from primitives where none does.
-public class FiestaEnvironment : MonoBehaviour, IEnvironmentDecorator, IThemePalette
+public partial class FiestaEnvironment : MonoBehaviour, IEnvironmentDecorator, IThemePalette
 {
     [SerializeField] private FiestaSkin skin;
     [SerializeField, Range(0f, 1f)] private float dropBloom = 0.4f;
@@ -82,6 +90,7 @@ public class FiestaEnvironment : MonoBehaviour, IEnvironmentDecorator, IThemePal
             case FiestaSkin.Havana: BuildHavana(); break;
             case FiestaSkin.Pinata: BuildPinata(); break;
             case FiestaSkin.Flamenco: BuildFlamenco(); break;
+            default: BuildFun(); break;
         }
         BuildBloomVolume();
     }
@@ -834,6 +843,16 @@ public class FiestaEnvironment : MonoBehaviour, IEnvironmentDecorator, IThemePal
                 case -15:   // fountain jet: jumps on the kick
                     f.t.localScale = new Vector3(1f, 0.8f + 1.4f * kick * Mathf.Max(0.5f, energy) + 0.3f * Mathf.Sin(t * 5f + f.seed), 1f);
                     break;
+                case -17:   // bounce: hops on the kick from its base height (giant fruit, beach balls, floating sweets)
+                {
+                    var lp = f.t.localPosition;
+                    lp.y = f.basePos.y + f.speed * Mathf.Max(0.4f, energy) * kick + 0.15f * Mathf.Sin(t * 1.3f + f.seed);
+                    f.t.localPosition = lp;
+                    break;
+                }
+                case -18:   // spin about the road axis (a standing donut rolling, a searchlight sweeping)
+                    f.t.localRotation = Quaternion.Euler(f.basePos.x, f.basePos.y, t * f.speed + f.seed * 50f);
+                    break;
                 case -16:   // sombrero: spins slowly
                 {
                     var e = f.t.localEulerAngles;
@@ -897,6 +916,7 @@ public class FiestaEnvironment : MonoBehaviour, IEnvironmentDecorator, IThemePal
             q.t.localRotation = Quaternion.AngleAxis(t * 200f + q.seed * 60f, q.axis);
         }
 
+        FunUpdate(beats);
         if (glowSkyMat != null) glowSkyMat.SetFloat("_Intensity", 0.8f + 0.3f * barPulse * energy + 0.4f * drop);
         if (bloomVolume != null) bloomVolume.weight = dropBloom * drop * (0.55f + 0.45f * kick);
     }
