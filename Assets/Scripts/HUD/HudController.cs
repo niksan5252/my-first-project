@@ -181,6 +181,7 @@ public class HudController : MonoBehaviour
         string want = tier < 0 ? defaultLabel : ladderWords[tier];
         // Compared by text: a restyle (a theme change) puts the skin's own label back.
         if (tier == shownTier && comboLabel.text == want) return;
+        if (tier >= 0 && tier > shownTier && shownTier != -2) VoiceOver.Say(want);   // a new tier is called out
         shownTier = tier;
         comboLabel.text = want;
         comboLabel.rectTransform.localScale = Vector3.one * (1f + 0.07f * Mathf.Max(0, tier + 1));
@@ -309,6 +310,7 @@ public class HudController : MonoBehaviour
         bannerCount++;
         lastBannerSongTime = songTime;
         banner.Show(word, color, holdBeats);
+        VoiceOver.Say(word);
     }
 
     // --- combo pulse ---

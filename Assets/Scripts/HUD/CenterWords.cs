@@ -244,6 +244,7 @@ public class CenterWords : MonoBehaviour
         start = now;
         shownWord = m.word;
         main.text = m.word;
+        VoiceOver.Say(m.word);
         echo.text = m.word;
         // The echo is the same word at the size the main one actually ended up (long words shrink
         // to fit), so the two keep their proportions.
