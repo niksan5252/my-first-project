@@ -580,13 +580,16 @@ public class SilhouetteTrainerV5 : MonoBehaviour
                             tapping = Mathf.Max(tapping, w);
                             break;
                         }
-                        float out_ = g.outer ? s.kickOutOuter : s.kickOutInner;
+                        // A long strip on an outer lane is a wide lunge held (the user: the leg goes
+                        // well out to the side), a tap or an inner strip a plain step.
+                        bool lunge = g.kind == SilhouettePlannerV5.GestureKindV5.KickHold && g.outer;
+                        float out_ = lunge ? s.wideOut * 1.35f : g.outer ? s.kickOutOuter : s.kickOutInner;
                         // Lifted on the way there and back, flat on the tile at the note. Only
                         // this foot moves; the other stays pinned where the stance put it.
                         float lift = s.kickLift * 4f * w * (1f - w);
-                        Vector3 step = new Vector3(x * out_ * w, lift, s.kickForward * w);
+                        Vector3 step = new Vector3(x * out_ * w, lift, (lunge ? 0.3f : 1f) * s.kickForward * w);
                         if (w > footW[limb]) { footW[limb] = w; foot[limb] = step; }
-                        if (g.outer) body += new Vector3(x * out_ * s.kickBodyFollowOuter * w, 0f, 0f);
+                        if (g.outer) body += new Vector3(x * out_ * (lunge ? 0.3f : s.kickBodyFollowOuter) * w, lunge ? -s.wideSink * w : 0f, 0f);
                         tapping = Mathf.Max(tapping, w);
                         break;
                     }

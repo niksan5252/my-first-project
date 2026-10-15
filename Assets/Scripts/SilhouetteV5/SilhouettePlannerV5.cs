@@ -113,9 +113,10 @@ public static class SilhouettePlannerV5
         int PartnerOf(int k)
         {
             var a = chart[k];
-            if (a.type != CueType.Kick) return -1;
+            // Two feet at once: two Kicks, or two KickHolds (the wide stance held - video 20).
+            if (a.type != CueType.Kick && a.type != CueType.KickHold) return -1;
             for (int j = 0; j < chart.Count; j++)
-                if (j != k && chart[j].type == CueType.Kick && chart[j].lane != a.lane && Mathf.Abs(chart[j].time - a.time) < 0.03f) return j;
+                if (j != k && chart[j].type == a.type && chart[j].lane != a.lane && Mathf.Abs(chart[j].time - a.time) < 0.03f) return j;
             return -1;
         }
         bool OuterPairNear(float time)
@@ -123,7 +124,7 @@ public static class SilhouettePlannerV5
             for (int j = 0; j < chart.Count; j++)
             {
                 var b = chart[j];
-                if (b.type != CueType.Kick || b.lane != 0 || Mathf.Abs(b.time - time) > 1.2f * beat || Mathf.Abs(b.time - time) < 0.03f) continue;
+                if ((b.type != CueType.Kick && b.type != CueType.KickHold) || b.lane != 0 || Mathf.Abs(b.time - time) > 1.6f * beat || Mathf.Abs(b.time - time) < 0.03f) continue;
                 int p = PartnerOf(j);
                 if (p >= 0 && chart[p].lane == laneCount - 1) return true;
             }
@@ -197,6 +198,29 @@ public static class SilhouettePlannerV5
                 bool outerPair = lo == 0 && hi == laneCount - 1;
                 bool innerPair = lo == 1 && hi == laneCount - 2;
                 bool sidePair = hi - lo == 1 && !innerPair;
+                bool heldPair = c.type == CueType.KickHold;
+                if (heldPair && hi - lo >= 2)
+                {
+                    // Two long strips far apart (the user: "he doesn't jump his legs wide"): a hop out
+                    // wide onto the note, then the wide stance held for the strips' length.
+                    float len = Mathf.Max(c.duration, chart[mate].duration, 0.5f * beat);
+                    gestures.Add(new GestureV5
+                    {
+                        kind = GestureKindV5.Hop, side = 1, outer = true,
+                        start = c.time - 0.5f * beat, impact = c.time, holdEnd = c.time + 0.1f * beat, end = c.time + 0.5f * beat, note = i,
+                    });
+                    gestures.Add(new GestureV5
+                    {
+                        kind = GestureKindV5.Wide, side = 1, outer = true,
+                        start = c.time - 0.3f * beat, impact = c.time, holdEnd = c.time + len, end = c.time + len + 0.4f * beat, note = i,
+                    });
+                    continue;
+                }
+                if (heldPair)
+                {
+                    // Two strips side by side: both feet held there, just stand on them.
+                    continue;
+                }
                 if (outerPair || (innerPair && (OuterPairNear(c.time) || InnerPairNear(c.time, i, mate) || KickNear(c.time, i, mate, false) || !set.jumpForward.Valid)) || (sidePair && !(lo == 0 ? set.jumpSideScreenLeft : set.jumpSideScreenRight).Valid))
                 {
                     // A jumping jack: hop out wide on the outer pair, hop in on the inner one.
