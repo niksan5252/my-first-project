@@ -22,12 +22,14 @@ public partial class FiestaEnvironment
             case FiestaSkin.Camp: BuildCamp(); break;
             case FiestaSkin.Beach: BuildBeach(); break;
             case FiestaSkin.Fruit: BuildFruit(); break;
-            default: BuildRescue(); break;
+            case FiestaSkin.Rescue: BuildRescue(); break;
+            default: BuildHalloween(); break;
         }
     }
 
     private void FunUpdate(float beats)
     {
+        HalloweenUpdate(beats);
         for (int i = 0; i < searchlights.Count; i++)
             searchlights[i].localRotation = Quaternion.Euler(Mathf.Sin(Time.time * 0.5f + i) * 20f, 0f, Mathf.Sin(Time.time * 0.7f + i * 1.7f) * 40f);
         if (sirenRed.Count == 0) return;

@@ -12,7 +12,8 @@ public partial class RingArchFiesta
         : skin == FiestaSkin.Camp ? new Color(1f, 0.55f, 0.15f)
         : skin == FiestaSkin.Beach ? new Color(1f, 0.45f, 0.35f)
         : skin == FiestaSkin.Fruit ? new Color(1f, 0.55f, 0.1f)
-        : new Color(1f, 0.12f, 0.1f);
+        : skin == FiestaSkin.Rescue ? new Color(1f, 0.12f, 0.1f)
+        : HalloweenPrimary();
 
     private Color FunSecond() =>
         skin == FiestaSkin.Candy ? new Color(0.3f, 1f, 0.8f)
@@ -21,7 +22,8 @@ public partial class RingArchFiesta
         : skin == FiestaSkin.Camp ? new Color(0.3f, 1f, 0.6f)
         : skin == FiestaSkin.Beach ? new Color(0.1f, 0.95f, 0.9f)
         : skin == FiestaSkin.Fruit ? new Color(0.5f, 1f, 0.2f)
-        : new Color(0.15f, 0.45f, 1f);
+        : skin == FiestaSkin.Rescue ? new Color(0.15f, 0.45f, 1f)
+        : HalloweenSecond();
 
     private void BuildFun(Mesh cube, Mesh sphere, Mesh cyl, FiestaKit props, float c, float r, float a0, float a1)
     {
@@ -116,7 +118,7 @@ public partial class RingArchFiesta
                 Bloom(props.Spawn("pineapple", transform, new Vector3(0f, c + r - 0.2f, -0.3f), 2.4f, 0f, Color.white, 0.6f));
                 break;
             }
-            default:    // Rescue
+            case FiestaSkin.Rescue:
             {
                 float x = halfBase - 0.3f, top = apex - 1f;
                 foreach (int side in new[] { -1, 1 })
@@ -129,6 +131,9 @@ public partial class RingArchFiesta
                         Place(transform, "Stripe", cube, k % 2 == 0 ? matA : lightMat, new Vector3(side * x, 0.2f + k * 0.9f, -0.37f), new Vector3(0.72f, 0.45f, 0.04f));
                 break;
             }
+            default:
+                BuildHalloweenRing(cube, sphere, cyl, props, c, r, a0, a1);
+                break;
         }
     }
 }

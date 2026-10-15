@@ -18,6 +18,14 @@ public enum FiestaSkin
     Beach,      // a beach party: the sea, palms, umbrellas, bouncing beach balls, a lifeguard tower, sunset
     Fruit,      // a fruit paradise: giant fruit bouncing on the kick, smoothie cups, fruit garlands
     Rescue,     // a rescue city: fire trucks, ambulances and police with sirens on the beat, searchlights
+    // Video 20, Halloween (FiestaEnvironment.Halloween.cs):
+    Pumpkin,    // a pumpkin patch: carved pumpkins, scarecrows, autumn trees, a harvest moon
+    Haunted,    // a haunted graveyard: gravestones, iron fences, lanterns, floating ghosts
+    Witch,      // a witch forest: dark pines, glowing mushrooms, bubbling cauldrons, flying brooms
+    Zombie,     // a zombie town: ruined houses with flickering windows, wrecked cars, shambling zombies
+    Vampire,    // a vampire castle: battlements, red gothic windows, candles, coffins, bats, a blood moon
+    Swamp,      // a haunted swamp: black water, lilies, dead trees, will-o'-wisps, old boats
+    Monster,    // a monster party: dancing skeletons, speaker stacks, lasers, candy and pumpkins
 }
 
 /// Video 18's scenery ("Fiesta"): five Latin worlds, one per level, in the manner of LegendsEnvironment -

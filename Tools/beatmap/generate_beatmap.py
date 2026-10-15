@@ -1861,6 +1861,35 @@ CHARACTER_PLANS.update({
     # around the seven new moves (StarJump, Skater, Windmill, Ladder, Hopscotch, KneeClinch,
     # CrossJack); the familiar ones only as links between them. Each level leans on its own pair.
     # 1 Jurassic - big animals: star jumps and skater bounds.
+    # Video 20 (Halloween): seven new decks - each level pairs its moves differently from video 19.
+    "deck20-1": {
+        "deck": [(JACK, 2), (STEP_TAP, 2), (HIGH_LOW, 2), (CUMBIA, 2), (SKATER, 2), (ARC_PUNCH, 2), (LUNGE, 2), ("PunchHold", 2), (RAILS, 4), (DUCK, 1), (DODGE, 1), (WALL_RUN, 4)],
+        "spacing": DECK19_SPACING, "fill": STEP_TAP, "finale": JACK,
+    },
+    "deck20-2": {
+        "deck": [(SPEED_STEP, 2), (MARACAS, 2), (WINDMILL, 2), (STAR_JUMP, 2), (JAB_CROSS, 2), (KNEE_CLINCH, 2), (SWEEP, 2), (WIDE, 2), (CURB, 1), (SQUAT, 2), (DODGE, 1), (BALANCE, 2)],
+        "spacing": DECK19_SPACING, "fill": JAB_CROSS, "finale": STAR_JUMP,
+    },
+    "deck20-3": {
+        "deck": [(FAN, 2), (SALSA, 2), (LADDER, 2), (POWER_JUMP, 2), (STEP_TOUCH, 2), (ARC, 2), (PRESS_HOLD, 2), (TORERO, 2), (DUCK, 1), (WALL_RUN, 4), (CURB, 1)],
+        "spacing": DECK19_SPACING, "fill": STEP_TOUCH, "finale": POWER_JUMP,
+    },
+    "deck20-4": {
+        "deck": [(STEP_REACH, 2), (PUNCH_KICK, 2), (SHIFT, 2), (HOPSCOTCH, 2), (MIRROR, 2), (LEG_HOLD_PUNCH, 2), ("KickHold", 2), (RAILS_HIGH, 2), (DODGE, 1), (DUCK, 1), (SQUAT, 2)],
+        "spacing": DECK19_SPACING, "fill": STEP_REACH, "finale": HOPSCOTCH,
+    },
+    "deck20-5": {
+        "deck": [(JAB_KICK, 2), (SAMBA, 2), (CROSS_JACK, 2), (SPEED_PUNCH, 2), (SIDE_JUMP, 2), (HOLD_JAB, 2), (SQUAT_PUNCH, 2), (ARC, 2), (CURB, 1), (WALL_RUN, 4), (BALANCE, 2)],
+        "spacing": DECK19_SPACING, "fill": JAB_KICK, "finale": CROSS_JACK,
+    },
+    "deck20-6": {
+        "deck": [(MERENGUE, 2), (STEP_PAIR, 2), (CROSS, 2), (CHORD, 2), (PUNCH_PAIR, 2), (STEP_TOUCH, 2), (LUNGE, 2), (SWEEP, 2), (RAILS, 4), (DODGE, 1), (DUCK, 1), (SQUAT, 2)],
+        "spacing": DECK19_SPACING, "fill": STEP_TOUCH, "finale": CROSS,
+    },
+    "deck20-7": {
+        "deck": [(STAR_JUMP, 2), (POWER_JUMP, 2), (SALSA, 2), (MARACAS, 2), (JACK, 2), (CUMBIA, 2), (TORERO, 2), (KNEE_CLINCH, 2), ("PunchHold", 2), (DUCK, 1), (CURB, 1), (DODGE, 1)],
+        "spacing": DECK19_SPACING, "fill": MARACAS, "finale": STAR_JUMP,
+    },
     # Video 19: seven decks (plan_sets_deck), one per level, with as few moves shared between
     # levels as the catalogue allows - each level has its own signature moves; holds and walls
     # make up about 40% of every deck; single notes are a beat apart at least (sparser).
