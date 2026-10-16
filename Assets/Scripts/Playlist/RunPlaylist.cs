@@ -148,6 +148,13 @@ public class RunPlaylist : ScriptableObject
     // recorded, so the video opens straight on content.
     public bool recordFromContent;
     public string welcomeText = "WELCOME TO BEAT TUNNEL";
+    [Header("Video 20: watch to the end")]
+    public bool progressHud;                 // LEVEL k/N, a bar over the whole workout, the kcal counter, the SPEED ROUND
+    [Min(0f)] public float kcalPerMinute = 9f;   // dance cardio, for the counter and the outro card
+    public bool coachVoice;                  // the cards and level starts called out (Resources/Voice)
+    public bool favoriteQuestion;            // the outro asks which world was the favourite (comment the number)
+    public string spoilerSubtitle = "";      // under the SPOILER word, e.g. WAIT FOR THE FINAL LEVEL!
+    public string welcomeVoice = "";         // the voice clip for the welcome card (Resources/Voice key)
     // The combo rating under the number, by threshold (each word from its combo on).
     public string[] ratingWords = { "WELL DONE", "AWESOME", "FLAWLESS", "PERFECT", "THAT'S INCREDIBLE", "EPIC", "THAT'S AMAZING" };
     public int[] ratingCombos = { 10, 25, 45, 70, 100, 140, 190 };

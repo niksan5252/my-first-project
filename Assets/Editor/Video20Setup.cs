@@ -30,7 +30,7 @@ public static class Video20Setup
     {
         new Skin
         {
-            id = FiestaSkin.Pumpkin, name = "Pumpkin", source = "Rainbow", track = "track20_1", beatmap = "track20_1.json",
+            id = FiestaSkin.Pumpkin, name = "Pumpkin", source = "Rainbow", track = "track20_3", beatmap = "track20_3.json",
             primary = new Color(1f, 0.5f, 0.05f), secondary = new Color(0.6f, 0.2f, 1f),
             floor = new Color(0.04f, 0.025f, 0.02f), grid = new Color(1f, 0.5f, 0.1f), lane = new Color(0.65f, 0.3f, 1f),
             fog = new Color(0.1f, 0.05f, 0.1f), light = new Color(0.9f, 0.85f, 1f), filter = new Color(1f, 0.97f, 0.97f),
@@ -39,7 +39,7 @@ public static class Video20Setup
         },
         new Skin
         {
-            id = FiestaSkin.Haunted, name = "Haunted", source = "BluePink", track = "track20_2", beatmap = "track20_2.json",
+            id = FiestaSkin.Haunted, name = "Haunted", source = "BluePink", track = "track20_6", beatmap = "track20_6.json",
             primary = new Color(0.55f, 1f, 0.95f), secondary = new Color(0.6f, 0.3f, 1f),
             floor = new Color(0.02f, 0.03f, 0.04f), grid = new Color(0.5f, 1f, 0.9f), lane = new Color(0.65f, 0.35f, 1f),
             fog = new Color(0.04f, 0.07f, 0.08f), light = new Color(0.9f, 0.85f, 1f), filter = new Color(1f, 0.97f, 0.97f),
@@ -48,7 +48,7 @@ public static class Video20Setup
         },
         new Skin
         {
-            id = FiestaSkin.Witch, name = "Witch", source = "CyberGreen", track = "track20_3", beatmap = "track20_3.json",
+            id = FiestaSkin.Witch, name = "Witch", source = "CyberGreen", track = "track20_4", beatmap = "track20_4.json",
             primary = new Color(0.3f, 1f, 0.3f), secondary = new Color(0.7f, 0.3f, 1f),
             floor = new Color(0.02f, 0.02f, 0.04f), grid = new Color(0.35f, 1f, 0.35f), lane = new Color(0.75f, 0.35f, 1f),
             fog = new Color(0.05f, 0.03f, 0.09f), light = new Color(0.9f, 0.85f, 1f), filter = new Color(1f, 0.97f, 0.97f),
@@ -57,7 +57,7 @@ public static class Video20Setup
         },
         new Skin
         {
-            id = FiestaSkin.Zombie, name = "Zombie", source = "CyberGreen", track = "track20_4", beatmap = "track20_4.json",
+            id = FiestaSkin.Zombie, name = "Zombie", source = "CyberGreen", track = "track20_5", beatmap = "track20_5.json",
             primary = new Color(1f, 0.6f, 0.15f), secondary = new Color(0.5f, 1f, 0.2f),
             floor = new Color(0.03f, 0.03f, 0.03f), grid = new Color(1f, 0.6f, 0.15f), lane = new Color(0.55f, 1f, 0.25f),
             fog = new Color(0.07f, 0.08f, 0.04f), light = new Color(0.9f, 0.85f, 1f), filter = new Color(1f, 0.97f, 0.97f),
@@ -66,7 +66,7 @@ public static class Video20Setup
         },
         new Skin
         {
-            id = FiestaSkin.Vampire, name = "Vampire", source = "BluePink", track = "track20_5", beatmap = "track20_5.json",
+            id = FiestaSkin.Vampire, name = "Vampire", source = "BluePink", track = "track20_7", beatmap = "track20_7.json",
             primary = new Color(1f, 0.05f, 0.15f), secondary = new Color(0.55f, 0.2f, 1f),
             floor = new Color(0.04f, 0.015f, 0.02f), grid = new Color(1f, 0.1f, 0.2f), lane = new Color(0.6f, 0.25f, 1f),
             fog = new Color(0.1f, 0.02f, 0.05f), light = new Color(0.9f, 0.85f, 1f), filter = new Color(1f, 0.97f, 0.97f),
@@ -75,7 +75,7 @@ public static class Video20Setup
         },
         new Skin
         {
-            id = FiestaSkin.Swamp, name = "Swamp", source = "CyberGreen", track = "track20_6", beatmap = "track20_6.json",
+            id = FiestaSkin.Swamp, name = "Swamp", source = "CyberGreen", track = "track20_2", beatmap = "track20_2.json",
             primary = new Color(0.4f, 1f, 0.7f), secondary = new Color(0.7f, 1f, 0.2f),
             floor = new Color(0.02f, 0.03f, 0.02f), grid = new Color(0.4f, 1f, 0.7f), lane = new Color(0.75f, 1f, 0.25f),
             fog = new Color(0.03f, 0.07f, 0.05f), light = new Color(0.9f, 0.85f, 1f), filter = new Color(1f, 0.97f, 0.97f),
@@ -84,7 +84,7 @@ public static class Video20Setup
         },
         new Skin
         {
-            id = FiestaSkin.Monster, name = "Monster", source = "Rainbow", track = "track20_7", beatmap = "track20_7.json",
+            id = FiestaSkin.Monster, name = "Monster", source = "Rainbow", track = "track20_1", beatmap = "track20_1.json",
             primary = new Color(1f, 0.5f, 0.05f), secondary = new Color(0.65f, 0.25f, 1f),
             floor = new Color(0.04f, 0.02f, 0.05f), grid = new Color(1f, 0.5f, 0.1f), lane = new Color(0.7f, 0.3f, 1f),
             fog = new Color(0.09f, 0.04f, 0.12f), light = new Color(0.9f, 0.85f, 1f), filter = new Color(1f, 0.97f, 0.97f),
@@ -142,8 +142,26 @@ public static class Video20Setup
         p.loopVolume = 0.22f;
         p.loopBars = 4;
         p.welcomeText = "HAPPY HALLOWEEN";
+        // Video 20, "watch to the end": a spoiler of the last levels up front, the progress strip
+        // with kcal and a SPEED ROUND, the coach calling the cards, the favourite-world question.
+        p.progressHud = true;
+        p.kcalPerMinute = 9f;
+        p.coachVoice = true;
+        p.favoriteQuestion = true;
+        p.spoilerSubtitle = "WAIT FOR THE FINAL LEVEL!";
+        p.welcomeVoice = "HAPPY_HALLOWEEN";
+        p.outroSeconds = 36f;
 
         p.segments = new List<PlaylistSegment>();
+        // The spoiler: the loudest 4 s of level 5 (Vampire) and of the finale (Monster Party).
+        foreach (var (level, from, to) in new[] { (5, 48.9f, 52.4f), (7, 63.6f, 67.6f) })
+            p.segments.Add(new PlaylistSegment
+            {
+                label = "Spoiler " + skins[level - 1].name, role = PlaylistSegmentRole.Spoiler,
+                track = tracks[level - 1], beatmapFileName = skins[level - 1].beatmap, theme = themes[level - 1],
+                clipStart = from, clipEnd = to, transitionIn = PlaylistTransition.Cut, transitionSeconds = 2f,
+                transitionLook = PlaylistTransitionLook.Veil,
+            });
         for (int i = 0; i < skins.Length; i++)
             p.segments.Add(new PlaylistSegment
             {
@@ -166,7 +184,7 @@ public static class Video20Setup
     private static readonly HashSet<string> SetHere = new HashSet<string>
     {
         "preRoll", "trainerFilmed", "trainerClassic", "trainerV5", "trainerMocap3D", "hideTrainer", "trainerTextured", "trainerPanelInThemeColors",
-        "retention", "recordFromContent",
+        "retention", "recordFromContent", "progressHud", "coachVoice", "favoriteQuestion",
     };
 
     private static void CopyUnsetFlags(RunPlaylist from, RunPlaylist to)

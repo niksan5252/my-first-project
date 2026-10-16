@@ -17,6 +17,13 @@ public static class VoiceOver
     private static float lastTime = -10f;
     public static int Said { get; private set; }   // words spoken this session (a check for tests)
 
+    /// Said whatever the gap: the coach's lines on the cards and level starts (video 20).
+    public static void SayNow(string key)
+    {
+        lastTime = -10f;
+        Say(key);
+    }
+
     public static void Say(string word)
     {
         if (string.IsNullOrEmpty(word) || !Application.isPlaying) return;

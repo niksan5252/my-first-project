@@ -1018,6 +1018,9 @@ def apply_workout(events: List[Event], sets: List[WorkoutSet], beat: float,
         # --spacing-tolerance forgives a floor missed by rounding: on the grid detector two
         # notes exactly N beats apart can come out a hair under N beats of the fitted period.
         floor = (spacing.get(block.exercise, 0.5) - cfg.spacing_tolerance) * beat
+        sr = _SPEED_ROUND[0]
+        if sr and sr[0] <= block.start < sr[1]:
+            floor = max(0.45 * beat, floor * 0.5)      # the speed round: twice as many notes
         last = -1e9
         chosen: List[Event] = []
         for ev in inside:
@@ -2144,9 +2147,14 @@ def plan_sets_deck(bar_lines: np.ndarray, bar_map: List[str], rest_beats: float,
         if history and ex in DECK_HOLDS and history[-1] in DECK_HOLDS and ex not in OBSTACLE_SETS: return False
         return True
 
-    def draw(max_bars: int, prefer_hold: bool) -> Optional[int]:
+    def draw(max_bars: int, prefer_hold: bool, at: float = -1.0) -> Optional[int]:
         if len(queue) < 3: refill()
         candidates = [j for j, i in enumerate(queue) if deck[i][1] <= max_bars and ok(i)]
+        sr = _SPEED_ROUND[0]
+        if sr and sr[0] - 1.0 <= at < sr[1]:
+            fast = [j for j in candidates if deck[queue[j]][0] not in DECK_HOLDS and deck[queue[j]][0] not in OBSTACLE_SETS]
+            candidates = fast or candidates
+            prefer_hold = False
         fresh = [j for j in candidates if deck[queue[j]][0] not in history[-3:]]
         candidates = fresh or candidates     # a move does not come back within three sets if avoidable
         if prefer_hold:
@@ -2160,7 +2168,7 @@ def plan_sets_deck(bar_lines: np.ndarray, bar_map: List[str], rest_beats: float,
         quiet = bar < len(bar_map) and bar_map[bar] != "#"
         ahead = [d for d in drops if bar < d]
         room = (ahead[0] - bar) if ahead else 64
-        i = draw(min(room, 64), quiet)
+        i = draw(min(room, 64), quiet, float(bar_lines[bar]))
         if i is None:
             ex, bars, mirror = plan["fill"], 1, len(sets) % 2 == 1
         else:
@@ -2261,6 +2269,8 @@ def finale(sets: List[WorkoutSet]) -> List[WorkoutSet]:
 _FINALE: List[Optional[str]] = [None]
 # The bar a competitor-style plan starts on: the --intro-rest line, so a held pose there is not cut.
 _START_BAR: List[int] = [0]
+# Video 20: a SPEED ROUND window (seconds) - denser notes, no holds or walls (--speed-round).
+_SPEED_ROUND: List[Optional[Tuple[float, float]]] = [None]
 
 
 def mirror_sets(events: List[Event], sets: List[WorkoutSet], lane_count: int) -> None:
@@ -3100,6 +3110,9 @@ def analyse(path: Path, cfg) -> Tuple[List[Event], float, float, int, List[Worko
 
         set_bars_for = parse_mapping(cfg.set_bars_for, {}, "--set-bars-for",
                                      lambda raw, name, chunk: _positive_int(raw, name, chunk))
+        if cfg.speed_round:
+            a_, _, b_ = cfg.speed_round.partition(":")
+            _SPEED_ROUND[0] = (float(a_), float(b_))
         if cfg.pattern in CHARACTER_PLANS:
             spacing.update(CHARACTER_PLANS[cfg.pattern].get("spacing", {}))
             _FINALE[0] = CHARACTER_PLANS[cfg.pattern].get("finale")
@@ -3335,6 +3348,9 @@ def to_document(events: List[Event], bpm: float, track: str, audio_offset: float
         "generator": GENERATOR,
         "events": payload,
     }
+    if _SPEED_ROUND[0]:
+        document["speedRoundStart"] = round(_SPEED_ROUND[0][0], 3)
+        document["speedRoundEnd"] = round(_SPEED_ROUND[0][1], 3)
 
     # The set plan, for anything that wants to know where a block of work ends - the HUD's
     # end-of-set banner does. Written only in workout mode, where sets exist at all; a chart
@@ -3545,6 +3561,8 @@ def build_parser() -> argparse.ArgumentParser:
     g.add_argument("--intro-melody-bars", type=int, default=8,
                    help="with both --intro-arcs and --intro-melody-onsets: the last N bars before the drums "
                         "follow the melody, the whole phrases before them are circles (default 8)")
+    g.add_argument("--speed-round", default=None,
+                   help="video 20: 'start:end' seconds of a SPEED ROUND - denser notes, no holds or walls; written to the JSON")
     g.add_argument("--intro-rest", type=float, default=0.0,
                    help="seconds of music at the start with no notes at all, rounded to the nearest bar line")
     g.add_argument("--show-sets", action="store_true",

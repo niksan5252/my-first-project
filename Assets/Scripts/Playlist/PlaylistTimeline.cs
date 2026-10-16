@@ -20,6 +20,7 @@ public sealed class PlaylistTimeline
         public float Offset => audioStart - segment.clipStart;   // track time -> song time
         public bool HasTransitionIn => !float.IsNegativeInfinity(inStart);
         public float transitionLength;
+        public float speedStart = float.NaN, speedEnd = float.NaN;   // the chart's SPEED ROUND on the song clock (video 20)
         public bool IsCut => HasTransitionIn && segment.transitionIn == PlaylistTransition.Cut;
         public bool IsInterlude => HasTransitionIn && segment.transitionIn == PlaylistTransition.Interlude;
     }
@@ -115,6 +116,11 @@ public sealed class PlaylistTimeline
             // The grid is anchored on the chart's first note, as HudBeatClock and ClubBeat do.
             float first = charts[i].cues.Count > 0 ? charts[i].cues[0].time + meta.audioOffset : 0f;
             span.gridAnchor = span.Offset + first;
+            if (seg.role == PlaylistSegmentRole.Level && meta.speedRoundEnd > meta.speedRoundStart)
+            {
+                span.speedStart = span.Offset + meta.speedRoundStart;
+                span.speedEnd = span.Offset + meta.speedRoundEnd;
+            }
             t.spans.Add(span);
         }
     }

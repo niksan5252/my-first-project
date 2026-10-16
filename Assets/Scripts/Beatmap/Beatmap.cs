@@ -58,6 +58,7 @@ public class Beatmap
     public string track;       // which audio file this was generated from; diagnostics only
     public float bpm;          // tempo, for anything that wants to pulse with it
     public float audioOffset;  // global shift in seconds, for calibrating the audio path's latency
+    public float speedRoundStart, speedRoundEnd;   // video 20: a SPEED ROUND window in track seconds (0/0 = none)
     public string generator;   // what produced this file, for when results drift
     public BeatmapEvent[] events;
     // Optional. A chart without it plays identically; only the HUD's set banners go quiet.

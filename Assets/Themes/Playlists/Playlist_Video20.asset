@@ -14,10 +14,30 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::RunPlaylist
   title: Video20
   segments:
-  - label: Level 1 Pumpkin
-    role: 0
+  - label: Spoiler Vampire
+    role: 1
+    track: {fileID: 8300000, guid: 4a1cd70e01706654db1b30cee2ab7d56, type: 3}
+    beatmapFileName: track20_7.json
+    theme: {fileID: 11400000, guid: eb04cb617205b594d9fe6f87d9d3f2dc, type: 2}
+    clipStart: 48.9
+    clipEnd: 52.4
+    transitionIn: 2
+    transitionSeconds: 2
+    transitionLook: 0
+  - label: Spoiler Monster
+    role: 1
     track: {fileID: 8300000, guid: 07c4484cf4b02fb488425df74cdfbbf5, type: 3}
     beatmapFileName: track20_1.json
+    theme: {fileID: 11400000, guid: 908cd599559c9224ebe8c98e3801a3e7, type: 2}
+    clipStart: 63.6
+    clipEnd: 67.6
+    transitionIn: 2
+    transitionSeconds: 2
+    transitionLook: 0
+  - label: Level 1 Pumpkin
+    role: 0
+    track: {fileID: 8300000, guid: 6f5004d4113888248a051a5788df24e3, type: 3}
+    beatmapFileName: track20_3.json
     theme: {fileID: 11400000, guid: f693910a6146e4742834b4924fbc699b, type: 2}
     clipStart: 0
     clipEnd: 0
@@ -26,8 +46,8 @@ MonoBehaviour:
     transitionLook: 0
   - label: Level 2 Haunted
     role: 0
-    track: {fileID: 8300000, guid: e0166d301dd417049a5c91d820de375f, type: 3}
-    beatmapFileName: track20_2.json
+    track: {fileID: 8300000, guid: 738ecf754dd5cae449faf94f9bb3df6a, type: 3}
+    beatmapFileName: track20_6.json
     theme: {fileID: 11400000, guid: 2b008db67c871504aa13138b06829818, type: 2}
     clipStart: 0
     clipEnd: 0
@@ -36,8 +56,8 @@ MonoBehaviour:
     transitionLook: 0
   - label: Level 3 Witch
     role: 0
-    track: {fileID: 8300000, guid: 6f5004d4113888248a051a5788df24e3, type: 3}
-    beatmapFileName: track20_3.json
+    track: {fileID: 8300000, guid: 68e079145229e4f48895ac3e90a27cac, type: 3}
+    beatmapFileName: track20_4.json
     theme: {fileID: 11400000, guid: c062f1c005cb2f84ebda06a4ecf1eb1d, type: 2}
     clipStart: 0
     clipEnd: 0
@@ -46,8 +66,8 @@ MonoBehaviour:
     transitionLook: 0
   - label: Level 4 Zombie
     role: 0
-    track: {fileID: 8300000, guid: 68e079145229e4f48895ac3e90a27cac, type: 3}
-    beatmapFileName: track20_4.json
+    track: {fileID: 8300000, guid: e6586ddc3d148a04eb98da0cbb449496, type: 3}
+    beatmapFileName: track20_5.json
     theme: {fileID: 11400000, guid: 1fb92e305d0b95745b8ffa5dd3399a0a, type: 2}
     clipStart: 0
     clipEnd: 0
@@ -56,8 +76,8 @@ MonoBehaviour:
     transitionLook: 0
   - label: Level 5 Vampire
     role: 0
-    track: {fileID: 8300000, guid: e6586ddc3d148a04eb98da0cbb449496, type: 3}
-    beatmapFileName: track20_5.json
+    track: {fileID: 8300000, guid: 4a1cd70e01706654db1b30cee2ab7d56, type: 3}
+    beatmapFileName: track20_7.json
     theme: {fileID: 11400000, guid: eb04cb617205b594d9fe6f87d9d3f2dc, type: 2}
     clipStart: 0
     clipEnd: 0
@@ -66,8 +86,8 @@ MonoBehaviour:
     transitionLook: 0
   - label: Level 6 Swamp
     role: 0
-    track: {fileID: 8300000, guid: 738ecf754dd5cae449faf94f9bb3df6a, type: 3}
-    beatmapFileName: track20_6.json
+    track: {fileID: 8300000, guid: e0166d301dd417049a5c91d820de375f, type: 3}
+    beatmapFileName: track20_2.json
     theme: {fileID: 11400000, guid: 4185602922dd1ba418b359d7d10b54f5, type: 2}
     clipStart: 0
     clipEnd: 0
@@ -76,8 +96,8 @@ MonoBehaviour:
     transitionLook: 0
   - label: Level 7 Monster
     role: 0
-    track: {fileID: 8300000, guid: 4a1cd70e01706654db1b30cee2ab7d56, type: 3}
-    beatmapFileName: track20_7.json
+    track: {fileID: 8300000, guid: 07c4484cf4b02fb488425df74cdfbbf5, type: 3}
+    beatmapFileName: track20_1.json
     theme: {fileID: 11400000, guid: 908cd599559c9224ebe8c98e3801a3e7, type: 2}
     clipStart: 0
     clipEnd: 0
@@ -106,12 +126,18 @@ MonoBehaviour:
   retention: 1
   interludeSeconds: 13
   introCardsSeconds: 9
-  outroSeconds: 26
+  outroSeconds: 36
   endScreenSeconds: 20
   loopVolume: 0.22
   loopBars: 4
   recordFromContent: 1
   welcomeText: HAPPY HALLOWEEN
+  progressHud: 1
+  kcalPerMinute: 9
+  coachVoice: 1
+  favoriteQuestion: 1
+  spoilerSubtitle: WAIT FOR THE FINAL LEVEL!
+  welcomeVoice: HAPPY_HALLOWEEN
   ratingWords:
   - WELL DONE
   - AWESOME

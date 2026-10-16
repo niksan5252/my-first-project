@@ -96,6 +96,7 @@ public class PlaylistDirector : MonoBehaviour
         {
             overlay = gameObject.AddComponent<RetentionOverlay>();
             overlay.Configure(this, spawner);
+            if (list.progressHud) gameObject.AddComponent<PlaylistProgressHud>().Configure(this, spawner);
             if (hud != null) hud.UseRatingLadder(list.ratingWords, list.ratingCombos);
         }
 

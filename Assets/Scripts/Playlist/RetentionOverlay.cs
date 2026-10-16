@@ -32,6 +32,7 @@ public class RetentionOverlay : MonoBehaviour
         public Color color = Color.white;
         public bool endScreen;
         public float freezeAt = -1f;     // Frozen: the moment whose frame is shown
+        public string voice;             // a Resources/Voice clip said as the card comes up (video 20)
     }
 
     private PlaylistDirector director;
@@ -45,7 +46,7 @@ public class RetentionOverlay : MonoBehaviour
     private RectTransform lines;
     private readonly List<RectTransform> lineBars = new List<RectTransform>();
     private readonly List<Image> lineImages = new List<Image>();
-    private TMP_Text bigText, smallText, spoilerText;
+    private TMP_Text bigText, smallText, spoilerText, spoilerSub;
     private TMP_Text endSubscribe, endThanks, endNext;
     private RectTransform endFrames;
     private readonly List<float> captures = new List<float>();
@@ -81,18 +82,25 @@ public class RetentionOverlay : MonoBehaviour
                 if (tl.spans[k - 1].segment.role == PlaylistSegmentRole.Spoiler)
                 {
                     float c = d / 3f;
-                    Add(a, a + c, Back.Black, list.welcomeText, null);
-                    Add(a + c, a + 2f * c, Back.Black, "⚠ THIS VIDEO HAS " + levels + " LEVELS!", "don't leave between tracks");
-                    Add(a + 2f * c, a + d, Back.Black, "HAVE FUN!", null);
+                    Add(a, a + c, Back.Black, list.welcomeText, null).voice = list.coachVoice ? list.welcomeVoice : null;
+                    Add(a + c, a + 2f * c, Back.Black, "⚠ THIS VIDEO HAS " + levels + " LEVELS!", "don't leave between tracks").voice = Say(list, "LEVELS_" + levels);
+                    Add(a + 2f * c, a + d, Back.Black, "HAVE FUN!", null).voice = Say(list, "HAVE_FUN");
                 }
                 else
                 {
                     bool final = level + 1 == levels;
-                    Add(a, a + 2.5f, Back.Frozen, "VICTORY", null, Gold).freezeAt = a;
-                    Add(a + 2.5f, a + 5.5f, Back.Frozen, "LEVEL " + level + "/" + levels + " COMPLETE!", null).freezeAt = a;
-                    Add(a + 5.5f, a + 9f, Back.Frozen, level == 1 ? "VERY GOOD!" : "INSANE!", level == 1 ? "THAT WAS JUST A WARM-UP!" : "YOU'RE ON FIRE!").freezeAt = a;
-                    Add(a + 9f, a + d, Back.Frozen, final ? "FINAL LEVEL UNLOCKED" : "NEXT LEVEL!",
-                        "Pause anytime you need — catch your breath and jump back in", final ? Gold : Color.white).freezeAt = a;
+                    var v = Add(a, a + 2.5f, Back.Frozen, "VICTORY", null, Gold); v.freezeAt = a; v.voice = Say(list, "VICTORY");
+                    var lc = Add(a + 2.5f, a + 5.5f, Back.Frozen, "LEVEL " + level + "/" + levels + " COMPLETE!", null); lc.freezeAt = a; lc.voice = Say(list, "LEVEL_COMPLETE");
+                    // Where the viewer stands (video 20): halfway, and two to go, are called out.
+                    bool half = list.coachVoice && levels >= 5 && level == levels / 2 + (levels % 2);
+                    bool twoLeft = list.coachVoice && levels - level == 2;
+                    string big = level == 1 ? "VERY GOOD!" : half ? "HALFWAY THERE!" : twoLeft ? "ONLY 2 LEVELS LEFT!" : "INSANE!";
+                    string small = level == 1 ? "THAT WAS JUST A WARM-UP!" : half ? "KEEP GOING, YOU'RE DOING GREAT!" : twoLeft ? "THE BEST IS STILL TO COME!" : "YOU'RE ON FIRE!";
+                    var mid = Add(a + 5.5f, a + 9f, Back.Frozen, big, small); mid.freezeAt = a;
+                    mid.voice = Say(list, level == 1 ? "VERY_GOOD" : half ? "HALFWAY_THERE" : twoLeft ? "ONLY_TWO_LEFT" : "INSANE");
+                    var nx = Add(a + 9f, a + d, Back.Frozen, final ? "FINAL LEVEL UNLOCKED" : "NEXT LEVEL!",
+                        "Pause anytime you need — catch your breath and jump back in", final ? Gold : Color.white);
+                    nx.freezeAt = a; nx.voice = Say(list, final ? "FINAL_LEVEL" : "NEXT_LEVEL");
                 }
             }
             level++;
@@ -100,15 +108,41 @@ public class RetentionOverlay : MonoBehaviour
         if (tl.Outro > 0f)
         {
             float a = tl.MusicEnd, end = tl.Length, screen = Mathf.Min(list.endScreenSeconds, tl.Outro - 4f);
-            Add(a, a + 2.5f, Back.Frozen, "VICTORY", null, Gold).freezeAt = a;
-            Add(a + 2.5f, end - screen, Back.Frozen, "I HOPE YOU ENJOYED IT!", null).freezeAt = a;
+            var v = Add(a, a + 2.5f, Back.Frozen, "VICTORY", null, Gold); v.freezeAt = a; v.voice = Say(list, "WORKOUT_COMPLETE");
+            float t0 = a + 2.5f, t1 = end - screen;
+            if (list.progressHud && list.kcalPerMinute > 0f && t1 - t0 > 9f)
+            {
+                // The result (video 20): the calories of the whole workout.
+                int kcal = Mathf.RoundToInt(PlaylistProgressHud.LevelSeconds(tl) / 60f * list.kcalPerMinute);
+                var k = Add(t0, t0 + 3.5f, Back.Frozen, "YOU BURNED " + kcal + " KCAL!", "AMAZING WORK!", Gold); k.freezeAt = a; k.voice = Say(list, "CALORIES");
+                t0 += 3.5f;
+            }
+            if (list.favoriteQuestion && t1 - t0 > 5f)
+            {
+                // A question to answer in the comments: which world was the best, by number.
+                var names = new List<string>();
+                foreach (var s in tl.spans)
+                    if (s.segment.role == PlaylistSegmentRole.Level)
+                    {
+                        string n = s.segment.label ?? "";
+                        int sp = n.IndexOf(' ', n.StartsWith("Level ") ? 6 : 0);
+                        names.Add((names.Count + 1) + " " + (sp >= 0 ? n.Substring(sp + 1) : n).ToUpperInvariant());
+                    }
+                var q = Add(t0, t1 - 2.5f, Back.Frozen, "WHICH WORLD WAS YOUR FAVORITE?", string.Join("  ·  ", names) + "  —  COMMENT THE NUMBER!");
+                q.freezeAt = a; q.voice = Say(list, "FAVORITE_WORLD");
+                t0 = t1 - 2.5f;
+            }
+            var h = Add(t0, t1, Back.Frozen, "I HOPE YOU ENJOYED IT!", null); h.freezeAt = a;
             var e = Add(end - screen, end + 5f, Back.Frozen, null, null);
             e.freezeAt = a;
             e.endScreen = true;
+            e.voice = Say(list, "SUBSCRIBE");
         }
         foreach (var c in cards) if (c.freezeAt >= 0f && !captures.Contains(c.freezeAt)) captures.Add(c.freezeAt);
         Build();
     }
+
+    private static string Say(RunPlaylist list, string key) => list.coachVoice ? key : null;
 
     private Card Add(float start, float end, Back back, string big, string small, Color? color = null)
     {
@@ -165,6 +199,11 @@ public class RetentionOverlay : MonoBehaviour
         spoilerText.color = SpoilerYellow;
         spoilerText.outlineWidth = 0.22f;
         spoilerText.outlineColor = new Color32(30, 20, 0, 255);
+        spoilerSub = Text("SpoilerSub", 64f, new Vector2(0f, 160f), 1700f);
+        spoilerSub.text = director != null && director.Playlist != null ? director.Playlist.spoilerSubtitle : "";
+        spoilerSub.color = Color.white;
+        spoilerSub.outlineWidth = 0.2f;
+        spoilerSub.outlineColor = new Color32(0, 0, 0, 255);
 
         // The end screen: two rows of words and two empty frames for the platform's end cards.
         endSubscribe = Text("Subscribe", 104f, new Vector2(0f, 400f), 1700f);
@@ -242,6 +281,7 @@ public class RetentionOverlay : MonoBehaviour
 
         bool spoiler = now >= spoilerStart && now < spoilerEnd;
         spoilerText.enabled = spoiler;
+        spoilerSub.enabled = spoiler && !string.IsNullOrEmpty(spoilerSub.text);
         if (spoiler)
         {
             float beat = Mathf.Repeat(now * 2f, 1f);
@@ -270,6 +310,7 @@ public class RetentionOverlay : MonoBehaviour
         smallText.enabled = words && !string.IsNullOrEmpty(card.small);
         lines.gameObject.SetActive(any);
         if (!any) { shown = null; return; }
+        if (shown != card && !string.IsNullOrEmpty(card.voice)) VoiceOver.SayNow(card.voice);
 
         float age = now - card.start, left = card.end - now;
         // In with a punch (0.6 -> 1.08 -> 1 over a quarter second), out with a fade.
