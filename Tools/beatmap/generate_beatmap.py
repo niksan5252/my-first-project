@@ -2118,6 +2118,30 @@ DECK_HOLDS = {"KickHold", "PunchHold", SWEEP, RAILS, ARC, LUNGE, PRESS_HOLD, KNE
               ARC_PUNCH, LEG_HOLD_PUNCH, WIDE, TORERO, SQUAT_PUNCH, HOLD_JAB, BALANCE, SQUAT}
 
 
+# Video 21 (9 levels, "make every level different"): the decks are dealt from four move families
+# (steps, arms, combos, jumps) plus holds and walls, each family rotated by level so that two
+# neighbouring levels share no move and a move comes back at the earliest four levels later.
+def _deal_decks_21() -> None:
+    steps = [STEP_TAP, STEP_TOUCH, STEP_REACH, STEP_PAIR, SPEED_STEP, MERENGUE, SALSA, CUMBIA, HOPSCOTCH]
+    arms = [PUNCH, HIGH_LOW, MIRROR, FAN, LADDER, SPEED_PUNCH, PUNCH_PAIR, JAB_CROSS, MARACAS]
+    combos = [PUNCH_KICK, JAB_KICK, WINDMILL, SKATER, CROSS_JACK, SAMBA, KICK]
+    jumps = [JACK, STAR_JUMP, POWER_JUMP, SIDE_JUMP, SHIFT, CHORD, CROSS]
+    holds = ["KickHold", "PunchHold", SWEEP, RAILS, ARC, LUNGE, PRESS_HOLD, KNEE_CLINCH, RAILS_HIGH,
+             ARC_PUNCH, LEG_HOLD_PUNCH, WIDE, TORERO, SQUAT_PUNCH, HOLD_JAB]
+    walls = [DODGE, DUCK, CURB, WALL_RUN, BALANCE, SQUAT]
+    bars = {RAILS: 4, WALL_RUN: 4, DODGE: 1, DUCK: 1, CURB: 1}
+    for i in range(9):
+        moves = [steps[(2 * i) % 9], steps[(2 * i + 1) % 9], arms[(2 * i + 4) % 9], arms[(2 * i + 5) % 9],
+                 combos[(2 * i) % 7], combos[(2 * i + 1) % 7], jumps[i % 7]]
+        picked = moves + [holds[(3 * i + k) % 15] for k in range(3)] + [walls[(3 * i + k) % 6] for k in range(3)]
+        CHARACTER_PLANS["deck21-%d" % (i + 1)] = {
+            "deck": [(ex, bars.get(ex, 2)) for ex in picked],
+            "spacing": DECK19_SPACING, "fill": moves[0], "finale": jumps[i % 7],
+        }
+
+
+_deal_decks_21()
+
 def plan_sets_deck(bar_lines: np.ndarray, bar_map: List[str], rest_beats: float, beat: float,
                    track_end: float, plan_name: str) -> List[WorkoutSet]:
     import zlib
@@ -2170,7 +2194,12 @@ def plan_sets_deck(bar_lines: np.ndarray, bar_map: List[str], rest_beats: float,
         room = (ahead[0] - bar) if ahead else 64
         i = draw(min(room, 64), quiet, float(bar_lines[bar]))
         if i is None:
-            ex, bars, mirror = plan["fill"], 1, len(sets) % 2 == 1
+            # A bar too short for any deck item (before a drop): one bar of a move from the deck,
+            # in turn and not one of the last three - never the same filler over and over.
+            fills = [e for e, _b, *_r in deck if e not in DECK_HOLDS and e not in OBSTACLE_SETS] or [plan["fill"]]
+            pick = [e for e in fills if e not in history[-3:]] or fills
+            ex = pick[len(sets) % len(pick)]
+            bars, mirror = 1, len(sets) % 2 == 1
         else:
             item = deck[i]
             ex, bars = item[0], item[1]
@@ -2260,7 +2289,7 @@ def plan_sets_character(bar_lines: np.ndarray, bar_map: List[str], rest_beats: f
 def finale(sets: List[WorkoutSet]) -> List[WorkoutSet]:
     """The competitor's last move of a level is the star; plans with a `finale` exercise end on it
     (applied by plan_sets_character's caller through _FINALE)."""
-    if _FINALE[0] and sets:
+    if _FINALE[0] and sets and _FINALE[0] not in [x.exercise for x in sets[-4:-1]]:
         sets[-1].exercise = _FINALE[0]
         sets[-1].mirror = False
     return sets
