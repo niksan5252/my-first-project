@@ -2121,7 +2121,7 @@ DECK_HOLDS = {"KickHold", "PunchHold", SWEEP, RAILS, ARC, LUNGE, PRESS_HOLD, KNE
 # Video 21 (9 levels, "make every level different"): the decks are dealt from four move families
 # (steps, arms, combos, jumps) plus holds and walls, each family rotated by level so that two
 # neighbouring levels share no move and a move comes back at the earliest four levels later.
-def _deal_decks_21() -> None:
+def _deal_decks_21(prefix: str = "deck21", count: int = 9, shift: int = 0) -> None:
     steps = [STEP_TAP, STEP_TOUCH, STEP_REACH, STEP_PAIR, SPEED_STEP, MERENGUE, SALSA, CUMBIA, HOPSCOTCH]
     arms = [PUNCH, HIGH_LOW, MIRROR, FAN, LADDER, SPEED_PUNCH, PUNCH_PAIR, JAB_CROSS, MARACAS]
     combos = [PUNCH_KICK, JAB_KICK, WINDMILL, SKATER, CROSS_JACK, SAMBA, KICK]
@@ -2130,17 +2130,20 @@ def _deal_decks_21() -> None:
              ARC_PUNCH, LEG_HOLD_PUNCH, WIDE, TORERO, SQUAT_PUNCH, HOLD_JAB]
     walls = [DODGE, DUCK, CURB, WALL_RUN, BALANCE, SQUAT]
     bars = {RAILS: 4, WALL_RUN: 4, DODGE: 1, DUCK: 1, CURB: 1}
-    for i in range(9):
-        moves = [steps[(2 * i) % 9], steps[(2 * i + 1) % 9], arms[(2 * i + 4) % 9], arms[(2 * i + 5) % 9],
-                 combos[(2 * i) % 7], combos[(2 * i + 1) % 7], jumps[i % 7]]
-        picked = moves + [holds[(3 * i + k) % 15] for k in range(3)] + [walls[(3 * i + k) % 6] for k in range(3)]
-        CHARACTER_PLANS["deck21-%d" % (i + 1)] = {
+    for n in range(count):
+        # `shift` moves every family's starting point, so another video gets other pairings.
+        i = n + shift
+        moves = [steps[(2 * i) % 9], steps[(2 * i + 1 + shift) % 9], arms[(2 * i + 4) % 9], arms[(2 * i + 5 + shift) % 9],
+                 combos[(2 * i) % 7], combos[(2 * i + 1 + shift) % 7], jumps[(i + shift) % 7]]
+        picked = moves + [holds[(3 * i + k + shift) % 15] for k in range(3)] + [walls[(3 * n + k) % 6] for k in range(3)]
+        CHARACTER_PLANS["%s-%d" % (prefix, n + 1)] = {
             "deck": [(ex, bars.get(ex, 2)) for ex in picked],
-            "spacing": DECK19_SPACING, "fill": moves[0], "finale": jumps[i % 7],
+            "spacing": DECK19_SPACING, "fill": moves[0], "finale": jumps[(i + shift) % 7],
         }
 
 
-_deal_decks_21()
+_deal_decks_21()                    # video 21 (shift 0 keeps its charts as built)
+_deal_decks_21("deck22", 5, 5)      # video 22: five levels, other starting points
 
 def plan_sets_deck(bar_lines: np.ndarray, bar_map: List[str], rest_beats: float, beat: float,
                    track_end: float, plan_name: str) -> List[WorkoutSet]:

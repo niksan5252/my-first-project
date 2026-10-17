@@ -1,0 +1,43 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 94c0c3a29fbf85f4a89ff12e7504245b, type: 3}
+  m_Name: Theme_Neon22_DesertHighway
+  m_EditorClassIdentifier: Assembly-CSharp::TunnelTheme
+  primaryColor: {r: 1, g: 0.5, b: 0.1, a: 1}
+  secondaryColor: {r: 0.1, g: 0.95, b: 0.85, a: 1}
+  accentEmissionIntensity: 1.4
+  cueColorsByHand: 0
+  leftHandColor: {r: 0, g: 0.85, b: 1, a: 1}
+  rightHandColor: {r: 1, g: 0.05, b: 0.65, a: 1}
+  ringArchPrefab: {fileID: 0}
+  floorMaterialOverride: {fileID: 2100000, guid: dbbcc99929a08374ca9830a55e20209e, type: 2}
+  floorColor: {r: 0.05, g: 0.03, b: 0.02, a: 1}
+  floorMetallic: 0.15
+  floorSmoothness: 0.3
+  floorGridLineColor: {r: 1, g: 0.5, b: 0.1, a: 1}
+  floorGridGlintIntensity: 0.5
+  laneLineColor: {r: 0.1, g: 0.95, b: 0.85, a: 1}
+  laneLineEmissionIntensity: 0.55
+  fogColor: {r: 0.12, g: 0.06, b: 0.02, a: 1}
+  fogStartRatio: 0.35
+  fogEndRatio: 0.95
+  ambientOverride: {r: 0, g: 0, b: 0, a: 0}
+  lightIntensity: 0.3
+  lightColor: {r: 1, g: 0.85, b: 0.65, a: 1}
+  skyboxMaterial: {fileID: 0}
+  cameraBackgroundColor: {r: 0.1, g: 0.04, b: 0.02, a: 1}
+  environmentPrefab: {fileID: 1421131233351615597, guid: e882568a1c771074e8343a6d2ce33984, type: 3}
+  gatePrefab: {fileID: 0}
+  airParticles: {fileID: 11400000, guid: a6aa80c16bfb5614eb3a0d326585c632, type: 2}
+  postProcessingProfile: {fileID: 11400000, guid: e5ffc4f3e8f5fdd459d857cea05d02f3, type: 2}
+  hudComboTextColor: {r: 1, g: 0.5, b: 0.1, a: 1}
+  hudBannerBorderColor: {r: 0.1, g: 0.95, b: 0.85, a: 1}
