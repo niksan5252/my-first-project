@@ -63,7 +63,8 @@ public static class Video22Setup
         p.trainerMocap3D = false;
         p.trainerClassic = false;
         p.trainerV5 = true;
-        p.scrollSpeedScale = 1.75f;
+        p.scrollSpeedScale = 1.4f;            // x1.75 strobed on the dense octagon rings (the user: jerky)
+        p.motionBlur = 0.6f;
         p.cameraFov = 75f;
         p.hideTrainer = false;
         Video12Setup.EnsureTrainerV5();

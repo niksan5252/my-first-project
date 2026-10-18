@@ -132,6 +132,9 @@ public class RunPlaylist : ScriptableObject
     // (0 = the scene's own). Old playlists keep 1 and 0.
     public float scrollSpeedScale = 1f;
     public float cameraFov = 0f;
+    // Video 22 (the user: "the video is jerky"): at x1.75 the near neon rings jump a long way per
+    // frame and read as a strobe; object motion blur smears them like a real camera would. 0 = off.
+    [Range(0f, 1f)] public float motionBlur = 0f;
 
     [Header("Retention wrapper (video 9) - off for every older playlist")]
     // The whole wrapper: spoiler label over the Spoiler segments, the opening cards, the cards

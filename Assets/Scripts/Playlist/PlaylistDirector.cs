@@ -42,6 +42,24 @@ public class PlaylistDirector : MonoBehaviour
     private int segment = -1;
 
     public PlaylistTimeline Timeline => timeline;
+
+    /// A global volume with object motion blur for the whole run: the rings and notes rushing past
+    /// the lens are smeared over the frame instead of jumping (a strobe at high scroll speeds).
+    private void AddMotionBlur(float intensity)
+    {
+        var profile = ScriptableObject.CreateInstance<UnityEngine.Rendering.VolumeProfile>();
+        var mb = profile.Add<UnityEngine.Rendering.Universal.MotionBlur>(true);
+        mb.mode.Override(UnityEngine.Rendering.Universal.MotionBlurMode.CameraAndObjects);
+        mb.quality.Override(UnityEngine.Rendering.Universal.MotionBlurQuality.High);
+        mb.intensity.Override(intensity);
+        mb.clamp.Override(0.12f);
+        var go = new GameObject("MotionBlurVolume");
+        go.transform.SetParent(transform, false);
+        var v = go.AddComponent<UnityEngine.Rendering.Volume>();
+        v.isGlobal = true;
+        v.priority = 60f;
+        v.sharedProfile = profile;
+    }
     public RunPlaylist Playlist => playlist;
     public int Segment => segment;
     public static PlaylistDirector Active { get; private set; }
@@ -61,6 +79,7 @@ public class PlaylistDirector : MonoBehaviour
         if (tunnel != null && list.scrollSpeedScale > 0.01f && Mathf.Abs(list.scrollSpeedScale - 1f) > 0.001f)
             tunnel.SetScrollSpeed(tunnel.ScrollSpeed * list.scrollSpeedScale);
         if (list.cameraFov > 1f && Camera.main != null) Camera.main.fieldOfView = list.cameraFov;
+        if (list.motionBlur > 0f) AddMotionBlur(list.motionBlur);
         timeline = PlaylistTimeline.Build(list, solo, lanes, out string error);
         if (timeline == null)
         {

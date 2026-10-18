@@ -101,8 +101,9 @@ MonoBehaviour:
   trainerMocap3D: 0
   trainerClassic: 0
   trainerV5: 1
-  scrollSpeedScale: 1.75
+  scrollSpeedScale: 1.4
   cameraFov: 75
+  motionBlur: 0.6
   retention: 1
   interludeSeconds: 13
   introCardsSeconds: 9
