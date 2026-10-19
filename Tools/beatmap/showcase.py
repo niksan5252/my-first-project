@@ -78,11 +78,22 @@ ITEMS = [
 ]
 
 
+# Video 24: the new moves on their own, to train the trainer on them first.
+NEW_MOVES = [
+    ("Knee - high knees, left/right every half beat", "raw", [(k * 0.5, g.KNEE, 1 + k % 2, 0, None) for k in range(8)]),
+    ("SquatJump - squat, then jump (x3)", "raw", [(k * 2, g.SQUAT_JUMP_TYPE, 1, 0, None) for k in range(3)]),
+    ("Crunch - knee to opposite elbow, left/right", "raw", [(k, g.CRUNCH, 1 + k % 2, 0, None) for k in range(6)]),
+    ("HighKnees - set", "set", (g.HIGH_KNEES, 8, False)),
+    ("SquatJumps - set", "set", (g.SQUAT_JUMPS, 8, False)),
+    ("CrossCrunch - set", "set", (g.CROSS_CRUNCH, 8, False)),
+]
+
 # Items already signed off by the user, left out of the showcase so it starts on the next one to fix.
 DONE = {"Kick - inner lanes", "Kick - outer lanes", "Jump", "KickHold - left, then right",
         "KickHold - outer (leg out wide)", "Dodge - wall left, then right", "Duck - bar to duck under",
         "Curb - kerb to jump", "CurbGap - one leg (free lane 3)", "CurbSplit - wide stance"}
 ITEMS = [it for it in ITEMS if it[0] not in DONE]
+ITEMS = NEW_MOVES
 
 
 def main():

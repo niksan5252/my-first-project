@@ -626,6 +626,50 @@ public class SilhouetteTrainerV5 : MonoBehaviour
                         tapping = Mathf.Max(tapping, w);
                         break;
                     }
+                    case SilhouettePlannerV5.GestureKindV5.SquatJump:
+                    {
+                        // Down into a deep squat on the way in (arms forward for balance), then up:
+                        // in the air through the note, both arms straight overhead.
+                        float pre = Mathf.Clamp01((now - g.start) / Mathf.Max(0.01f, g.impact - g.start));
+                        float sink = pre < 0.75f ? Mathf.Sin(pre / 0.75f * Mathf.PI * 0.5f) : Mathf.Clamp01(1f - (pre - 0.75f) / 0.25f);
+                        float a0 = g.impact - 0.15f * (g.impact - g.start);
+                        float air = now > a0 && now < g.end ? Mathf.Sin(Mathf.PI * Mathf.Clamp01((now - a0) / Mathf.Max(0.01f, g.end - a0))) : 0f;
+                        float lift = air * s.jackHop * 2.4f;
+                        float o = s.wideOut * 0.55f * w;
+                        for (int k = 0; k < 2; k++)
+                        {
+                            Vector3 f = new Vector3(k == 0 ? -o : o, lift, 0f);
+                            if (w > footW[k]) { footW[k] = w; foot[k] = f; }
+                        }
+                        body += new Vector3(0f, (-s.wideSinkSquat * 0.9f * sink + lift) * w, 0f);
+                        for (int k = 0; k < 2; k++)
+                        {
+                            float hx = X(k == 0 ? 1 : -1);
+                            Vector3 sh = k == 0 ? lShoulder : rShoulder;
+                            Vector3 low = sh + new Vector3(hx * 0.12f, -0.25f, s.punchForward * 0.7f);
+                            Vector3 high = sh + new Vector3(hx * 0.12f, s.punchHoldRaise * 1.15f, 0.05f);
+                            Vector3 t = Vector3.Lerp(low, high, Mathf.Clamp01(air * 1.6f));
+                            Take(ref hand[k], w, t, sh + new Vector3(hx * 0.3f, air > 0.3f ? 0.1f : -0.25f, -0.1f));
+                        }
+                        tapping = Mathf.Max(tapping, w);
+                        break;
+                    }
+                    case SilhouettePlannerV5.GestureKindV5.Crunch:
+                    {
+                        // The knee on the sign's side comes up across the body; the opposite hand's
+                        // elbow drops to meet it; the other hand rests behind the head.
+                        int other = 1 - limb;
+                        Vector3 knee = new Vector3(-x * 0.08f, s.oneLegLift * 1.25f * w, s.oneLegForward * 1.3f * w);
+                        if (w > footW[limb]) { footW[limb] = w; foot[limb] = knee; }
+                        Vector3 osh = other == 0 ? lShoulder : rShoulder;
+                        Vector3 meet = osh + new Vector3(x * 0.3f, -0.5f, s.punchForward * 0.45f);
+                        Take(ref hand[other], w, meet, osh + new Vector3(x * 0.25f, -0.3f, 0.15f));
+                        Vector3 behindHead = shoulder + new Vector3(-x * 0.05f, 0.3f, -0.08f);
+                        Take(ref hand[limb], w, behindHead, shoulder + new Vector3(x * 0.35f, 0.15f, -0.05f));
+                        body += new Vector3(x * 0.03f * w, -0.04f * w, 0f);
+                        tapping = Mathf.Max(tapping, w);
+                        break;
+                    }
                     case SilhouettePlannerV5.GestureKindV5.HopOne:
                     {
                         // A hop on one foot: this knee up, the body (and the standing foot) in the

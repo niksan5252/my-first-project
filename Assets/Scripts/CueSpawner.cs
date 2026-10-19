@@ -37,7 +37,10 @@ using UnityEngine.Rendering;
 // glass rails over the two OUTER lanes, closing the road in from both sides (stand narrow, feet
 // together, on the inner lanes); and SquatHold - two laser lines along the floor's edges and a
 // bar over the road on every beat (a wide squat held, pulsing on the beat, under the bars).
-public enum CueType { Kick, Punch, Jump, PunchHold, KickHold, Dodge, Curb, Duck, PunchSweep, PunchHigh, CurbGap, CurbSplit, ArcHold, Rails, SquatHold }
+public enum CueType { Kick, Punch, Jump, PunchHold, KickHold, Dodge, Curb, Duck, PunchSweep, PunchHigh, CurbGap, CurbSplit, ArcHold, Rails, SquatHold,
+    // Video 24 (new moves, the competitor has none of them): High Knees - a sign at knee height;
+    // Squat Jump - a wide floor plate over both inner lanes; Cross Crunch - a sign at waist height.
+    Knee, SquatJump, Crunch }
 
 /// Spawns pooled cue markers across the tunnel's lanes at a height matching their type
 /// (Kick = floor, Punch = chest, Jump = a low hurdle bar), colors each cue instance
@@ -129,6 +132,8 @@ public class CueSpawner : MonoBehaviour
     // The overhead punch: well above the one-shot punch and the hold, a reach straight up. Only
     // the Halloween themes use it, whose arches stand clear of it (3.9 m out at this height).
     [SerializeField] private float punchHighHeight = 3.05f;
+    [SerializeField] private float kneeHeight = 0.95f;      // Knee: where the knee comes up to
+    [SerializeField] private float crunchHeight = 1.45f;    // Crunch: the waist, where elbow meets knee
 
     [Header("Visual Sizing (larger = more prominent)")]
     [SerializeField, Range(0.1f, 1f)] private float cueLaneWidthRatio = 0.8f;
@@ -539,7 +544,8 @@ public class CueSpawner : MonoBehaviour
     private static readonly CueType[] CueTypes = { CueType.Kick, CueType.Punch, CueType.PunchHold, CueType.KickHold,
                                                    CueType.Dodge, CueType.Curb, CueType.Duck, CueType.PunchSweep,
                                                    CueType.PunchHigh, CueType.CurbGap, CueType.CurbSplit, CueType.ArcHold,
-                                                   CueType.Rails, CueType.SquatHold };
+                                                   CueType.Rails, CueType.SquatHold,
+                                                   CueType.Knee, CueType.SquatJump, CueType.Crunch };
 
     // The border/tail color every cue's accent parts are blended toward — a deep ink-blue, so a
     // cyan cue gets a navy border and a magenta cue a dark plum one. Contrast, not bloom, is
@@ -1311,7 +1317,8 @@ public class CueSpawner : MonoBehaviour
 
         // An obstacle is a piece of the road rather than something standing in a lane: the kerb
         // and the barrier span the whole width, and the wall takes a SIDE, which the lane names.
-        float x = !obstacle ? tunnel.GetLaneCenterX(lane)
+        float x = type == CueType.SquatJump ? 0f
+                : !obstacle ? tunnel.GetLaneCenterX(lane)
                 : type == CueType.Dodge ? DodgeWallCenterX(side)
                 : 0f;
         float extent = obstacle ? ObstacleExtent(type, duration) : 0f;
@@ -1448,7 +1455,7 @@ public class CueSpawner : MonoBehaviour
     /// for the punches; see punchHitZoneZ.
     private float HitZoneZFor(CueType type) =>
         (type == CueType.Punch || type == CueType.PunchHold || type == CueType.PunchSweep || type == CueType.PunchHigh
-         || type == CueType.ArcHold) ? punchHitZoneZ : hitZoneZ;
+         || type == CueType.ArcHold || type == CueType.Knee || type == CueType.Crunch) ? punchHitZoneZ : hitZoneZ;
 
     private static bool IsObstacle(CueType type) =>
         type == CueType.Dodge || type == CueType.Curb || type == CueType.Duck || IsBalance(type);
@@ -1675,6 +1682,9 @@ public class CueSpawner : MonoBehaviour
             case CueType.PunchSweep: return punchHoldHeight; // sustained punches fly high, out of the one-shot lane
             case CueType.PunchHigh: return punchHighHeight;
             case CueType.ArcHold: return arcCenterHeight; // the root is the circle's height; the head rides round it
+            case CueType.Knee: return kneeHeight;
+            case CueType.Crunch: return crunchHeight;
+            case CueType.SquatJump: return kickHeight;
             // Jump's posts and every obstacle's box are authored from their own floor-level root.
             default: return 0f;
         }
@@ -1751,7 +1761,7 @@ public class CueSpawner : MonoBehaviour
         Vector3 worldPos = slots[slotIndex].type == CueType.ArcHold && slots[slotIndex].arcHead != null
             ? slots[slotIndex].arcHead.position
             : transform.TransformPoint(
-                new Vector3(tunnel.GetLaneCenterX(slots[slotIndex].lane), HeightForType(slots[slotIndex].type),
+                new Vector3(slots[slotIndex].type == CueType.SquatJump ? 0f : tunnel.GetLaneCenterX(slots[slotIndex].lane), HeightForType(slots[slotIndex].type),
                             HitZoneZFor(slots[slotIndex].type)));
 
         float punch = IntensityScale(slots[slotIndex].intensity);
@@ -2274,6 +2284,32 @@ public class CueSpawner : MonoBehaviour
                 var plate = CreateChevronPart(root.transform, "Plate", kickPlateMesh, Vector3.zero);
                 AttachIcon(root.transform, kickIconQuad, footIconMat, new Vector3(0f, kickThickness * 0.5f + IconLift, 0f));
 
+                return new CueVisual { root = root.transform, bright = new[] { plate }, frame = new[] { frame } };
+            }
+            case CueType.Knee:
+            case CueType.Crunch:
+            {
+                // The punch sign (an upright plate facing the camera), lower down, with its own icon.
+                var root = new GameObject(type == CueType.Knee ? "Cue_Knee" : "Cue_Crunch");
+                root.transform.SetParent(transform, false);
+                float plateZ = -(frameThickness * 0.5f + plateThickness * 0.5f - plateThickness * 0.55f);
+                var frame = CreateChevronPart(root.transform, "Frame", punchFrameMesh, Vector3.zero);
+                var plate = CreateChevronPart(root.transform, "Plate", punchPlateMesh, new Vector3(0f, 0f, plateZ));
+                AttachIcon(root.transform, punchIconQuad, NewIconMat(type == CueType.Knee ? "knee" : "crunch"), new Vector3(0f, 0f, plateZ - plateThickness * 0.5f - IconLift));
+                return new CueVisual { root = root.transform, bright = new[] { plate }, frame = new[] { frame } };
+            }
+            case CueType.SquatJump:
+            {
+                // The kick plate, stretched over both inner lanes: two feet together, then up.
+                var root = new GameObject("Cue_SquatJump");
+                root.transform.SetParent(transform, false);
+                var frame = CreateChevronPart(root.transform, "Frame", kickFrameMesh, new Vector3(0f, -kickThickness * 0.22f, 0f));
+                var plate = CreateChevronPart(root.transform, "Plate", kickPlateMesh, Vector3.zero);
+                const float wide = 2.15f;          // one lane's plate -> both inner lanes
+                frame.transform.localScale = new Vector3(wide, 1f, 1f);
+                plate.transform.localScale = new Vector3(wide, 1f, 1f);
+                var icon = AttachIcon(root.transform, kickIconQuad, NewIconMat("squatjump"), new Vector3(0f, kickThickness * 0.5f + IconLift, 0f));
+                icon.transform.localScale = Vector3.one * 1.35f;
                 return new CueVisual { root = root.transform, bright = new[] { plate }, frame = new[] { frame } };
             }
             case CueType.Punch:
@@ -2972,6 +3008,19 @@ public class CueSpawner : MonoBehaviour
         mat.SetFloat("_HoldBoost", 1f);
         mat.SetFloat("_HoldAlpha", 1f);
         return mat;
+    }
+
+    // The new moves' icons (video 24), loaded once from Resources/CueIcons.
+    private readonly Dictionary<string, Material> newIconMats = new Dictionary<string, Material>();
+    private Material NewIconMat(string name)
+    {
+        if (!newIconMats.TryGetValue(name, out var m))
+        {
+            var tex = Resources.Load<Texture2D>("CueIcons/" + name);
+            m = tex != null ? CreateIconMaterial(tex) : fistIconMat;
+            newIconMats[name] = m;
+        }
+        return m;
     }
 
     private Material CreateIconMaterial(Texture2D icon)

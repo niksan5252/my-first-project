@@ -879,6 +879,8 @@ MonoBehaviour:
   punchHeight: 2.05
   punchHoldHeight: 2.45
   punchHighHeight: 3.05
+  kneeHeight: 0.95
+  crunchHeight: 1.45
   cueLaneWidthRatio: 0.8
   kickDepth: 1.5
   kickThickness: 0.34
@@ -1345,8 +1347,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::RunProfileSelector
   profile: {fileID: 11400000, guid: b1604fb0cc4caf442871a594bb1f0fe6, type: 2}
-  playlist: {fileID: 11400000, guid: 447f41fb5785bd84b99ac544fafe214b, type: 2}
-  playlistSolo: -1
+  playlist: {fileID: 11400000, guid: eddd29c78df5c9042a331fc7fbbd9f95, type: 2}
+  playlistSolo: 0
   cueSpawner: {fileID: 350241776}
   themeApplier: {fileID: 268705387}
   hud: {fileID: 0}

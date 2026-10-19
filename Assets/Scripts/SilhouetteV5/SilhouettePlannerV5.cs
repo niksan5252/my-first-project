@@ -43,7 +43,7 @@ public static class SilhouettePlannerV5
         }
     }
 
-    public enum GestureKindV5 { Punch, PunchHold, Kick, KickHold, Dodge, OneLeg, Wide, Hop, HopOne, Arc }
+    public enum GestureKindV5 { Punch, PunchHold, Kick, KickHold, Dodge, OneLeg, Wide, Hop, HopOne, Arc, SquatJump, Crunch }
 
     public struct GestureV5
     {
@@ -262,6 +262,30 @@ public static class SilhouettePlannerV5
                     freeFrom = c.time + set.stepStay;
                     break;
                 }
+                case CueType.Knee:
+                    // High Knees (video 24): a running hop, the knee on the sign's side up high.
+                    gestures.Add(new GestureV5
+                    {
+                        kind = GestureKindV5.HopOne, side = side, outer = false,
+                        start = c.time - 0.3f * beat, impact = c.time, holdEnd = c.time + 0.05f * beat, end = c.time + 0.3f * beat, note = i,
+                    });
+                    break;
+                case CueType.SquatJump:
+                    // Squat Jump: down into a squat on the way in, up into the air with the arms high on the note.
+                    gestures.Add(new GestureV5
+                    {
+                        kind = GestureKindV5.SquatJump, side = 0, outer = false,
+                        start = c.time - 1.1f * beat, impact = c.time, holdEnd = c.time + 0.1f * beat, end = c.time + 0.7f * beat, note = i,
+                    });
+                    break;
+                case CueType.Crunch:
+                    // Cross Crunch: the knee on the sign's side up, the opposite elbow down across to it.
+                    gestures.Add(new GestureV5
+                    {
+                        kind = GestureKindV5.Crunch, side = side, outer = false,
+                        start = c.time - 0.5f * beat, impact = c.time, holdEnd = c.time + 0.15f * beat, end = c.time + 0.5f * beat, note = i,
+                    });
+                    break;
                 case CueType.PunchHigh:
                     // An overhead punch: the punch reaching up (it fell through to the kerb jump before).
                     gestures.Add(new GestureV5

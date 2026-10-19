@@ -106,6 +106,13 @@ LADDER = "Ladder"            # set: punch ladder - low, low, high, high, both hi
 HOPSCOTCH = "Hopscotch"      # set: both feet in the middle, one out to the side, both, the other side
 KNEE_CLINCH = "KneeClinch"   # set: both fists up (the clinch) and a knee held a beat, sides in turn
 CROSS_JACK = "CrossJack"     # set: a side jump with the far fist reaching up the other way
+# Video 24 - three new cue TYPES (CueSpawner draws them) and the sets built on them:
+KNEE = "Knee"                # JSON type: a sign at knee height on an inner lane - bring that knee up
+SQUAT_JUMP_TYPE = "SquatJump"  # JSON type: a wide floor plate over both inner lanes - squat, then jump
+CRUNCH = "Crunch"            # JSON type: a sign at waist height - that knee up, the opposite elbow down to it
+HIGH_KNEES = "HighKnees"     # set: running in place, a knee on every half beat, sides in turn
+SQUAT_JUMPS = "SquatJumps"   # set: a squat jump every other beat
+CROSS_CRUNCH = "CrossCrunch" # set: a cross crunch on every beat, sides in turn
 # Video 18 - Latin dance-fitness moves (the music went guaracha / latin house):
 CUMBIA = "Cumbia"            # set: step out wide with the opposite fist high, step back in, the other side
 MERENGUE = "Merengue"        # set: marching feet on every beat, a double punch on the fourth
@@ -137,6 +144,7 @@ COMPOUND = {HOLD_JAB, LEG_HOLD_PUNCH, SQUAT_PUNCH, RAILS_HIGH, PRESS_HOLD, CROSS
             STEP_TOUCH, JAB_CROSS, JAB_KICK, STEP_REACH, ARC_PUNCH, POWER_JUMP,
             STAR_JUMP, SKATER, WINDMILL, LADDER, HOPSCOTCH, KNEE_CLINCH, CROSS_JACK,
             CUMBIA, MERENGUE, SALSA, SAMBA, MARACAS, TORERO,
+            HIGH_KNEES, SQUAT_JUMPS, CROSS_CRUNCH,
             STEP_PAIR, PUNCH_PAIR, SPEED_PUNCH, SPEED_STEP, SQUAT, RAILS, LUNGE, WIDE}
 # Types that may carry a duration in the JSON: the holds, a long Dodge wall, the balance kerbs.
 DURATION_TYPES = {"KickHold", "PunchHold", "PunchSweep", "Dodge", CURB_GAP, CURB_SPLIT, ARC_HOLD, "Rails", "SquatHold"}
@@ -736,7 +744,8 @@ ALL_EXERCISES = (PUNCH, KICK, "PunchHold", "KickHold", SWEEP, CHORD, DODGE, CURB
                  POWER_JUMP, STEP_PAIR, PUNCH_PAIR, SPEED_PUNCH, SPEED_STEP, SQUAT, RAILS, LUNGE, WIDE,
                  HOLD_JAB, LEG_HOLD_PUNCH, SQUAT_PUNCH, RAILS_HIGH, PRESS_HOLD,
                  STAR_JUMP, SKATER, WINDMILL, LADDER, HOPSCOTCH, KNEE_CLINCH, CROSS_JACK,
-                 CUMBIA, MERENGUE, SALSA, SAMBA, MARACAS, TORERO)
+                 CUMBIA, MERENGUE, SALSA, SAMBA, MARACAS, TORERO,
+                 HIGH_KNEES, SQUAT_JUMPS, CROSS_CRUNCH)
 
 # Named set orders. A pattern is a list of (exercise, how many sets in a row), cycled until the
 # track runs out. This is the one place the shape of the workout lives: changing the routine
@@ -814,6 +823,7 @@ DEFAULT_SPACING_BEATS: Dict[str, float] = {
     # Video 17: the new moves read every beat (the knee clinch every other).
     STAR_JUMP: 1.0, SKATER: 1.0, WINDMILL: 1.0, LADDER: 1.0, HOPSCOTCH: 1.0, KNEE_CLINCH: 2.0, CROSS_JACK: 1.0,
     CUMBIA: 1.0, MERENGUE: 1.0, SALSA: 1.0, SAMBA: 1.0, MARACAS: 1.0, TORERO: 2.0,
+    HIGH_KNEES: 1.0, SQUAT_JUMPS: 2.0, CROSS_CRUNCH: 1.0,
     # Obstacles are spaced far wider than any note, and the number is not a taste judgement: the
     # camera performs the movement and has to be back at centre before the next one starts. The
     # longest reaction is the dodge, whose lead-in, hold and return together run 1.59 s - so at
@@ -2550,6 +2560,19 @@ def expand_compound(events: List[Event], sets: List[WorkoutSet], beat: float, la
                 left = n % 2 == 0
                 made.append(note(ev, KICK, 0 if left else 2)); made.append(note(ev, KICK, 1 if left else 3))
                 made.append(note(ev, PUNCH_HIGH, lane_count - 1 if left else 0))
+        elif ex == HIGH_KNEES:
+            # a knee on the beat and one on the half beat after it, sides in turn: running in place
+            for n, ev in enumerate(members):
+                made.append(note(ev, KNEE, 1))
+                half = Event(time=ev.time + 0.5 * beat, type=KNEE, intensity=ev.intensity, lane=2,
+                             acoustic=ev.acoustic, set_index=ev.set_index)
+                made.append(half)
+        elif ex == SQUAT_JUMPS:
+            for ev in members:
+                made.append(note(ev, SQUAT_JUMP_TYPE, 1))
+        elif ex == CROSS_CRUNCH:
+            for n, ev in enumerate(members):
+                made.append(note(ev, CRUNCH, 1 + n % 2))
         elif ex == CUMBIA:
             for n, ev in enumerate(members):
                 k = n % 4           # out L + right fist high, in L, out R + left fist high, in R

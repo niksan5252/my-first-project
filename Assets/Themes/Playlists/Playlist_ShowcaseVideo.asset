@@ -41,6 +41,9 @@ MonoBehaviour:
   trainerMocap3D: 0
   trainerClassic: 0
   trainerV5: 1
+  scrollSpeedScale: 1
+  cameraFov: 0
+  motionBlur: 0
   retention: 0
   interludeSeconds: 13
   introCardsSeconds: 9
@@ -50,6 +53,12 @@ MonoBehaviour:
   loopBars: 4
   recordFromContent: 0
   welcomeText: WELCOME TO BEAT TUNNEL
+  progressHud: 0
+  kcalPerMinute: 9
+  coachVoice: 0
+  favoriteQuestion: 0
+  spoilerSubtitle: 
+  welcomeVoice: 
   ratingWords:
   - WELL DONE
   - AWESOME
