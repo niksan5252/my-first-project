@@ -2144,6 +2144,7 @@ def _deal_decks_21(prefix: str = "deck21", count: int = 9, shift: int = 0) -> No
 
 _deal_decks_21()                    # video 21 (shift 0 keeps its charts as built)
 _deal_decks_21("deck22", 5, 5)      # video 22: five levels, other starting points
+_deal_decks_21("deck23", 5, 2)      # video 23: five levels, a third set of starting points
 
 def plan_sets_deck(bar_lines: np.ndarray, bar_map: List[str], rest_beats: float, beat: float,
                    track_end: float, plan_name: str) -> List[WorkoutSet]:

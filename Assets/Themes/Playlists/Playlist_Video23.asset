@@ -1,0 +1,130 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3bb9640588ee8e744972f872bcd42a92, type: 3}
+  m_Name: Playlist_Video23
+  m_EditorClassIdentifier: Assembly-CSharp::RunPlaylist
+  title: Video23
+  segments:
+  - label: Spoiler Rio Carnival
+    role: 1
+    track: {fileID: 8300000, guid: 543d3e6c0f0b02948a9b0408a23df049, type: 3}
+    beatmapFileName: track23_4.json
+    theme: {fileID: 11400000, guid: 0c711d5e99fec0b4eba2984c4a867938, type: 2}
+    clipStart: 56.3
+    clipEnd: 59.8
+    transitionIn: 2
+    transitionSeconds: 2
+    transitionLook: 0
+  - label: Spoiler Arcade
+    role: 1
+    track: {fileID: 8300000, guid: ae79ff1c11470c74e8ca6e9999c46d1f, type: 3}
+    beatmapFileName: track23_5.json
+    theme: {fileID: 11400000, guid: a92c53ae8bb879447be5ab666aef4498, type: 2}
+    clipStart: 51.7
+    clipEnd: 55.7
+    transitionIn: 2
+    transitionSeconds: 2
+    transitionLook: 0
+  - label: Level 1 Prism Hall
+    role: 0
+    track: {fileID: 8300000, guid: 413fd34cc033a7a47b8233022957ec3b, type: 3}
+    beatmapFileName: track23_1.json
+    theme: {fileID: 11400000, guid: 97a6d353dc1719847b5f543494e5b281, type: 2}
+    clipStart: 0
+    clipEnd: 0
+    transitionIn: 3
+    transitionSeconds: 3.5
+    transitionLook: 0
+  - label: Level 2 Copacabana Night
+    role: 0
+    track: {fileID: 8300000, guid: 0ff33f42c18ca0f45bcc73a06f5f1092, type: 3}
+    beatmapFileName: track23_2.json
+    theme: {fileID: 11400000, guid: a754284aa79a16848ae7d17492bd63bd, type: 2}
+    clipStart: 0
+    clipEnd: 0
+    transitionIn: 3
+    transitionSeconds: 3.5
+    transitionLook: 0
+  - label: Level 3 Volcano
+    role: 0
+    track: {fileID: 8300000, guid: 8e7195f6ba630d848aea44742aaa1350, type: 3}
+    beatmapFileName: track23_3.json
+    theme: {fileID: 11400000, guid: c40b77830a94031428406a7ba883bd02, type: 2}
+    clipStart: 0
+    clipEnd: 0
+    transitionIn: 3
+    transitionSeconds: 3.5
+    transitionLook: 0
+  - label: Level 4 Rio Carnival
+    role: 0
+    track: {fileID: 8300000, guid: 543d3e6c0f0b02948a9b0408a23df049, type: 3}
+    beatmapFileName: track23_4.json
+    theme: {fileID: 11400000, guid: 0c711d5e99fec0b4eba2984c4a867938, type: 2}
+    clipStart: 0
+    clipEnd: 0
+    transitionIn: 3
+    transitionSeconds: 3.5
+    transitionLook: 0
+  - label: Level 5 Arcade
+    role: 0
+    track: {fileID: 8300000, guid: ae79ff1c11470c74e8ca6e9999c46d1f, type: 3}
+    beatmapFileName: track23_5.json
+    theme: {fileID: 11400000, guid: a92c53ae8bb879447be5ab666aef4498, type: 2}
+    clipStart: 0
+    clipEnd: 0
+    transitionIn: 3
+    transitionSeconds: 3.5
+    transitionLook: 0
+  preRoll: 1
+  noteMarginBeats: 1
+  wallsInTransition: 0
+  veilFogEnd: 22
+  thunderFlash: 0.8
+  thunderVolume: 1
+  thunderTrackStartVolume: 0.55
+  thunderRiseSeconds: 0.8
+  finalFadeSeconds: 0
+  trainerMotionSet: {fileID: 0}
+  trainerTextured: 0
+  trainerPanelInThemeColors: 0
+  hideTrainer: 0
+  trainerFilmed: 0
+  trainerMocap3D: 0
+  trainerClassic: 0
+  trainerV5: 1
+  scrollSpeedScale: 1.4
+  cameraFov: 75
+  motionBlur: 0.6
+  retention: 1
+  interludeSeconds: 13
+  introCardsSeconds: 9
+  outroSeconds: 36
+  endScreenSeconds: 20
+  loopVolume: 0.22
+  loopBars: 4
+  recordFromContent: 1
+  welcomeText: WELCOME TO BEAT TUNNEL
+  progressHud: 1
+  kcalPerMinute: 9
+  coachVoice: 1
+  favoriteQuestion: 1
+  spoilerSubtitle: WAIT FOR THE FINAL LEVEL!
+  welcomeVoice: WELCOME
+  ratingWords:
+  - WELL DONE
+  - AWESOME
+  - FLAWLESS
+  - PERFECT
+  - THAT'S INCREDIBLE
+  - EPIC
+  - THAT'S AMAZING
+  ratingCombos: 0a000000190000002d00000046000000640000008c000000be000000i
