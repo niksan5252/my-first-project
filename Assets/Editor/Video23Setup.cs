@@ -28,7 +28,7 @@ public static class Video23Setup
     // The strongest track first (5), the second strongest last (7) - by the energy of their first 30 s.
     private static Level[] Levels() => new[]
     {
-        WithSky(L("Prism Hall", "Theme_NeonPrism_Spectrum", 1, new Color(0.85f, 0.95f, 1f), new Color(0.2f, 0.8f, 1f)), "AuroraSky_Mat"),
+        WithSky(L("Prism Hall", "Theme_NeonPrism_Spectrum", 1, new Color(0.85f, 0.95f, 1f), new Color(0.2f, 0.8f, 1f)), "Skybox_Cyberpunk_Night"),
         L("Copacabana Night", "Theme_NeonCarnival_Copacabana", 2, new Color(0.1f, 0.95f, 0.85f), new Color(1f, 0.25f, 0.65f)),
         L("Volcano", "Theme_Worlds_Volcano", 3, new Color(1f, 0.45f, 0.05f), new Color(1f, 0.1f, 0.1f)),
         L("Rio Carnival", "Theme_HyperCity_RioCarnival", 4, new Color(1f, 0.78f, 0.2f), new Color(1f, 0.15f, 0.6f)),
@@ -129,7 +129,16 @@ public static class Video23Setup
         if (l.sky != null)
         {
             var sky = AssetDatabase.FindAssets(l.sky + " t:Material");
-            if (sky.Length > 0) theme.skyboxMaterial = AssetDatabase.LoadAssetAtPath<Material>(AssetDatabase.GUIDToAssetPath(sky[0]));
+            if (sky.Length > 0)
+            {
+                // A copy of its own, brighter, so video 1's shared sky is left as it is.
+                string copy = Themes + "Sky_Neon23_" + l.name.Replace(" ", "") + ".mat";
+                if (!File.Exists(copy)) AssetDatabase.CopyAsset(AssetDatabase.GUIDToAssetPath(sky[0]), copy);
+                var mat = AssetDatabase.LoadAssetAtPath<Material>(copy);
+                if (mat.HasProperty("_Exposure")) mat.SetFloat("_Exposure", 1.1f);
+                EditorUtility.SetDirty(mat);
+                theme.skyboxMaterial = mat;
+            }
         }
         theme.gatePrefab = null;
         theme.laneLineColor = l.secondary;
