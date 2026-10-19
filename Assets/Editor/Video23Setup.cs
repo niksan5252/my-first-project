@@ -16,17 +16,19 @@ public static class Video23Setup
 
     private class Level
     {
-        public string name, source, track;
+        public string name, source, track, sky;
         public Color primary, secondary;
     }
 
     private static Level L(string name, string source, int track, Color a, Color b) =>
         new Level { name = name, source = source, track = "track23_" + track, primary = a, secondary = b };
 
+    private static Level WithSky(Level l, string sky) { l.sky = sky; return l; }
+
     // The strongest track first (5), the second strongest last (7) - by the energy of their first 30 s.
     private static Level[] Levels() => new[]
     {
-        L("Prism Hall", "Theme_NeonPrism_Spectrum", 1, new Color(0.85f, 0.95f, 1f), new Color(0.2f, 0.8f, 1f)),
+        WithSky(L("Prism Hall", "Theme_NeonPrism_Spectrum", 1, new Color(0.85f, 0.95f, 1f), new Color(0.2f, 0.8f, 1f)), "AuroraSky_Mat"),
         L("Copacabana Night", "Theme_NeonCarnival_Copacabana", 2, new Color(0.1f, 0.95f, 0.85f), new Color(1f, 0.25f, 0.65f)),
         L("Volcano", "Theme_Worlds_Volcano", 3, new Color(1f, 0.45f, 0.05f), new Color(1f, 0.1f, 0.1f)),
         L("Rio Carnival", "Theme_HyperCity_RioCarnival", 4, new Color(1f, 0.78f, 0.2f), new Color(1f, 0.15f, 0.6f)),
@@ -123,6 +125,12 @@ public static class Video23Setup
         theme.primaryColor = l.primary;
         theme.secondaryColor = l.secondary;
         theme.ringArchPrefab = null;
+        // A world without a sky of its own gets one (the user: "why is the background black").
+        if (l.sky != null)
+        {
+            var sky = AssetDatabase.FindAssets(l.sky + " t:Material");
+            if (sky.Length > 0) theme.skyboxMaterial = AssetDatabase.LoadAssetAtPath<Material>(AssetDatabase.GUIDToAssetPath(sky[0]));
+        }
         theme.gatePrefab = null;
         theme.laneLineColor = l.secondary;
         theme.floorGridLineColor = l.primary;
