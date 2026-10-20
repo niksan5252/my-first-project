@@ -24,9 +24,12 @@ public static class VoiceOver
         Say(key);
     }
 
+    // The NEW MOVES intro (video 24) is a tutorial: no combo, no praise words, no voice while it runs.
+    public static bool Quiet;
+
     public static void Say(string word)
     {
-        if (string.IsNullOrEmpty(word) || !Application.isPlaying) return;
+        if (string.IsNullOrEmpty(word) || !Application.isPlaying || Quiet) return;
         if (Time.unscaledTime < lastTime) lastTime = -10f;   // a new Play session without a domain reload
         if (Time.unscaledTime - lastTime < MinGap) return;
         var clip = Clip(Key(word));

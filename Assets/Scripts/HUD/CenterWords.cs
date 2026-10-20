@@ -75,6 +75,7 @@ public class CenterWords : MonoBehaviour
         }
 
         float now = Now;
+        if (VoiceOver.Quiet) { if (group != null) group.alpha = 0f; return; }   // the NEW MOVES intro: no words
         if (showing) { Animate(now); return; }
         // A run started part-way through (a test recording, SetStartTime) must not fire every word
         // it skipped one after another: a word more than a bar late is dropped.

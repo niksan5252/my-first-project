@@ -113,6 +113,7 @@ public class NewMovesIntro : MonoBehaviour
         if (canvas == null || spawner == null || !spawner.Clock.IsRunning) return;
         float now = spawner.Clock.SongTime;
         bool on = now >= start - 0.5f && now < end;
+        VoiceOver.Quiet = now < end + 0.5f;     // the tutorial: no combo, no praise words or voice (from the very start)
         if (canvas.gameObject.activeSelf != on) canvas.gameObject.SetActive(on);
         Feature(on);
         if (!on) return;
@@ -164,6 +165,7 @@ public class NewMovesIntro : MonoBehaviour
 
     private void OnDestroy()
     {
+        VoiceOver.Quiet = false;
         if (featured) Feature(false);
         if (canvas != null) Destroy(canvas.gameObject);
     }

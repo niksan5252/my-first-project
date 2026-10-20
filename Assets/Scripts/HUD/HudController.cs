@@ -315,9 +315,21 @@ public class HudController : MonoBehaviour
 
     // --- combo pulse ---
 
+    // Hidden by a CanvasGroup's alpha, not SetActive: the banner may share an object with this HUD.
+    private static void Hush(Transform t, bool quiet)
+    {
+        if (t == null) return;
+        var g = t.GetComponent<CanvasGroup>();
+        if (g == null) { if (!quiet) return; g = t.gameObject.AddComponent<CanvasGroup>(); }
+        g.alpha = quiet ? 0f : 1f;
+    }
+
     private void Update()
     {
         if (style == null) return;
+        // The NEW MOVES intro: the counter and the praise banner stay hidden (VoiceOver.Quiet).
+        Hush(comboGroup, VoiceOver.Quiet);
+        Hush(banner != null ? banner.transform : null, VoiceOver.Quiet);
 
         float now = beats.Now;
 
