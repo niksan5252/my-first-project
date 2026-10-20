@@ -129,12 +129,11 @@ public class SilhouetteMotionSetV5 : ScriptableObject
     [Range(0.1f, 1f)] public float tapOutBeats = 0.4f;
 
     [Header("Dodge: turn, lean and step away from the wall")]
-    // A real step aside, both feet moving (the user: "not just ducking - stepping away").
-    public float dodgeShift = 0.5f;        // how far the body moves (m)
-    public float dodgeLeadFoot = 0.62f;    // the foot on the side of the step
-    public float dodgeTrailFoot = 0.55f;    // about the body's shift: both feet step across
-    public float dodgeLeanDegrees = 5f;
-    public float dodgeTurnDegrees = 12f;   // shoulders and hips turned toward the step
+    public float dodgeShift = 0.2f;        // how far the body moves (m)
+    public float dodgeLeadFoot = 0.34f;    // the foot on the side of the step
+    public float dodgeTrailFoot = 0.1f;
+    public float dodgeLeanDegrees = 12f;
+    public float dodgeTurnDegrees = 30f;   // shoulders and hips turned toward the step
 
     [Header("Timing")]
     // A gesture reaches its note in at most this many beats (and at most riseSeconds), and lets go
