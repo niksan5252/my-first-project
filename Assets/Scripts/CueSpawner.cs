@@ -2328,6 +2328,20 @@ public class CueSpawner : MonoBehaviour
                         fills.Add(CreateBoxFill(stretchT, lo, hi, obstacleFillMat));
                         bright.AddRange(CreateBoxEdges(stretchT, lo, hi, obstacleEdgeThickness, cueBaseMat));
                     }
+                    // The walls themselves (the user: "fill the walls with something"): neon stripes
+                    // running their length on the face toward the player, and on the front face chevrons
+                    // pointing at the slot from above and below.
+                    float xi = sx * (inner - 0.03f);
+                    foreach (float y in new[] { 0.3f, 0.65f, 1.0f, 1.35f, 2.55f, 2.85f })
+                        bright.Add(CreateBeam(stretchT, new Vector3(xi, y, 0f), new Vector3(xi, y, 1f), 0.06f, cueBaseMat));
+                    float wx = Mathf.Abs(x1 - x0) * 0.32f, cx = (x0 + x1) * 0.5f;
+                    foreach (float yt in new[] { 1.05f, 1.5f })     // "^" under the slot
+                    {
+                        bright.Add(CreateBeam(root.transform, new Vector3(cx - wx, yt - 0.35f, -0.03f), new Vector3(cx, yt, -0.03f), 0.09f, cueBaseMat));
+                        bright.Add(CreateBeam(root.transform, new Vector3(cx, yt, -0.03f), new Vector3(cx + wx, yt - 0.35f, -0.03f), 0.09f, cueBaseMat));
+                    }
+                    bright.Add(CreateBeam(root.transform, new Vector3(cx - wx, 2.85f, -0.03f), new Vector3(cx, 2.45f, -0.03f), 0.09f, cueBaseMat));   // "v" over it
+                    bright.Add(CreateBeam(root.transform, new Vector3(cx, 2.45f, -0.03f), new Vector3(cx + wx, 2.85f, -0.03f), 0.09f, cueBaseMat));
                     // The slot itself (the user: "inside there is nothing, you can't see where the arms
                     // go"): a glowing rail down its middle the whole length, glass above and below it,
                     // and a fist sign at its mouth facing the camera.
@@ -2358,7 +2372,7 @@ public class CueSpawner : MonoBehaviour
                 var root = new GameObject("Cue_SquatJump");
                 root.transform.SetParent(transform, false);
                 float laneW = tunnel.FloorWidth / tunnel.LaneCount;
-                float hw = laneW * 0.95f, h = 0.6f, dz = 0.55f;
+                float hw = laneW * 0.95f, h = 0.8f, dz = 0.55f;
                 var lo = new Vector3(-hw, 0f, 0f);
                 var hi = new Vector3(hw, h, dz);
                 var fill = CreateBoxFill(root.transform, lo, hi, obstacleFillMat);
@@ -2368,8 +2382,11 @@ public class CueSpawner : MonoBehaviour
                 face.transform.localPosition = new Vector3(0f, h * 0.5f, -0.02f);
                 face.transform.localScale = new Vector3(hw * 1.9f, h * 0.92f, 0.02f);
                 var faceR = AttachMesh(face, unitCubeMesh, cueBaseMat);
-                var icon = AttachIcon(root.transform, punchIconQuad, NewIconMat("squatjump"), new Vector3(0f, h * 0.5f, -0.04f - IconLift));
-                icon.transform.localScale = Vector3.one * 0.95f;
+                // The instruction as a strip across the whole face (the user: "can't tell what's drawn
+                // on the kerb"): squat -> arrow -> in the air, arms up.
+                var icon = AttachIcon(root.transform, punchIconQuad, NewIconMat("squatjump_wide"), new Vector3(0f, h * 0.5f, -0.04f - IconLift));
+                float q = Mathf.Max(0.01f, punchIconQuad.bounds.size.x);
+                icon.transform.localScale = new Vector3(hw * 1.8f / q, h * 0.85f / q, 1f);
                 var bright = new List<MeshRenderer>(edges) { faceR };
                 return new CueVisual { root = root.transform, bright = bright.ToArray(), frame = new[] { fill } };
             }

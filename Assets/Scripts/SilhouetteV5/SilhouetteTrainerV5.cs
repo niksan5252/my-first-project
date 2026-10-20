@@ -645,10 +645,14 @@ public class SilhouetteTrainerV5 : MonoBehaviour
                         // Down into a deep squat on the way in (arms forward for balance), then up:
                         // in the air through the note, both arms straight overhead.
                         float pre = Mathf.Clamp01((now - g.start) / Mathf.Max(0.01f, g.impact - g.start));
-                        float sink = pre < 0.75f ? Mathf.Sin(pre / 0.75f * Mathf.PI * 0.5f) : Mathf.Clamp01(1f - (pre - 0.75f) / 0.25f);
                         float a0 = g.impact - 0.15f * (g.impact - g.start);
-                        float air = now > a0 && now < g.end ? Mathf.Sin(Mathf.PI * Mathf.Clamp01((now - a0) / Mathf.Max(0.01f, g.end - a0))) : 0f;
-                        float lift = air * s.jackHop * 2.4f;
+                        float sink = pre < 0.75f ? Mathf.SmoothStep(0f, 1f, pre / 0.75f) : Mathf.Clamp01(1f - (pre - 0.75f) / 0.25f);
+                        if (now >= g.end - 0.15f * (g.end - a0)) sink = Mathf.Max(sink, 0.35f * Mathf.Sin(Mathf.PI * Mathf.Clamp01((now - (g.end - 0.15f * (g.end - a0))) / (0.3f * (g.end - a0)))));   // soft landing
+                        // The jump's curve (the user: "sharp up, hang a moment, sharp down"): 1 - |2t-1|^3
+                        // rises fast, flattens over the top, falls fast. A shade lower than before.
+                        float ta = Mathf.Clamp01((now - a0) / Mathf.Max(0.01f, g.end - a0));
+                        float air = now > a0 && now < g.end ? 1f - Mathf.Pow(Mathf.Abs(2f * ta - 1f), 3f) : 0f;
+                        float lift = air * s.jackHop * 1.9f;
                         float o = s.wideOut * 0.55f * w;
                         for (int k = 0; k < 2; k++)
                         {
@@ -662,7 +666,7 @@ public class SilhouetteTrainerV5 : MonoBehaviour
                             Vector3 sh = k == 0 ? lShoulder : rShoulder;
                             Vector3 low = sh + new Vector3(hx * 0.12f, -0.25f, s.punchForward * 0.7f);
                             Vector3 high = sh + new Vector3(hx * 0.12f, s.punchHoldRaise * 1.15f, 0.05f);
-                            Vector3 t = Vector3.Lerp(low, high, Mathf.Clamp01(air * 1.6f));
+                            Vector3 t = Vector3.Lerp(low, high, Mathf.SmoothStep(0f, 1f, air * 1.4f));
                             Take(ref hand[k], w, t, sh + new Vector3(hx * 0.3f, air > 0.3f ? 0.1f : -0.25f, -0.1f));
                         }
                         tapping = Mathf.Max(tapping, w);
