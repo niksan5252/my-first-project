@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
-/// Video 24: five new worlds (FiestaEnvironment.Neon24.cs) around video 1's neon octagon tunnel -
+/// Video 24: five new worlds (FiestaEnvironment.Neon24.cs), each with its own arch (RingArchFiesta.Neon24.cs) -
 /// Tropical Lagoon, Crystal Cave, Cyber Factory, Planet Ring, Firefly Jungle. The retention theory:
 /// no spoiler and no opening cards (the music starts the video), the levels growing in length
 /// (tracks 4 and 5 swapped on the user's call), the first an easy warm-up, 4 s breaks naming the
@@ -135,22 +135,23 @@ public static class Video24Setup
         theme.cameraBackgroundColor = s.fog;
         theme.skyboxMaterial = null;           // the sky pieces are FiestaEnvironment's own, beyond the fog
         theme.hudComboTextColor = s.primary; theme.hudBannerBorderColor = s.secondary;
-        theme.ringArchPrefab = null;           // video 1's neon octagon rings
-        theme.environmentPrefab = Prefab("Environment_Neon24_" + key, s.id);
+        theme.ringArchPrefab = Prefab("Ring_Neon24_" + key, s.id, typeof(RingArchFiesta));   // the world's own arch (RingArchFiesta.Neon24.cs)
+        theme.environmentPrefab = Prefab("Environment_Neon24_" + key, s.id, typeof(FiestaEnvironment));
         theme.gatePrefab = null;
         theme.postProcessingProfile = PostProfile(s, key);
         EditorUtility.SetDirty(theme);
         return theme;
     }
 
-    private static GameObject Prefab(string name, FiestaSkin skin)
+    private static GameObject Prefab(string name, FiestaSkin skin, System.Type script)
     {
         string path = Prefabs + name + ".prefab";
         var go = new GameObject(name);
-        var comp = go.AddComponent<FiestaEnvironment>();
+        var comp = go.AddComponent(script);
         var so = new SerializedObject(comp);
         so.FindProperty("skin").enumValueIndex = (int)skin;
-        so.FindProperty("dropBloom").floatValue = 0.5f;
+        var bloom = so.FindProperty("dropBloom");
+        if (bloom != null) bloom.floatValue = 0.5f;
         // The Kenney models: the project's set plus the factory and the full nature kit.
         var list = so.FindProperty("kit");
         var guids = AssetDatabase.FindAssets("t:Model", new[] { "Assets/ThirdParty/Kenney", "Assets/SharedAssets/Kits3D/kenney_factory-kit_3.0", "Assets/SharedAssets/Kits3D/kenney_nature-kit" });
