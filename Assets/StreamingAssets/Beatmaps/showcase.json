@@ -391,10 +391,30 @@
    "intensity": 0.8,
    "arc": -360.0,
    "radius": 0.0,
-   "shape": 2
+   "shape": 6
   },
   {
    "time": 47.75,
+   "type": "ArcHold",
+   "lane": 0,
+   "duration": 4.0,
+   "intensity": 0.8,
+   "arc": 720.0,
+   "radius": 0.0,
+   "shape": 1
+  },
+  {
+   "time": 52.75,
+   "type": "ArcHold",
+   "lane": 3,
+   "duration": 4.0,
+   "intensity": 0.8,
+   "arc": -360.0,
+   "radius": 0.0,
+   "shape": 2
+  },
+  {
+   "time": 57.75,
    "type": "ArcHold",
    "lane": 0,
    "duration": 4.0,
@@ -404,7 +424,7 @@
    "shape": 3
   },
   {
-   "time": 52.75,
+   "time": 62.75,
    "type": "ArcHold",
    "lane": 3,
    "duration": 4.0,
@@ -414,7 +434,7 @@
    "shape": 4
   },
   {
-   "time": 57.75,
+   "time": 67.75,
    "type": "ArcHold",
    "lane": 0,
    "duration": 4.0,
@@ -422,16 +442,6 @@
    "arc": 720.0,
    "radius": 0.0,
    "shape": 5
-  },
-  {
-   "time": 62.75,
-   "type": "ArcHold",
-   "lane": 3,
-   "duration": 4.0,
-   "intensity": 0.8,
-   "arc": -720.0,
-   "radius": 0.0,
-   "shape": 1
   }
  ],
  "sets": [
@@ -561,6 +571,14 @@
    "start": 62.75,
    "end": 66.75,
    "restEnd": 67.25,
+   "notes": 1
+  },
+  {
+   "index": 16,
+   "exercise": "ArmFlow",
+   "start": 67.75,
+   "end": 71.75,
+   "restEnd": 72.25,
    "notes": 1
   }
  ]

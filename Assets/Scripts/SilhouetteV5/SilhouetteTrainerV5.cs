@@ -549,6 +549,13 @@ public class SilhouetteTrainerV5 : MonoBehaviour
                         float rr = (g.arcShape == ArmPath.Circle ? 0.34f : 0.5f) * g.arcRadius / 0.75f;
                         Vector3 centre = shoulder + new Vector3(x * 0.36f, 0.08f, s.punchForward + 0.12f);   // out from the head
                         Vector2 o = ArmPath.Offset(g.arcShape, g.arcSweep, 90f, p);   // the same pattern the cube draws
+                        if (g.arcShape == ArmPath.DeepWave)
+                        {
+                            // The low half of the wave is below the hips: bend the knees to follow it down.
+                            float depth = Mathf.Clamp01((-o.y - 0.3f) / 1.8f);
+                            body += new Vector3(0f, -s.wideSinkSquat * 1.3f * depth * w, 0f);
+                            rr = 0.42f * g.arcRadius / 0.75f;
+                        }
                         Vector3 t = centre + new Vector3(X(1) * o.x * rr, o.y * rr, 0f);
                         Vector3 elbow = shoulder + new Vector3(x * 0.32f, -0.05f, -0.12f);
                         Take(ref hand[limb], w, t, elbow);

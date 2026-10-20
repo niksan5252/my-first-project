@@ -8,8 +8,8 @@ using UnityEngine;
 /// direction it starts in.
 public static class ArmPath
 {
-    public const int Circle = 0, Eight = 1, Wave = 2, Zigzag = 3, UpDown = 4, SideSide = 5;
-    public const int Count = 6;
+    public const int Circle = 0, Eight = 1, Wave = 2, Zigzag = 3, UpDown = 4, SideSide = 5, DeepWave = 6;
+    public const int Count = 7;
 
     public static Vector2 Offset(int shape, float sweepDeg, float startDeg, float s)
     {
@@ -30,6 +30,8 @@ public static class ArmPath
             }
             case UpDown:    // straight up and down, from the top
                 return new Vector2(0f, Mathf.Cos(tau * s * c));
+            case DeepWave:  // across the body in big waves from overhead down to the knees: squat to reach the bottoms
+                return new Vector2(d * 0.9f * (2f * s - 1f), -0.8f + 1.3f * Mathf.Cos(2f * tau * s * c));
             case SideSide:  // straight side to side, from the middle
                 return new Vector2(d * Mathf.Sin(tau * s * c), 0f);
             default:        // the circle, from startDeg, as it always was

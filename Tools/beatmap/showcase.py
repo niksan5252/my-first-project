@@ -97,6 +97,7 @@ NEW_MOVES = [
     ("ArmFlow - up-down (right hand)", "set", (g.ARM_FLOW, 8, False)),
     ("ArmFlow - side-side (left hand)", "set", (g.ARM_FLOW, 8, False)),
     ("ArmFlow - figure eight (right hand)", "set", (g.ARM_FLOW, 8, False)),
+    ("ArmFlow - deep wave, squat to reach (left hand)", "set", (g.ARM_FLOW, 8, False)),
 ]
 
 # Items already signed off by the user, left out of the showcase so it starts on the next one to fix.

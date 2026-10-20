@@ -116,7 +116,7 @@ CROSS_CRUNCH = "CrossCrunch" # set: a cross crunch on every beat, sides in turn
 ARM_GATE_TYPE = "ArmGate"    # JSON type, a pose with a duration: walls with slots at shoulder height - arms out, held
 ARM_GATE = "ArmGateSet"      # set: one ArmGate for the whole set
 ARM_FLOW = "ArmFlow"         # set: one long ArcHold drawing a pattern (eight, wave, zigzag, up-down, side-side), hands in turn
-ARM_SHAPES = (1, 2, 3, 4, 5)
+ARM_SHAPES = (1, 2, 3, 4, 5, 6)   # 6 = deep wave, down to the knees
 # Video 18 - Latin dance-fitness moves (the music went guaracha / latin house):
 CUMBIA = "Cumbia"            # set: step out wide with the opposite fist high, step back in, the other side
 MERENGUE = "Merengue"        # set: marching feet on every beat, a double punch on the fourth
@@ -2576,7 +2576,7 @@ def expand_compound(events: List[Event], sets: List[WorkoutSet], beat: float, la
             arm_flow_count += 1
             ev = note(first, ARC_HOLD, 0 if k % 2 == 0 else lane_count - 1, max(beat, block.end - first.time))
             ev.shape = ARM_SHAPES[k % len(ARM_SHAPES)]
-            ev.arc = (360.0 if ev.shape in (2, 3) else 720.0) * (1 if k % 2 == 0 else -1)
+            ev.arc = (360.0 if ev.shape in (2, 3, 6) else 720.0) * (1 if k % 2 == 0 else -1)
             ev.radius = 0.0
             made.append(ev)
         elif ex == HIGH_KNEES:
