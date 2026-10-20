@@ -160,7 +160,7 @@ public sealed class PlaylistTimeline
                                         && InTransition(time) && time >= span.audioStart && time <= span.audioEnd;
                 if (!inside && !wallInTransition) { dropped++; continue; }
                 if (wallInTransition) walls++;
-                cues.Add(new BeatmapCue(time, c.type, c.lane, c.duration, c.intensity, c.arc, c.radius));
+                cues.Add(new BeatmapCue(time, c.type, c.lane, c.duration, c.intensity, c.arc, c.radius, c.shape));
                 kept++;
             }
             if (meta.sets != null)

@@ -2328,6 +2328,20 @@ public class CueSpawner : MonoBehaviour
                         fills.Add(CreateBoxFill(stretchT, lo, hi, obstacleFillMat));
                         bright.AddRange(CreateBoxEdges(stretchT, lo, hi, obstacleEdgeThickness, cueBaseMat));
                     }
+                    // The slot itself (the user: "inside there is nothing, you can't see where the arms
+                    // go"): a glowing rail down its middle the whole length, glass above and below it,
+                    // and a fist sign at its mouth facing the camera.
+                    float xc = (x0 + x1) * 0.5f, ym = (slotLow + slotHigh) * 0.5f;
+                    bright.Add(CreateBeam(stretchT, new Vector3(xc, ym, 0f), new Vector3(xc, ym, 1f), 0.1f, cueBaseMat));
+                    fills.Add(CreateBoxFill(stretchT, new Vector3(x0, slotLow - 0.04f, 0f), new Vector3(x1, slotLow + 0.04f, 1f), obstacleFillMat));
+                    fills.Add(CreateBoxFill(stretchT, new Vector3(x0, slotHigh - 0.04f, 0f), new Vector3(x1, slotHigh + 0.04f, 1f), obstacleFillMat));
+                    var sign = new GameObject("SlotSign");
+                    sign.transform.SetParent(root.transform, false);
+                    sign.transform.localPosition = new Vector3(xc, ym, -0.03f);
+                    sign.transform.localScale = new Vector3(Mathf.Abs(x1 - x0) * 0.8f, (slotHigh - slotLow) * 0.85f, 0.02f);
+                    bright.Add(AttachMesh(sign, unitCubeMesh, cueBaseMat));
+                    var fist = AttachIcon(root.transform, punchIconQuad, fistIconMat, new Vector3(xc, ym, -0.06f - IconLift));
+                    fist.transform.localScale = Vector3.one * 0.55f;
                 }
                 return new CueVisual
                 {
@@ -2339,17 +2353,25 @@ public class CueSpawner : MonoBehaviour
             }
             case CueType.SquatJump:
             {
-                // The kick plate, stretched over both inner lanes: two feet together, then up.
+                // A low glowing kerb over both inner lanes (the user: "the plate on the floor can't be
+                // seen"), the instruction - two feet under an arrow - upright on its front face.
                 var root = new GameObject("Cue_SquatJump");
                 root.transform.SetParent(transform, false);
-                var frame = CreateChevronPart(root.transform, "Frame", kickFrameMesh, new Vector3(0f, -kickThickness * 0.22f, 0f));
-                var plate = CreateChevronPart(root.transform, "Plate", kickPlateMesh, Vector3.zero);
-                const float wide = 2.15f;          // one lane's plate -> both inner lanes
-                frame.transform.localScale = new Vector3(wide, 1f, 1f);
-                plate.transform.localScale = new Vector3(wide, 1f, 1f);
-                var icon = AttachIcon(root.transform, kickIconQuad, NewIconMat("squatjump"), new Vector3(0f, kickThickness * 0.5f + IconLift, 0f));
-                icon.transform.localScale = Vector3.one * 1.35f;
-                return new CueVisual { root = root.transform, bright = new[] { plate }, frame = new[] { frame } };
+                float laneW = tunnel.FloorWidth / tunnel.LaneCount;
+                float hw = laneW * 0.95f, h = 0.6f, dz = 0.55f;
+                var lo = new Vector3(-hw, 0f, 0f);
+                var hi = new Vector3(hw, h, dz);
+                var fill = CreateBoxFill(root.transform, lo, hi, obstacleFillMat);
+                var edges = CreateBoxEdges(root.transform, lo, hi, obstacleEdgeThickness * 1.3f, cueBaseMat);
+                var face = new GameObject("Face");
+                face.transform.SetParent(root.transform, false);
+                face.transform.localPosition = new Vector3(0f, h * 0.5f, -0.02f);
+                face.transform.localScale = new Vector3(hw * 1.9f, h * 0.92f, 0.02f);
+                var faceR = AttachMesh(face, unitCubeMesh, cueBaseMat);
+                var icon = AttachIcon(root.transform, punchIconQuad, NewIconMat("squatjump"), new Vector3(0f, h * 0.5f, -0.04f - IconLift));
+                icon.transform.localScale = Vector3.one * 0.95f;
+                var bright = new List<MeshRenderer>(edges) { faceR };
+                return new CueVisual { root = root.transform, bright = bright.ToArray(), frame = new[] { fill } };
             }
             case CueType.Punch:
             case CueType.PunchHigh:

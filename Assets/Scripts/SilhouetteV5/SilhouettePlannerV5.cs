@@ -278,7 +278,7 @@ public static class SilhouettePlannerV5
                     // High Knees (video 24): a running hop, the knee on the sign's side up high.
                     gestures.Add(new GestureV5
                     {
-                        kind = GestureKindV5.HopOne, side = side, outer = false,
+                        kind = GestureKindV5.HopOne, side = side, outer = false, high = true,   // high = a light running bounce, not a hop
                         start = c.time - 0.3f * beat, impact = c.time, holdEnd = c.time + 0.05f * beat, end = c.time + 0.3f * beat, note = i,
                     });
                     break;

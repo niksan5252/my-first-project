@@ -544,7 +544,9 @@ public class SilhouetteTrainerV5 : MonoBehaviour
                         // with the cube (CueSpawner.RebuildArc: angle = 90 - sweep * progress, in
                         // screen space), drawn in front of the shoulder, scaled to the arm.
                         float p = Mathf.Clamp01((now - g.impact) / Mathf.Max(0.01f, g.holdEnd - g.impact));
-                        float rr = 0.34f * g.arcRadius / 0.75f;
+                        // The patterns other than the circle are drawn bigger: a wave or a zigzag reads as
+                        // one only when the arm travels across the body.
+                        float rr = (g.arcShape == ArmPath.Circle ? 0.34f : 0.5f) * g.arcRadius / 0.75f;
                         Vector3 centre = shoulder + new Vector3(x * 0.36f, 0.08f, s.punchForward + 0.12f);   // out from the head
                         Vector2 o = ArmPath.Offset(g.arcShape, g.arcSweep, 90f, p);   // the same pattern the cube draws
                         Vector3 t = centre + new Vector3(X(1) * o.x * rr, o.y * rr, 0f);
@@ -688,7 +690,10 @@ public class SilhouetteTrainerV5 : MonoBehaviour
                         // air before the note, landing on the other foot with the knees giving.
                         float air = now > g.start && now < g.impact ? Mathf.Sin(Mathf.PI * (now - g.start) / Mathf.Max(0.01f, g.impact - g.start)) : 0f;
                         float land = now >= g.impact && now < g.end ? Mathf.Sin(Mathf.PI * (now - g.impact) / Mathf.Max(0.01f, g.end - g.impact)) : 0f;
-                        float hop = air * s.jackHop;
+                        // High Knees (g.high): only a slight bounce, the knee does the work (the user's call).
+                        float bounce = g.high ? 0.2f : 1f;
+                        float hop = air * s.jackHop * bounce;
+                        land *= bounce;
                         Vector3 up = new Vector3(0f, s.oneLegLift * 1.3f * w + hop, s.oneLegForward * 1.6f * w);   // the knee well up (the user's call)
                         if (w > footW[limb]) { footW[limb] = w; foot[limb] = up; }
                         int other = 1 - limb;
