@@ -2602,11 +2602,13 @@ def expand_compound(events: List[Event], sets: List[WorkoutSet], beat: float, la
             first = members[0]
             k = arm_flow_count + block.index
             arm_flow_count += 1
-            ev = note(first, ARC_HOLD, 0 if k % 2 == 0 else lane_count - 1, max(beat, block.end - first.time))
-            ev.shape = ARM_SHAPES[k % len(ARM_SHAPES)]
-            ev.arc = (360.0 if ev.shape in (2, 3, 6) else 720.0) * (1 if k % 2 == 0 else -1)
-            ev.radius = 0.0
-            made.append(ev)
+            # Both hands at once, mirrored (the user: "these long cues can be done with two hands - even better").
+            for hand in (0, 1):
+                ev = note(first, ARC_HOLD, 0 if hand == 0 else lane_count - 1, max(beat, block.end - first.time))
+                ev.shape = ARM_SHAPES[k % len(ARM_SHAPES)]
+                ev.arc = (360.0 if ev.shape in (2, 3, 6) else 720.0) * (1 if hand == 0 else -1)
+                ev.radius = 0.0
+                made.append(ev)
         elif ex == HIGH_KNEES:
             # a knee on the beat and one on the half beat after it, sides in turn: running in place
             for n, ev in enumerate(members):

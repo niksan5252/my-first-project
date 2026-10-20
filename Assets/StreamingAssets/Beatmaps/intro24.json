@@ -191,10 +191,20 @@
   {
    "time": 72.829,
    "type": "ArcHold",
-   "lane": 3,
+   "lane": 0,
    "duration": 3.636,
    "intensity": 0.8,
    "arc": 360.0,
+   "radius": 0.0,
+   "shape": 2
+  },
+  {
+   "time": 72.829,
+   "type": "ArcHold",
+   "lane": 3,
+   "duration": 3.636,
+   "intensity": 0.8,
+   "arc": -360.0,
    "radius": 0.0,
    "shape": 2
   }

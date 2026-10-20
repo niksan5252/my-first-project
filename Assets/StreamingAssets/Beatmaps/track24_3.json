@@ -398,6 +398,16 @@
     {
       "time": 34.116,
       "type": "ArcHold",
+      "lane": 0,
+      "duration": 3.423,
+      "intensity": 0.848,
+      "arc": 720.0,
+      "radius": 0.0,
+      "shape": 4
+    },
+    {
+      "time": 34.116,
+      "type": "ArcHold",
       "lane": 3,
       "duration": 3.423,
       "intensity": 0.848,
@@ -653,7 +663,7 @@
       "start": 34.084,
       "end": 37.539,
       "restEnd": 37.77,
-      "notes": 1
+      "notes": 2
     },
     {
       "index": 10,

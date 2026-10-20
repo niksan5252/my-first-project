@@ -125,7 +125,9 @@ public static class SilhouettePlannerV5
             for (int j = 0; j < chart.Count; j++)
             {
                 var b = chart[j];
-                if ((b.type != CueType.Kick && b.type != CueType.KickHold) || b.lane != 0 || Mathf.Abs(b.time - time) > 1.6f * beat || Mathf.Abs(b.time - time) < 0.03f) continue;
+                // 2.2 beats: a star jump's in-pair comes 2 beats after its out-pair; at 1.6 it took the
+                // forward-jump clip, whose wind-up muted the legs of the out-pair before it (video 24).
+                if ((b.type != CueType.Kick && b.type != CueType.KickHold) || b.lane != 0 || Mathf.Abs(b.time - time) > 2.2f * beat || Mathf.Abs(b.time - time) < 0.03f) continue;
                 int p = PartnerOf(j);
                 if (p >= 0 && chart[p].lane == laneCount - 1) return true;
             }

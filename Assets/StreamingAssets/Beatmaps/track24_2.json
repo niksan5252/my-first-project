@@ -51,6 +51,16 @@
       "shape": 3
     },
     {
+      "time": 8.966,
+      "type": "ArcHold",
+      "lane": 3,
+      "duration": 3.449,
+      "intensity": 0.45,
+      "arc": -360.0,
+      "radius": 0.0,
+      "shape": 3
+    },
+    {
       "time": 12.658,
       "type": "CurbGap",
       "lane": 2,
@@ -236,7 +246,7 @@
       "start": 8.954,
       "end": 12.415,
       "restEnd": 12.646,
-      "notes": 1
+      "notes": 2
     },
     {
       "index": 3,

@@ -361,6 +361,16 @@
       "shape": 3
     },
     {
+      "time": 32.838,
+      "type": "ArcHold",
+      "lane": 3,
+      "duration": 3.36,
+      "intensity": 0.45,
+      "arc": -360.0,
+      "radius": 0.0,
+      "shape": 3
+    },
+    {
       "time": 36.473,
       "type": "Knee",
       "lane": 1,
@@ -1113,6 +1123,16 @@
       "duration": 3.36,
       "intensity": 0.45,
       "arc": -720.0,
+      "radius": 0.0,
+      "shape": 1
+    },
+    {
+      "time": 89.189,
+      "type": "ArcHold",
+      "lane": 0,
+      "duration": 3.36,
+      "intensity": 0.45,
+      "arc": 720.0,
       "radius": 0.0,
       "shape": 1
     },
@@ -2106,7 +2126,7 @@
       "start": 32.79,
       "end": 36.198,
       "restEnd": 36.425,
-      "notes": 1
+      "notes": 2
     },
     {
       "index": 9,
@@ -2226,7 +2246,7 @@
       "start": 89.141,
       "end": 92.549,
       "restEnd": 92.776,
-      "notes": 1
+      "notes": 2
     },
     {
       "index": 24,
