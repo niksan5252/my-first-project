@@ -85,6 +85,7 @@ public class SilhouetteTrainerV5 : MonoBehaviour
     private RawImage figureImage, figureGlow;
     private Image frameEdge, frameHalo;
     private RectTransform panel;
+    public RectTransform Panel => panel;     // NewMovesIntro moves it to the middle for the intro
     private Canvas canvas;
     private Material bodyMat, glowMat;
     private Color themeShown = Color.clear;

@@ -14,6 +14,16 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::RunPlaylist
   title: Video24
   segments:
+  - label: New Moves
+    role: 2
+    track: {fileID: 8300000, guid: df1971ab4c84c894b8bfdf7e870cc7b1, type: 3}
+    beatmapFileName: intro24.json
+    theme: {fileID: 11400000, guid: 57896002466c61942893da3fea2949ac, type: 2}
+    clipStart: 54.651
+    clipEnd: 77.828
+    transitionIn: 2
+    transitionSeconds: 2
+    transitionLook: 0
   - label: Level 1 Tropical Lagoon
     role: 0
     track: {fileID: 8300000, guid: 9988b470c941e284a8845a33e7ad6665, type: 3}
@@ -99,6 +109,11 @@ MonoBehaviour:
   favoriteQuestion: 1
   spoilerSubtitle: 
   welcomeVoice: 
+  introMoves:
+  - 0.00|HIGH KNEES|knee
+  - 5.07|ELBOW TO KNEE|crunch
+  - 10.52|ARMS THROUGH THE WALLS|armgate
+  - 15.98|ARM WAVES|armflow
   ratingWords:
   - WELL DONE
   - AWESOME

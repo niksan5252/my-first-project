@@ -19,7 +19,8 @@ public enum PlaylistTransition
 }
 
 /// What a segment is in a retention-wrapped video: one of the levels, or a clip of the spoiler.
-public enum PlaylistSegmentRole { Level, Spoiler }
+// Intro (video 24): the NEW MOVES demo before the first level (NewMovesIntro) - not a level, no spoiler label.
+public enum PlaylistSegmentRole { Level, Spoiler, Intro }
 
 /// What a transition LOOKS like, independent of what the music does.
 public enum PlaylistTransitionLook
@@ -158,6 +159,8 @@ public class RunPlaylist : ScriptableObject
     public bool favoriteQuestion;            // the outro asks which world was the favourite (comment the number)
     public string spoilerSubtitle = "";      // under the SPOILER word, e.g. WAIT FOR THE FINAL LEVEL!
     public string welcomeVoice = "";         // the voice clip for the welcome card (Resources/Voice key)
+    // Video 24: the moves shown over the Intro segment, "seconds|NAME|icon" (seconds from its start, a Resources/CueIcons name).
+    public string[] introMoves = new string[0];
     // The combo rating under the number, by threshold (each word from its combo on).
     public string[] ratingWords = { "WELL DONE", "AWESOME", "FLAWLESS", "PERFECT", "THAT'S INCREDIBLE", "EPIC", "THAT'S AMAZING" };
     public int[] ratingCombos = { 10, 25, 45, 70, 100, 140, 190 };

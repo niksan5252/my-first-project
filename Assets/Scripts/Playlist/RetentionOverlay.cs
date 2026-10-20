@@ -70,6 +70,7 @@ public class RetentionOverlay : MonoBehaviour
         for (int k = 0; k < tl.spans.Count; k++)
         {
             var s = tl.spans[k];
+            if (s.segment.role == PlaylistSegmentRole.Intro) continue;   // NewMovesIntro draws it
             if (s.segment.role == PlaylistSegmentRole.Spoiler)
             {
                 spoilerStart = Mathf.Min(spoilerStart, s.audioStart);
@@ -95,6 +96,14 @@ public class RetentionOverlay : MonoBehaviour
                     int sp = label.IndexOf(' ', label.StartsWith("Level ") ? 6 : 0);
                     string world = (sp >= 0 ? label.Substring(sp + 1) : label).ToUpperInvariant();
                     float c = Mathf.Min(1.6f, d * 0.4f);
+                    if (level == 0)
+                    {
+                        // After the NEW MOVES intro: straight into the first world.
+                        var go1 = Add(a, a + d, Back.Frozen, "LEVEL 1: " + world, "LET'S GO!", Gold); go1.freezeAt = a;
+                        go1.voice = Say(list, "NEXT_LEVEL");
+                        level++;
+                        continue;
+                    }
                     var lc = Add(a, a + c, Back.Frozen, "LEVEL " + level + "/" + levels + " COMPLETE!", null, Gold); lc.freezeAt = a;
                     var nx = Add(a + c, a + d, Back.Frozen, final ? "FINAL LEVEL: " + world : "NEXT: " + world,
                         final ? "THE BEST IS SAVED FOR LAST!" : "GET READY!", final ? Gold : Color.white);

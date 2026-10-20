@@ -98,8 +98,17 @@ public static class Video24Setup
         p.welcomeVoice = "";
         p.outroSeconds = 36f;
 
-        // No spoiler segments: the first level opens the video.
+        // No spoiler: the video opens on NEW MOVES (the user's call) - the four new moves shown one
+        // by one over a window of the finale's track (intro24.json), then the first level.
         p.segments = new List<PlaylistSegment>();
+        p.segments.Add(new PlaylistSegment
+        {
+            label = "New Moves", role = PlaylistSegmentRole.Intro,
+            track = tracks[4], beatmapFileName = "intro24.json", theme = themes[0],
+            clipStart = 54.651f, clipEnd = 77.828f, transitionIn = PlaylistTransition.Cut, transitionSeconds = 2f,
+            transitionLook = PlaylistTransitionLook.Veil,
+        });
+        p.introMoves = new[] { "0.00|HIGH KNEES|knee", "5.07|ELBOW TO KNEE|crunch", "10.52|ARMS THROUGH THE WALLS|armgate", "15.98|ARM WAVES|armflow" };
         for (int i = 0; i < skins.Length; i++)
             p.segments.Add(new PlaylistSegment
             {
