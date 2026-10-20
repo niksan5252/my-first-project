@@ -2373,29 +2373,9 @@ public class CueSpawner : MonoBehaviour
                         fills.Add(CreateBoxFill(gS, lo, hi, obstacleFillMat));
                         bright.AddRange(CreateBoxEdges(gS, lo, hi, obstacleEdgeThickness, cueBaseMat));
                     }
-                    // Neon stripes the walls' length on the face toward the player.
-                    float xi = sx * (inner - 0.03f);
-                    for (float y = 0.3f; y < slotLow - 0.15f; y += 0.35f)
-                        bright.Add(CreateBeam(gS, new Vector3(xi, y, 0f), new Vector3(xi, y, 1f), 0.06f, cueBaseMat));
-                    for (float y = slotHigh + 0.3f; y < top - 0.1f; y += 0.3f)
-                        bright.Add(CreateBeam(gS, new Vector3(xi, y, 0f), new Vector3(xi, y, 1f), 0.06f, cueBaseMat));
-                    // Chevrons on the front face pointing at the slot from below and above.
-                    float wx = Mathf.Abs(x1 - x0) * 0.32f, cx = (x0 + x1) * 0.5f;
-                    for (float yt = slotLow - 0.2f; yt > 0.55f && yt > slotLow - 0.7f; yt -= 0.45f)
-                    {
-                        bright.Add(CreateBeam(gF, new Vector3(cx - wx, yt - 0.35f, -0.03f), new Vector3(cx, yt, -0.03f), 0.09f, cueBaseMat));
-                        bright.Add(CreateBeam(gF, new Vector3(cx, yt, -0.03f), new Vector3(cx + wx, yt - 0.35f, -0.03f), 0.09f, cueBaseMat));
-                    }
-                    if (slotHigh + 0.6f < top)
-                    {
-                        bright.Add(CreateBeam(gF, new Vector3(cx - wx, slotHigh + 0.6f, -0.03f), new Vector3(cx, slotHigh + 0.2f, -0.03f), 0.09f, cueBaseMat));
-                        bright.Add(CreateBeam(gF, new Vector3(cx, slotHigh + 0.2f, -0.03f), new Vector3(cx + wx, slotHigh + 0.6f, -0.03f), 0.09f, cueBaseMat));
-                    }
-                    // The slot: a glowing rail down its middle, glass above and below.
-                    float xc = cx, ym = (slotLow + slotHigh) * 0.5f;
-                    bright.Add(CreateBeam(gS, new Vector3(xc, ym, 0f), new Vector3(xc, ym, 1f), 0.1f, cueBaseMat));
-                    fills.Add(CreateBoxFill(gS, new Vector3(x0, slotLow - 0.04f, 0f), new Vector3(x1, slotLow + 0.04f, 1f), obstacleFillMat));
-                    fills.Add(CreateBoxFill(gS, new Vector3(x0, slotHigh - 0.04f, 0f), new Vector3(x1, slotHigh + 0.04f, 1f), obstacleFillMat));
+                    // Nothing else: solid blocks filled like the dodge walls (the user: stripes and
+                    // chevrons made it unclear at which height the arm goes) - the slot is the clean
+                    // gap between them.
                 }
                 return new CueVisual
                 {
