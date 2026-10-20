@@ -2679,7 +2679,11 @@ def expand_compound(events: List[Event], sets: List[WorkoutSet], beat: float, la
             if balance_count % 2 == 0:
                 cycle = (0, lane_count - 1, 1, lane_count - 2)
                 made.append(note(first, CURB_GAP, cycle[(balance_count // 2 + block.index) % 4], length))
-            else: made.append(note(first, CURB_SPLIT, 1, length))
+            else:
+                # the wide kerb's variants in turn: 0 feet on the outer lanes, 2 on lanes 2+4, 1 inner, 3 on 1+3
+                sp = note(first, CURB_SPLIT, 1, length)
+                sp.shape = (0, 2, 1, 3)[(balance_count // 2 + block.index) % 4]
+                made.append(sp)
             balance_count += 1
         elif ex == CROSS:
             for n, ev in enumerate(members):

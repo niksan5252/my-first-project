@@ -131,8 +131,8 @@ public class SilhouetteMotionSetV5 : ScriptableObject
     [Header("Dodge: turn, lean and step away from the wall")]
     // A real step aside, both feet moving (the user: "not just ducking - stepping away").
     public float dodgeShift = 0.5f;        // how far the body moves (m)
-    public float dodgeLeadFoot = 0.72f;    // the foot on the side of the step
-    public float dodgeTrailFoot = 0.34f;
+    public float dodgeLeadFoot = 0.62f;    // the foot on the side of the step
+    public float dodgeTrailFoot = 0.55f;    // about the body's shift: both feet step across
     public float dodgeLeanDegrees = 5f;
     public float dodgeTurnDegrees = 12f;   // shoulders and hips turned toward the step
 

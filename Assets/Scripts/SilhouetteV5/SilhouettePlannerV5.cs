@@ -368,7 +368,7 @@ public static class SilhouettePlannerV5
                     a = Mathf.Min(a, b - 0.6f * beat); e += 0.3f * beat;
                     gestures.Add(new GestureV5
                     {
-                        kind = GestureKindV5.Wide, side = 1, outer = true,
+                        kind = GestureKindV5.Wide, side = 1, outer = true, arcShape = c.shape,
                         start = a, impact = b, holdEnd = r, end = e, note = i,
                     });
                     break;

@@ -341,44 +341,65 @@
   },
   {
    "time": 39.25,
-   "type": "CurbGap",
+   "type": "CurbSplit",
    "lane": 1,
-   "duration": 2.0,
+   "duration": 1.5,
    "intensity": 0.8
   },
   {
-   "time": 42.25,
+   "time": 41.75,
+   "type": "CurbSplit",
+   "lane": 1,
+   "duration": 1.5,
+   "intensity": 0.8,
+   "shape": 1
+  },
+  {
+   "time": 44.25,
+   "type": "CurbSplit",
+   "lane": 1,
+   "duration": 1.5,
+   "intensity": 0.8,
+   "shape": 2
+  },
+  {
+   "time": 46.75,
+   "type": "CurbSplit",
+   "lane": 1,
+   "duration": 1.5,
+   "intensity": 0.8,
+   "shape": 3
+  },
+  {
+   "time": 49.25,
    "type": "CurbGap",
    "lane": 2,
    "duration": 2.0,
    "intensity": 0.8
   },
   {
-   "time": 45.25,
+   "time": 52.25,
    "type": "CurbGap",
    "lane": 0,
    "duration": 2.0,
    "intensity": 0.8
   },
   {
-   "time": 48.25,
+   "time": 55.25,
    "type": "CurbGap",
    "lane": 3,
    "duration": 2.0,
    "intensity": 0.8
   },
   {
-   "time": 51.25,
-   "type": "ArcHold",
-   "lane": 0,
-   "duration": 4.0,
-   "intensity": 0.8,
-   "arc": 720.0,
-   "radius": 0.0,
-   "shape": 5
+   "time": 58.25,
+   "type": "CurbGap",
+   "lane": 1,
+   "duration": 2.0,
+   "intensity": 0.8
   },
   {
-   "time": 56.25,
+   "time": 61.25,
    "type": "ArcHold",
    "lane": 3,
    "duration": 4.0,
@@ -388,7 +409,7 @@
    "shape": 6
   },
   {
-   "time": 61.25,
+   "time": 66.25,
    "type": "ArcHold",
    "lane": 0,
    "duration": 4.0,
@@ -398,7 +419,7 @@
    "shape": 1
   },
   {
-   "time": 66.25,
+   "time": 71.25,
    "type": "ArcHold",
    "lane": 3,
    "duration": 4.0,
@@ -408,7 +429,7 @@
    "shape": 2
   },
   {
-   "time": 71.25,
+   "time": 76.25,
    "type": "ArcHold",
    "lane": 0,
    "duration": 4.0,
@@ -418,7 +439,7 @@
    "shape": 3
   },
   {
-   "time": 76.25,
+   "time": 81.25,
    "type": "ArcHold",
    "lane": 3,
    "duration": 4.0,
@@ -426,6 +447,16 @@
    "arc": -720.0,
    "radius": 0.0,
    "shape": 4
+  },
+  {
+   "time": 86.25,
+   "type": "ArcHold",
+   "lane": 0,
+   "duration": 4.0,
+   "intensity": 0.8,
+   "arc": 720.0,
+   "radius": 0.0,
+   "shape": 5
   }
  ],
  "sets": [
@@ -479,54 +510,46 @@
   },
   {
    "index": 6,
-   "exercise": "Balance",
+   "exercise": "CurbSplit",
    "start": 39.25,
-   "end": 41.25,
-   "restEnd": 41.75,
-   "notes": 1
+   "end": 48.25,
+   "restEnd": 49.25,
+   "notes": 4
   },
   {
    "index": 7,
    "exercise": "Balance",
-   "start": 42.25,
-   "end": 44.25,
-   "restEnd": 44.75,
+   "start": 49.25,
+   "end": 51.25,
+   "restEnd": 51.75,
    "notes": 1
   },
   {
    "index": 8,
    "exercise": "Balance",
-   "start": 45.25,
-   "end": 47.25,
-   "restEnd": 47.75,
+   "start": 52.25,
+   "end": 54.25,
+   "restEnd": 54.75,
    "notes": 1
   },
   {
    "index": 9,
    "exercise": "Balance",
-   "start": 48.25,
-   "end": 50.25,
-   "restEnd": 50.75,
+   "start": 55.25,
+   "end": 57.25,
+   "restEnd": 57.75,
    "notes": 1
   },
   {
    "index": 10,
-   "exercise": "ArmFlow",
-   "start": 51.25,
-   "end": 55.25,
-   "restEnd": 55.75,
-   "notes": 1
-  },
-  {
-   "index": 11,
-   "exercise": "ArmFlow",
-   "start": 56.25,
+   "exercise": "Balance",
+   "start": 58.25,
    "end": 60.25,
    "restEnd": 60.75,
    "notes": 1
   },
   {
-   "index": 12,
+   "index": 11,
    "exercise": "ArmFlow",
    "start": 61.25,
    "end": 65.25,
@@ -534,7 +557,7 @@
    "notes": 1
   },
   {
-   "index": 13,
+   "index": 12,
    "exercise": "ArmFlow",
    "start": 66.25,
    "end": 70.25,
@@ -542,7 +565,7 @@
    "notes": 1
   },
   {
-   "index": 14,
+   "index": 13,
    "exercise": "ArmFlow",
    "start": 71.25,
    "end": 75.25,
@@ -550,11 +573,27 @@
    "notes": 1
   },
   {
-   "index": 15,
+   "index": 14,
    "exercise": "ArmFlow",
    "start": 76.25,
    "end": 80.25,
    "restEnd": 80.75,
+   "notes": 1
+  },
+  {
+   "index": 15,
+   "exercise": "ArmFlow",
+   "start": 81.25,
+   "end": 85.25,
+   "restEnd": 85.75,
+   "notes": 1
+  },
+  {
+   "index": 16,
+   "exercise": "ArmFlow",
+   "start": 86.25,
+   "end": 90.25,
+   "restEnd": 90.75,
    "notes": 1
   }
  ]

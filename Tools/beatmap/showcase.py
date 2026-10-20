@@ -88,6 +88,7 @@ NEW_MOVES = [
     # Video 24, part 2: arms out through the walls' slots; the one-leg kerb on every lane; arm patterns.
     ("ArmGate - both: shoulder, low, high; one arm: left low, right shoulder, left high, right low", "raw",
      [(k * 5, g.ARM_GATE_TYPE, lane, 3, h) for k, (lane, h) in enumerate([(1, 0), (1, 1), (1, 2), (0, 1), (3, 0), (0, 2), (3, 1)])]),
+    ("CurbSplit - free lanes: 1+4, 2+3, 2+4, 1+3", "raw", [(k * 5, g.CURB_SPLIT, 1, 3, sh) for k, sh in enumerate((0, 1, 2, 3))]),
     ("Balance - one leg / wide, lanes in turn (1)", "set", (g.BALANCE, 4, False)),
     ("Balance - (2)", "set", (g.BALANCE, 4, False)),
     ("Balance - (3)", "set", (g.BALANCE, 4, False)),
@@ -140,7 +141,7 @@ def main():
     for e in events:
         d = {"time": round(e.time, 3), "type": e.type, "lane": int(e.lane), "duration": round(e.duration, 3), "intensity": 0.8}
         if e.type == g.ARC_HOLD: d["arc"], d["radius"] = e.arc, e.radius
-        if e.type in (g.ARC_HOLD, g.ARM_GATE_TYPE) and getattr(e, "shape", 0): d["shape"] = int(e.shape)
+        if e.type in (g.ARC_HOLD, g.ARM_GATE_TYPE, g.CURB_SPLIT) and getattr(e, "shape", 0): d["shape"] = int(e.shape)
         out.append(d)
     data = {"version": 1, "track": "showcase_silent.wav", "bpm": BPM, "audioOffset": 0.0,
             "generator": "Tools/beatmap/showcase.py", "events": out,

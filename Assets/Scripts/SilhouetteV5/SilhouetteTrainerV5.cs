@@ -607,6 +607,22 @@ public class SilhouetteTrainerV5 : MonoBehaviour
                         // Both feet far out to the sides, the body down between them (side 2 =
                         // SquatHold: a deeper, wider sumo).
                         bool squat = g.side == 2;
+                        if (!squat && g.arcShape != 0)
+                        {
+                            // A CurbSplit variant: a foot in each free lane. wideOut is the outer lanes'
+                            // centre (1.5 lanes out), so a lane is wideOut / 1.5; screen x is -figure x.
+                            int fa = g.arcShape == 1 ? 1 : g.arcShape == 2 ? 1 : 0;
+                            int fb = g.arcShape == 1 ? 2 : g.arcShape == 2 ? 3 : 2;
+                            float u = s.wideOut / 1.5f;
+                            float xa = -(fa - 1.5f) * u, xb = -(fb - 1.5f) * u;   // xa: screen-left lane, the figure's +X foot
+                            float mid = (xa + xb) * 0.5f;
+                            Vector3 fR = new Vector3((xa - mid) * w, 0f, 0f), fL = new Vector3((xb - mid) * w, 0f, 0f);
+                            if (w > footW[0]) { footW[0] = w; foot[0] = fL; }
+                            if (w > footW[1]) { footW[1] = w; foot[1] = fR; }
+                            body += new Vector3(mid * w, -s.wideSink * Mathf.Abs(xa - xb) / (3f * u) * w, 0f);
+                            tapping = Mathf.Max(tapping, w);
+                            break;
+                        }
                         float o = (squat ? s.wideOutSquat : s.wideOut) * w;
                         for (int k = 0; k < 2; k++)
                         {

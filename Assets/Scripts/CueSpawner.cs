@@ -520,6 +520,7 @@ public class CueSpawner : MonoBehaviour
         public float arcStart;      // degrees, where the fist starts
         public float arcSweep;      // degrees, signed: + clockwise as the player sees it
         public int arcShape;        // ArmPath's pattern (0 = the circle)
+        public int splitShape;      // CurbSplit: which lanes are covered (CurbSplitCovers)
         // Obstacles with a length of their own (a long Dodge, the balance kerbs): the part that is
         // stretched along the road, and how long it is when its scale is 1.
         public Transform stretch;
@@ -1344,6 +1345,7 @@ public class CueSpawner : MonoBehaviour
         SetupHoldInstance(slotIndex, type, duration, lane);
         if (type == CueType.Dodge) AimDodgeChevrons(slotIndex, side);
         if (type == CueType.ArmGate) SetupArmGate(t, lane, shape);
+        slots[slotIndex].splitShape = type == CueType.CurbSplit ? shape : 0;
         if (obstacle) SetupObstacleInstance(slotIndex, type, lane, extent);
         slots[slotIndex].longBody = type == CueType.Dodge && extent > dodgeWallLength + 0.1f;
         ApplyCueColor(slots[slotIndex], color);
@@ -1513,6 +1515,20 @@ public class CueSpawner : MonoBehaviour
         }
     }
 
+    /// CurbSplit's variants (the note's `shape`), the two free lanes are where the feet go:
+    /// 0 the inner two covered (feet on the outer lanes, the original), 1 the outer two covered
+    /// (feet on the inner lanes), 2 lanes 1 and 3 covered, 3 lanes 2 and 4 covered (in the user's 1-4).
+    public static bool CurbSplitCovers(int shape, int i, int n)
+    {
+        switch (shape)
+        {
+            case 1: return i == 0 || i == n - 1;
+            case 2: return i % 2 == 0;
+            case 3: return i % 2 == 1;
+            default: return i > 0 && i < n - 1;
+        }
+    }
+
     private int DodgeSideFromLane(int lane) => lane < tunnel.LaneCount * 0.5f ? -1 : 1;
 
     /// Picks this instance's length and turns on exactly that many of the pooled cells. A
@@ -1584,7 +1600,7 @@ public class CueSpawner : MonoBehaviour
         {
             bool covered = type == CueType.CurbGap ? i != lane
                          : type == CueType.Rails ? (i == 0 || i == n - 1)
-                         : (i > 0 && i < n - 1);
+                         : CurbSplitCovers(slots[slotIndex].splitShape, i, n);
             if (blocks[i] != null) blocks[i].SetActive(covered);
         }
     }
@@ -2375,18 +2391,11 @@ public class CueSpawner : MonoBehaviour
                         bright.Add(CreateBeam(gF, new Vector3(cx - wx, slotHigh + 0.6f, -0.03f), new Vector3(cx, slotHigh + 0.2f, -0.03f), 0.09f, cueBaseMat));
                         bright.Add(CreateBeam(gF, new Vector3(cx, slotHigh + 0.2f, -0.03f), new Vector3(cx + wx, slotHigh + 0.6f, -0.03f), 0.09f, cueBaseMat));
                     }
-                    // The slot: a glowing rail down its middle, glass above and below, a fist at its mouth.
+                    // The slot: a glowing rail down its middle, glass above and below.
                     float xc = cx, ym = (slotLow + slotHigh) * 0.5f;
                     bright.Add(CreateBeam(gS, new Vector3(xc, ym, 0f), new Vector3(xc, ym, 1f), 0.1f, cueBaseMat));
                     fills.Add(CreateBoxFill(gS, new Vector3(x0, slotLow - 0.04f, 0f), new Vector3(x1, slotLow + 0.04f, 1f), obstacleFillMat));
                     fills.Add(CreateBoxFill(gS, new Vector3(x0, slotHigh - 0.04f, 0f), new Vector3(x1, slotHigh + 0.04f, 1f), obstacleFillMat));
-                    var sign = new GameObject("SlotSign");
-                    sign.transform.SetParent(gF, false);
-                    sign.transform.localPosition = new Vector3(xc, ym, -0.03f);
-                    sign.transform.localScale = new Vector3(Mathf.Abs(x1 - x0) * 0.8f, (slotHigh - slotLow) * 0.85f, 0.02f);
-                    bright.Add(AttachMesh(sign, unitCubeMesh, cueBaseMat));
-                    var fist = AttachIcon(gF, punchIconQuad, fistIconMat, new Vector3(xc, ym, -0.06f - IconLift));
-                    fist.transform.localScale = Vector3.one * 0.55f;
                 }
                 return new CueVisual
                 {
