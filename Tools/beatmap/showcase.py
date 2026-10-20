@@ -80,14 +80,14 @@ ITEMS = [
 
 # Video 24: the new moves on their own, to train the trainer on them first.
 NEW_MOVES = [
+    ("Dodge - step aside from the wall, left then right", "raw", [(0, g.DODGE, 0, 1, None), (4, g.DODGE, 3, 1, None)]),
     ("Knee - high knees, left/right every half beat", "raw", [(k * 0.5, g.KNEE, 1 + k % 2, 0, None) for k in range(8)]),
-    ("SquatJump - squat, then jump (x3)", "raw", [(k * 2, g.SQUAT_JUMP_TYPE, 1, 0, None) for k in range(3)]),
     ("Crunch - knee to opposite elbow, left/right", "raw", [(k, g.CRUNCH, 1 + k % 2, 0, None) for k in range(6)]),
     ("HighKnees - set", "set", (g.HIGH_KNEES, 8, False)),
-    ("SquatJumps - set", "set", (g.SQUAT_JUMPS, 8, False)),
     ("CrossCrunch - set", "set", (g.CROSS_CRUNCH, 8, False)),
     # Video 24, part 2: arms out through the walls' slots; the one-leg kerb on every lane; arm patterns.
-    ("ArmGate - arms out through the slots, held", "set", (g.ARM_GATE, 6, False)),
+    ("ArmGate - both: shoulder, low, high; one arm: left low, right shoulder, left high, right low", "raw",
+     [(k * 5, g.ARM_GATE_TYPE, lane, 3, h) for k, (lane, h) in enumerate([(1, 0), (1, 1), (1, 2), (0, 1), (3, 0), (0, 2), (3, 1)])]),
     ("Balance - one leg / wide, lanes in turn (1)", "set", (g.BALANCE, 4, False)),
     ("Balance - (2)", "set", (g.BALANCE, 4, False)),
     ("Balance - (3)", "set", (g.BALANCE, 4, False)),
@@ -116,7 +116,8 @@ def main():
             beats = max(b + max(d, 1) for b, _, _, d, _ in payload)
             for b, typ, lane, dur, extra in payload:
                 ev = g.Event(time=t + b * BEAT, type=typ, intensity=0.8, lane=lane, duration=dur * BEAT, set_index=i)
-                if extra: ev.arc, ev.radius = extra
+                if isinstance(extra, int): ev.shape = extra
+                elif extra: ev.arc, ev.radius = extra
                 events.append(ev)
             sets.append(g.WorkoutSet(index=i, exercise=label.split(" ")[0], start=t, end=t + beats * BEAT,
                                      rest_end=t + (beats + GAP) * BEAT, bar=0))
@@ -139,7 +140,7 @@ def main():
     for e in events:
         d = {"time": round(e.time, 3), "type": e.type, "lane": int(e.lane), "duration": round(e.duration, 3), "intensity": 0.8}
         if e.type == g.ARC_HOLD: d["arc"], d["radius"] = e.arc, e.radius
-        if e.type == g.ARC_HOLD and getattr(e, "shape", 0): d["shape"] = int(e.shape)
+        if e.type in (g.ARC_HOLD, g.ARM_GATE_TYPE) and getattr(e, "shape", 0): d["shape"] = int(e.shape)
         out.append(d)
     data = {"version": 1, "track": "showcase_silent.wav", "bpm": BPM, "audioOffset": 0.0,
             "generator": "Tools/beatmap/showcase.py", "events": out,

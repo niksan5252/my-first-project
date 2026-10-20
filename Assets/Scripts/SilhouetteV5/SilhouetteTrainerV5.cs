@@ -637,13 +637,23 @@ public class SilhouetteTrainerV5 : MonoBehaviour
                     }
                     case SilhouettePlannerV5.GestureKindV5.TPose:
                     {
-                        // Arms straight out to the sides at shoulder height (the ArmGate's slots), held.
+                        // Arms straight out through the ArmGate's slots, held: at the shoulders; low
+                        // (a squat, arms level); high (arms up and out). One arm only when the gate has
+                        // one side - the other hand on the hip.
+                        if (g.arcShape == 1) body += new Vector3(0f, -s.wideSinkSquat * 1.1f * w, 0f);
+                        float up = g.arcShape == 2 ? 0.38f : 0.02f, reach = g.arcShape == 2 ? 0.5f : 0.62f;
                         for (int k = 0; k < 2; k++)
                         {
-                            float hx = X(k == 0 ? 1 : -1);
+                            int scr = k == 0 ? 1 : -1;
+                            float hx = X(scr);
                             Vector3 sh = k == 0 ? lShoulder : rShoulder;
+                            if (g.side != 0 && g.side != scr)
+                            {
+                                Take(ref hand[k], w, sh + new Vector3(hx * 0.2f, -0.55f, 0.02f), sh + new Vector3(hx * 0.32f, -0.3f, -0.1f));
+                                continue;
+                            }
                             float pulse = now >= g.impact && now <= g.holdEnd ? 0.02f * Mathf.Sin(beats * Mathf.PI * 2f) : 0f;
-                            Take(ref hand[k], w, sh + new Vector3(hx * 0.62f, 0.02f + pulse, 0.02f), sh + new Vector3(hx * 0.32f, 0.02f, -0.02f));
+                            Take(ref hand[k], w, sh + new Vector3(hx * reach, up + pulse, 0.02f), sh + new Vector3(hx * 0.3f, up * 0.5f + 0.02f, -0.02f));
                         }
                         break;
                     }

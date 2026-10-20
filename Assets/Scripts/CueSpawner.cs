@@ -1343,6 +1343,7 @@ public class CueSpawner : MonoBehaviour
         if (type == CueType.ArcHold) { SetupArc(slotIndex, lane, arc, radius); slots[slotIndex].arcShape = shape; }
         SetupHoldInstance(slotIndex, type, duration, lane);
         if (type == CueType.Dodge) AimDodgeChevrons(slotIndex, side);
+        if (type == CueType.ArmGate) SetupArmGate(t, lane, shape);
         if (obstacle) SetupObstacleInstance(slotIndex, type, lane, extent);
         slots[slotIndex].longBody = type == CueType.Dodge && extent > dodgeWallLength + 0.1f;
         ApplyCueColor(slots[slotIndex], color);
@@ -1491,6 +1492,27 @@ public class CueSpawner : MonoBehaviour
     /// because the chart format already has a lane on every event and it is already validated
     /// against the tunnel - adding a `direction` field would mean a second thing to keep in step
     /// between the generator, the DTO, the reader and the spawner for no extra expressiveness.
+    // ArmGate's slot heights by the note's `shape`: 0 shoulder, 1 low (squat, arms out), 2 high (arms up and out).
+    private static readonly float[] ArmGateLow = { 1.7f, 1.05f, 2.35f };
+    private static readonly float[] ArmGateHigh = { 2.25f, 1.6f, 2.9f };
+
+    /// Switches on the ArmGate variant a note asks for: the slot height from `shape`, and the
+    /// sides from the lane - an outer lane is that arm only, an inner lane both.
+    private void SetupArmGate(Transform t, int lane, int shape)
+    {
+        int v = Mathf.Clamp(shape, 0, ArmGateLow.Length - 1);
+        bool left = lane != tunnel.LaneCount - 1, right = lane != 0;
+        for (int k = 0; k < ArmGateLow.Length; k++)
+        {
+            foreach (var side in new[] { "L", "R" })
+            {
+                bool on = k == v && (side == "L" ? left : right);
+                var a = t.Find("Stretch/G" + side + k); if (a != null) a.gameObject.SetActive(on);
+                var b = t.Find("F" + side + k); if (b != null) b.gameObject.SetActive(on);
+            }
+        }
+    }
+
     private int DodgeSideFromLane(int lane) => lane < tunnel.LaneCount * 0.5f ? -1 : 1;
 
     /// Picks this instance's length and turns on exactly that many of the pooled cells. A
@@ -2307,8 +2329,10 @@ public class CueSpawner : MonoBehaviour
             }
             case CueType.ArmGate:
             {
-                // Two walls over the outer lanes, the length of the pose, each with an open slot at
-                // shoulder height edged in light: the arms go out through them and stay there.
+                // Walls over the outer lanes, the length of the pose, with an open slot for the arm.
+                // Every variant is built once into the pooled object - the slot at three heights
+                // (shoulder; low, squat with the arms out; high, arms up and out), on each side - and
+                // SpawnCue switches on the one the note asks for (both sides, or one arm only).
                 var root = new GameObject("Cue_ArmGate");
                 root.transform.SetParent(transform, false);
                 var stretchT = new GameObject("Stretch").transform;
@@ -2317,44 +2341,51 @@ public class CueSpawner : MonoBehaviour
                 var fills = new List<MeshRenderer>();
                 float laneW = tunnel.FloorWidth / tunnel.LaneCount;
                 float inner = laneW * 1.15f, outer = tunnel.FloorWidth * 0.5f + 0.15f;
-                const float slotLow = 1.7f, slotHigh = 2.25f, top = 3.1f;
+                const float top = 3.3f;
+                for (int v = 0; v < ArmGateLow.Length; v++)
                 foreach (float sx in new[] { -1f, 1f })
                 {
+                    string tag = (sx < 0f ? "L" : "R") + v;
+                    var gS = new GameObject("G" + tag).transform; gS.SetParent(stretchT, false);
+                    var gF = new GameObject("F" + tag).transform; gF.SetParent(root.transform, false);
+                    float slotLow = ArmGateLow[v], slotHigh = ArmGateHigh[v];
                     float x0 = Mathf.Min(sx * inner, sx * outer), x1 = Mathf.Max(sx * inner, sx * outer);
                     foreach (var (y0, y1) in new[] { (0f, slotLow), (slotHigh, top) })
                     {
                         var lo = new Vector3(x0, y0, 0f);
                         var hi = new Vector3(x1, y1, 1f);
-                        fills.Add(CreateBoxFill(stretchT, lo, hi, obstacleFillMat));
-                        bright.AddRange(CreateBoxEdges(stretchT, lo, hi, obstacleEdgeThickness, cueBaseMat));
+                        fills.Add(CreateBoxFill(gS, lo, hi, obstacleFillMat));
+                        bright.AddRange(CreateBoxEdges(gS, lo, hi, obstacleEdgeThickness, cueBaseMat));
                     }
-                    // The walls themselves (the user: "fill the walls with something"): neon stripes
-                    // running their length on the face toward the player, and on the front face chevrons
-                    // pointing at the slot from above and below.
+                    // Neon stripes the walls' length on the face toward the player.
                     float xi = sx * (inner - 0.03f);
-                    foreach (float y in new[] { 0.3f, 0.65f, 1.0f, 1.35f, 2.55f, 2.85f })
-                        bright.Add(CreateBeam(stretchT, new Vector3(xi, y, 0f), new Vector3(xi, y, 1f), 0.06f, cueBaseMat));
+                    for (float y = 0.3f; y < slotLow - 0.15f; y += 0.35f)
+                        bright.Add(CreateBeam(gS, new Vector3(xi, y, 0f), new Vector3(xi, y, 1f), 0.06f, cueBaseMat));
+                    for (float y = slotHigh + 0.3f; y < top - 0.1f; y += 0.3f)
+                        bright.Add(CreateBeam(gS, new Vector3(xi, y, 0f), new Vector3(xi, y, 1f), 0.06f, cueBaseMat));
+                    // Chevrons on the front face pointing at the slot from below and above.
                     float wx = Mathf.Abs(x1 - x0) * 0.32f, cx = (x0 + x1) * 0.5f;
-                    foreach (float yt in new[] { 1.05f, 1.5f })     // "^" under the slot
+                    for (float yt = slotLow - 0.2f; yt > 0.55f && yt > slotLow - 0.7f; yt -= 0.45f)
                     {
-                        bright.Add(CreateBeam(root.transform, new Vector3(cx - wx, yt - 0.35f, -0.03f), new Vector3(cx, yt, -0.03f), 0.09f, cueBaseMat));
-                        bright.Add(CreateBeam(root.transform, new Vector3(cx, yt, -0.03f), new Vector3(cx + wx, yt - 0.35f, -0.03f), 0.09f, cueBaseMat));
+                        bright.Add(CreateBeam(gF, new Vector3(cx - wx, yt - 0.35f, -0.03f), new Vector3(cx, yt, -0.03f), 0.09f, cueBaseMat));
+                        bright.Add(CreateBeam(gF, new Vector3(cx, yt, -0.03f), new Vector3(cx + wx, yt - 0.35f, -0.03f), 0.09f, cueBaseMat));
                     }
-                    bright.Add(CreateBeam(root.transform, new Vector3(cx - wx, 2.85f, -0.03f), new Vector3(cx, 2.45f, -0.03f), 0.09f, cueBaseMat));   // "v" over it
-                    bright.Add(CreateBeam(root.transform, new Vector3(cx, 2.45f, -0.03f), new Vector3(cx + wx, 2.85f, -0.03f), 0.09f, cueBaseMat));
-                    // The slot itself (the user: "inside there is nothing, you can't see where the arms
-                    // go"): a glowing rail down its middle the whole length, glass above and below it,
-                    // and a fist sign at its mouth facing the camera.
-                    float xc = (x0 + x1) * 0.5f, ym = (slotLow + slotHigh) * 0.5f;
-                    bright.Add(CreateBeam(stretchT, new Vector3(xc, ym, 0f), new Vector3(xc, ym, 1f), 0.1f, cueBaseMat));
-                    fills.Add(CreateBoxFill(stretchT, new Vector3(x0, slotLow - 0.04f, 0f), new Vector3(x1, slotLow + 0.04f, 1f), obstacleFillMat));
-                    fills.Add(CreateBoxFill(stretchT, new Vector3(x0, slotHigh - 0.04f, 0f), new Vector3(x1, slotHigh + 0.04f, 1f), obstacleFillMat));
+                    if (slotHigh + 0.6f < top)
+                    {
+                        bright.Add(CreateBeam(gF, new Vector3(cx - wx, slotHigh + 0.6f, -0.03f), new Vector3(cx, slotHigh + 0.2f, -0.03f), 0.09f, cueBaseMat));
+                        bright.Add(CreateBeam(gF, new Vector3(cx, slotHigh + 0.2f, -0.03f), new Vector3(cx + wx, slotHigh + 0.6f, -0.03f), 0.09f, cueBaseMat));
+                    }
+                    // The slot: a glowing rail down its middle, glass above and below, a fist at its mouth.
+                    float xc = cx, ym = (slotLow + slotHigh) * 0.5f;
+                    bright.Add(CreateBeam(gS, new Vector3(xc, ym, 0f), new Vector3(xc, ym, 1f), 0.1f, cueBaseMat));
+                    fills.Add(CreateBoxFill(gS, new Vector3(x0, slotLow - 0.04f, 0f), new Vector3(x1, slotLow + 0.04f, 1f), obstacleFillMat));
+                    fills.Add(CreateBoxFill(gS, new Vector3(x0, slotHigh - 0.04f, 0f), new Vector3(x1, slotHigh + 0.04f, 1f), obstacleFillMat));
                     var sign = new GameObject("SlotSign");
-                    sign.transform.SetParent(root.transform, false);
+                    sign.transform.SetParent(gF, false);
                     sign.transform.localPosition = new Vector3(xc, ym, -0.03f);
                     sign.transform.localScale = new Vector3(Mathf.Abs(x1 - x0) * 0.8f, (slotHigh - slotLow) * 0.85f, 0.02f);
                     bright.Add(AttachMesh(sign, unitCubeMesh, cueBaseMat));
-                    var fist = AttachIcon(root.transform, punchIconQuad, fistIconMat, new Vector3(xc, ym, -0.06f - IconLift));
+                    var fist = AttachIcon(gF, punchIconQuad, fistIconMat, new Vector3(xc, ym, -0.06f - IconLift));
                     fist.transform.localScale = Vector3.one * 0.55f;
                 }
                 return new CueVisual

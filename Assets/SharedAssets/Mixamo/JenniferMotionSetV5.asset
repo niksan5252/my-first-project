@@ -132,11 +132,11 @@ MonoBehaviour:
   tapInBeats: 0.6
   tapStayBeats: 0.1
   tapOutBeats: 0.45
-  dodgeShift: 0.2
-  dodgeLeadFoot: 0.34
-  dodgeTrailFoot: 0.1
-  dodgeLeanDegrees: 12
-  dodgeTurnDegrees: 30
+  dodgeShift: 0.5
+  dodgeLeadFoot: 0.72
+  dodgeTrailFoot: 0.34
+  dodgeLeanDegrees: 5
+  dodgeTurnDegrees: 12
   riseBeats: 0.6
   riseSeconds: 0.3
   fallBeats: 0.7

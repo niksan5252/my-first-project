@@ -158,7 +158,7 @@ public static class BeatmapReader
                 radius = e.radius;
             }
 
-            parsed.Add(new BeatmapCue(e.time, type, e.lane, mayHold ? Mathf.Max(0f, e.duration) : 0f, Mathf.Clamp01(e.intensity), arc, radius, type == CueType.ArcHold ? Mathf.Clamp(e.shape, 0, ArmPath.Count - 1) : 0));
+            parsed.Add(new BeatmapCue(e.time, type, e.lane, mayHold ? Mathf.Max(0f, e.duration) : 0f, Mathf.Clamp01(e.intensity), arc, radius, type == CueType.ArcHold ? Mathf.Clamp(e.shape, 0, ArmPath.Count - 1) : type == CueType.ArmGate ? Mathf.Clamp(e.shape, 0, 2) : 0));
         }
 
         // Sorted here rather than trusted from the file: the sequencer walks a cursor forward and

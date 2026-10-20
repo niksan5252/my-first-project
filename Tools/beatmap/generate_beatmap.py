@@ -116,7 +116,9 @@ CROSS_CRUNCH = "CrossCrunch" # set: a cross crunch on every beat, sides in turn
 ARM_GATE_TYPE = "ArmGate"    # JSON type, a pose with a duration: walls with slots at shoulder height - arms out, held
 ARM_GATE = "ArmGateSet"      # set: one ArmGate for the whole set
 ARM_FLOW = "ArmFlow"         # set: one long ArcHold drawing a pattern (eight, wave, zigzag, up-down, side-side), hands in turn
-ARM_SHAPES = (1, 2, 3, 4, 5, 6)   # 6 = deep wave, down to the knees
+ARM_SHAPES = (1, 2, 3, 4, 5, 6)
+ARM_GATE_VARIANTS = ((1, 0), (0, 1), (3, 2), (1, 1), (3, 0), (0, 2), (1, 2), (0, 0), (3, 1))
+# SQUAT_JUMPS: kept, but not dealt into decks for now (the user is not using these jumps yet).   # 6 = deep wave, down to the knees
 # Video 18 - Latin dance-fitness moves (the music went guaracha / latin house):
 CUMBIA = "Cumbia"            # set: step out wide with the opposite fist high, step back in, the other side
 MERENGUE = "Merengue"        # set: marching feet on every beat, a double punch on the fourth
@@ -2357,6 +2359,7 @@ def expand_compound(events: List[Event], sets: List[WorkoutSet], beat: float, la
     wall_side = 0
     balance_count = 0
     arm_flow_count = 0
+    arm_gate_count = 0
     arc_count = 0
     for block in sets:
         members = sorted(by_set.get(block.index, []), key=lambda e: e.time)
@@ -2567,8 +2570,15 @@ def expand_compound(events: List[Event], sets: List[WorkoutSet], beat: float, la
                 made.append(note(ev, KICK, 0 if left else 2)); made.append(note(ev, KICK, 1 if left else 3))
                 made.append(note(ev, PUNCH_HIGH, lane_count - 1 if left else 0))
         elif ex == ARM_GATE:
-            first = members[0]
-            made.append(note(first, ARM_GATE_TYPE, 1, max(beat, block.end - first.time)))
+            # A gate every 4 beats (3 held), the variants in turn: (lane, height) - lane 1 both
+            # arms, 0 / last one arm; height 0 shoulder, 1 low (squat), 2 high.
+            for n in range(0, len(members), 4):
+                ev = members[n]
+                lane, h = ARM_GATE_VARIANTS[(arm_gate_count + block.index) % len(ARM_GATE_VARIANTS)]
+                arm_gate_count += 1
+                g_ev = note(ev, ARM_GATE_TYPE, lane if lane < 3 else lane_count - 1, min(3 * beat, max(beat, block.end - ev.time)))
+                g_ev.shape = h
+                made.append(g_ev)
         elif ex == ARM_FLOW:
             # One long pattern drawn by one hand for the set; the shapes and the hands take turns.
             first = members[0]

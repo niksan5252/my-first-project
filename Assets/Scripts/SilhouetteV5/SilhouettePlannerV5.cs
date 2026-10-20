@@ -269,7 +269,8 @@ public static class SilhouettePlannerV5
                     float len = Mathf.Max(c.duration, beat);
                     gestures.Add(new GestureV5
                     {
-                        kind = GestureKindV5.TPose, side = 1, outer = true,
+                        // side 0 both arms, +-1 that screen side's arm only; arcShape the slot's height.
+                        kind = GestureKindV5.TPose, side = c.lane == 0 ? -1 : c.lane == laneCount - 1 ? 1 : 0, outer = true, arcShape = c.shape,
                         start = c.time - 0.6f * beat, impact = c.time, holdEnd = c.time + len, end = c.time + len + 0.5f * beat, note = i,
                     });
                     break;
