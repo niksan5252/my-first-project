@@ -68,6 +68,8 @@ public class NewMovesIntro : MonoBehaviour
         title = Text(go.transform, "Title", 96f, new Vector2(0f, 450f), Gold);
         title.text = "NEW MOVES!";
         moveName = Text(go.transform, "Move", 64f, new Vector2(0f, 352f), Color.white);
+        DisplayFonts.Use(title, DisplayFonts.Bungee);
+        DisplayFonts.Use(moveName, DisplayFonts.Russo);
 
         // The cue button: a glowing square like the signs in the tunnel, the pictogram on it.
         plate = new GameObject("Plate", typeof(RectTransform), typeof(Image)).GetComponent<Image>();

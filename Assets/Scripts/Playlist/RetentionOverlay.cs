@@ -33,6 +33,7 @@ public class RetentionOverlay : MonoBehaviour
         public bool endScreen;
         public float freezeAt = -1f;     // Frozen: the moment whose frame is shown
         public string voice;             // a Resources/Voice clip said as the card comes up (video 20)
+        public TMP_FontAsset font;       // the big line's face (DisplayFonts); null = Bungee
     }
 
     private PlaylistDirector director;
@@ -100,14 +101,14 @@ public class RetentionOverlay : MonoBehaviour
                     {
                         // After the NEW MOVES intro: straight into the first world.
                         var go1 = Add(a, a + d, Back.Frozen, "LEVEL 1: " + world, "LET'S GO!", Gold); go1.freezeAt = a;
-                        go1.voice = Say(list, "NEXT_LEVEL");
+                        go1.voice = Say(list, "NEXT_LEVEL"); go1.font = DisplayFonts.Monoton;
                         level++;
                         continue;
                     }
                     var lc = Add(a, a + c, Back.Frozen, "LEVEL " + level + "/" + levels + " COMPLETE!", null, Gold); lc.freezeAt = a;
                     var nx = Add(a + c, a + d, Back.Frozen, final ? "FINAL LEVEL: " + world : "NEXT: " + world,
                         final ? "THE BEST IS SAVED FOR LAST!" : "GET READY!", final ? Gold : Color.white);
-                    nx.freezeAt = a; nx.voice = Say(list, final ? "FINAL_LEVEL" : "NEXT_LEVEL");
+                    nx.freezeAt = a; nx.voice = Say(list, final ? "FINAL_LEVEL" : "NEXT_LEVEL"); nx.font = DisplayFonts.Monoton;
                 }
                 else
                 {
@@ -341,7 +342,13 @@ public class RetentionOverlay : MonoBehaviour
         float alpha = Mathf.Clamp01(left / 0.2f) * Mathf.Clamp01(age / 0.08f);
         if (words)
         {
-            if (shown != card) { bigText.text = card.big; smallText.text = card.small ?? ""; }
+            if (shown != card)
+            {
+                DisplayFonts.Use(bigText, card.font != null ? card.font : DisplayFonts.Bungee);
+                DisplayFonts.Use(smallText, DisplayFonts.Luckiest, 0.15f);
+                bigText.wordSpacing = bigText.font == DisplayFonts.Monoton ? 70f : 0f;   // Monoton's space is a hairline
+                bigText.text = card.big; smallText.text = card.small ?? "";
+            }
             bigText.color = new Color(card.color.r, card.color.g, card.color.b, alpha);
             bigText.rectTransform.localScale = Vector3.one * pop;
             smallText.color = new Color(1f, 1f, 1f, alpha * 0.9f);
