@@ -1,0 +1,364 @@
+{
+  "version": 1,
+  "track": "track24_1.wav",
+  "bpm": 130.295,
+  "audioOffset": 0.0,
+  "generator": "Tools/beatmap/generate_beatmap.py (librosa)",
+  "events": [
+    {
+      "time": 2.31,
+      "type": "KickHold",
+      "lane": 1,
+      "duration": 0.841,
+      "intensity": 0.45
+    },
+    {
+      "time": 3.231,
+      "type": "KickHold",
+      "lane": 2,
+      "duration": 0.841,
+      "intensity": 0.45
+    },
+    {
+      "time": 4.152,
+      "type": "KickHold",
+      "lane": 1,
+      "duration": 0.841,
+      "intensity": 0.45
+    },
+    {
+      "time": 5.073,
+      "type": "KickHold",
+      "lane": 2,
+      "duration": 0.596,
+      "intensity": 0.45
+    },
+    {
+      "time": 5.994,
+      "type": "CurbGap",
+      "lane": 3,
+      "duration": 3.439,
+      "intensity": 0.45
+    },
+    {
+      "time": 9.678,
+      "type": "Kick",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 0.45
+    },
+    {
+      "time": 10.599,
+      "type": "Kick",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 0.45
+    },
+    {
+      "time": 11.52,
+      "type": "Kick",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 0.45
+    },
+    {
+      "time": 12.441,
+      "type": "Kick",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 0.45
+    },
+    {
+      "time": 13.362,
+      "type": "ArmGate",
+      "lane": 1,
+      "duration": 1.381,
+      "intensity": 0.888,
+      "shape": 1
+    },
+    {
+      "time": 15.203,
+      "type": "ArmGate",
+      "lane": 3,
+      "duration": 1.381,
+      "intensity": 0.701
+    },
+    {
+      "time": 17.045,
+      "type": "Knee",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 17.276,
+      "type": "Knee",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 17.506,
+      "type": "Knee",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 17.736,
+      "type": "Knee",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 17.966,
+      "type": "Knee",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 18.197,
+      "type": "Knee",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 18.427,
+      "type": "Knee",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 18.657,
+      "type": "Knee",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 18.887,
+      "type": "Knee",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 19.118,
+      "type": "Knee",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 19.348,
+      "type": "Knee",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 19.578,
+      "type": "Knee",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 19.808,
+      "type": "Knee",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 20.039,
+      "type": "Knee",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 20.269,
+      "type": "Knee",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 20.499,
+      "type": "Knee",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 20.729,
+      "type": "Punch",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 21.19,
+      "type": "Punch",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 21.65,
+      "type": "Punch",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 22.111,
+      "type": "Punch",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 22.571,
+      "type": "Punch",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 23.032,
+      "type": "Punch",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 0.954
+    },
+    {
+      "time": 23.492,
+      "type": "Punch",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 0.954
+    },
+    {
+      "time": 23.953,
+      "type": "Punch",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 0.932
+    },
+    {
+      "time": 24.413,
+      "type": "Kick",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 0.979
+    },
+    {
+      "time": 25.334,
+      "type": "Kick",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 26.255,
+      "type": "Kick",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 0.972
+    },
+    {
+      "time": 27.176,
+      "type": "Kick",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 0.995
+    },
+    {
+      "time": 28.097,
+      "type": "ArmGate",
+      "lane": 2,
+      "duration": 1.381,
+      "intensity": 1.0
+    },
+    {
+      "time": 29.939,
+      "type": "ArmGate",
+      "lane": 3,
+      "duration": 1.381,
+      "intensity": 1.0,
+      "shape": 1
+    }
+  ],
+  "sets": [
+    {
+      "index": 0,
+      "exercise": "KickHold",
+      "start": 2.295,
+      "end": 5.748,
+      "restEnd": 5.979,
+      "notes": 4
+    },
+    {
+      "index": 1,
+      "exercise": "Balance",
+      "start": 5.979,
+      "end": 9.432,
+      "restEnd": 9.663,
+      "notes": 1
+    },
+    {
+      "index": 2,
+      "exercise": "StepTouch",
+      "start": 9.663,
+      "end": 13.116,
+      "restEnd": 13.347,
+      "notes": 4
+    },
+    {
+      "index": 3,
+      "exercise": "ArmGateSet",
+      "start": 13.347,
+      "end": 16.8,
+      "restEnd": 17.031,
+      "notes": 2
+    },
+    {
+      "index": 4,
+      "exercise": "HighKnees",
+      "start": 17.031,
+      "end": 20.484,
+      "restEnd": 20.715,
+      "notes": 16
+    },
+    {
+      "index": 5,
+      "exercise": "Punch",
+      "start": 20.715,
+      "end": 24.168,
+      "restEnd": 24.399,
+      "notes": 8
+    },
+    {
+      "index": 6,
+      "exercise": "StepTouch",
+      "start": 24.399,
+      "end": 27.852,
+      "restEnd": 28.082,
+      "notes": 4
+    },
+    {
+      "index": 7,
+      "exercise": "ArmGateSet",
+      "start": 28.082,
+      "end": 31.536,
+      "restEnd": 31.766,
+      "notes": 2
+    }
+  ]
+}

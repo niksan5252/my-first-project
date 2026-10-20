@@ -86,6 +86,20 @@ public class RetentionOverlay : MonoBehaviour
                     Add(a + c, a + 2f * c, Back.Black, "⚠ THIS VIDEO HAS " + levels + " LEVELS!", "don't leave between tracks").voice = Say(list, "LEVELS_" + levels);
                     Add(a + 2f * c, a + d, Back.Black, "HAVE FUN!", null).voice = Say(list, "HAVE_FUN");
                 }
+                else if (d < 9f)
+                {
+                    // Video 24 (retention): a short break - the level done, then straight to the
+                    // next world by name, instead of 13 s of cards.
+                    bool final = level + 1 == levels;
+                    string label = s.segment.label ?? "";
+                    int sp = label.IndexOf(' ', label.StartsWith("Level ") ? 6 : 0);
+                    string world = (sp >= 0 ? label.Substring(sp + 1) : label).ToUpperInvariant();
+                    float c = Mathf.Min(1.6f, d * 0.4f);
+                    var lc = Add(a, a + c, Back.Frozen, "LEVEL " + level + "/" + levels + " COMPLETE!", null, Gold); lc.freezeAt = a;
+                    var nx = Add(a + c, a + d, Back.Frozen, final ? "FINAL LEVEL: " + world : "NEXT: " + world,
+                        final ? "THE BEST IS SAVED FOR LAST!" : "GET READY!", final ? Gold : Color.white);
+                    nx.freezeAt = a; nx.voice = Say(list, final ? "FINAL_LEVEL" : "NEXT_LEVEL");
+                }
                 else
                 {
                     bool final = level + 1 == levels;

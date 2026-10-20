@@ -2163,6 +2163,24 @@ _deal_decks_21()                    # video 21 (shift 0 keeps its charts as buil
 _deal_decks_21("deck22", 5, 5)      # video 22: five levels, other starting points
 _deal_decks_21("deck23", 5, 2)      # video 23: five levels, a third set of starting points
 
+# Video 24 (retention: levels growing in length, the first an easy warm-up; the new moves in every
+# level - high knees, cross crunches, the arm gates in their nine variants, the arm patterns, the
+# balance kerbs on every lane pairing - and the older moves dealt so that no two levels share one).
+_D24 = [
+    [HIGH_KNEES, STEP_TOUCH, PUNCH, ARM_GATE, BALANCE, "KickHold"],
+    [CROSS_CRUNCH, JAB_CROSS, ARM_FLOW, BALANCE, SKATER, DODGE, ARM_GATE],
+    [HIGH_KNEES, ARM_GATE, WINDMILL, CROSS_CRUNCH, BALANCE, FAN, ARM_FLOW, DUCK, ARC_PUNCH],
+    [ARM_FLOW, CROSS_CRUNCH, ARM_GATE, BALANCE, CROSS_JACK, LADDER, STAR_JUMP, HIGH_KNEES, CURB, LUNGE, MERENGUE, PUNCH_KICK, DODGE],
+    [HIGH_KNEES, ARM_GATE, CROSS_CRUNCH, ARM_FLOW, BALANCE, SALSA, SPEED_PUNCH, POWER_JUMP, SIDE_JUMP, TORERO,
+     KNEE_CLINCH, WALL_RUN, MIRROR, HOPSCOTCH, ARM_GATE, BALANCE, SQUAT, CROSS],
+]
+for _n, _moves in enumerate(_D24):
+    CHARACTER_PLANS["deck24-%d" % (_n + 1)] = {
+        "deck": [(ex, {WALL_RUN: 4, DODGE: 1, DUCK: 1, CURB: 1}.get(ex, 2)) for ex in _moves],
+        "spacing": DECK19_SPACING, "fill": _moves[1] if _n else STEP_TOUCH,
+        "finale": [PUNCH, JAB_CROSS, WINDMILL, STAR_JUMP, CROSS][_n],
+    }
+
 def plan_sets_deck(bar_lines: np.ndarray, bar_map: List[str], rest_beats: float, beat: float,
                    track_end: float, plan_name: str) -> List[WorkoutSet]:
     import zlib
@@ -3433,7 +3451,8 @@ def to_document(events: List[Event], bpm: float, track: str, audio_offset: float
         if ev.type == ARC_HOLD:
             payload[-1]["arc"] = round(float(ev.arc), 1)
             payload[-1]["radius"] = round(float(ev.radius), 3)
-            if getattr(ev, "shape", 0): payload[-1]["shape"] = int(ev.shape)
+        # the pattern of an ArcHold, the slot height of an ArmGate, the lane pairing of a CurbSplit
+        if getattr(ev, "shape", 0): payload[-1]["shape"] = int(ev.shape)
     document = {
         "version": BEATMAP_VERSION,
         "track": track,

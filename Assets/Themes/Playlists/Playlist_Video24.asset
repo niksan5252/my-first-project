@@ -1,0 +1,110 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3bb9640588ee8e744972f872bcd42a92, type: 3}
+  m_Name: Playlist_Video24
+  m_EditorClassIdentifier: Assembly-CSharp::RunPlaylist
+  title: Video24
+  segments:
+  - label: Level 1 Tropical Lagoon
+    role: 0
+    track: {fileID: 8300000, guid: 9988b470c941e284a8845a33e7ad6665, type: 3}
+    beatmapFileName: track24_1.json
+    theme: {fileID: 11400000, guid: 57896002466c61942893da3fea2949ac, type: 2}
+    clipStart: 0
+    clipEnd: 0
+    transitionIn: 3
+    transitionSeconds: 3.5
+    transitionLook: 0
+  - label: Level 2 Crystal Cave
+    role: 0
+    track: {fileID: 8300000, guid: 92126f5a868af2648a3f34544eb3c014, type: 3}
+    beatmapFileName: track24_2.json
+    theme: {fileID: 11400000, guid: 993e4a835a25b33448a874fd377f1b7e, type: 2}
+    clipStart: 0
+    clipEnd: 0
+    transitionIn: 3
+    transitionSeconds: 3.5
+    transitionLook: 0
+  - label: Level 3 Cyber Factory
+    role: 0
+    track: {fileID: 8300000, guid: 35ac310a7346f7c4b9ec6ee79783ca76, type: 3}
+    beatmapFileName: track24_3.json
+    theme: {fileID: 11400000, guid: 30dab25fc83aa35459c9db8f854f3472, type: 2}
+    clipStart: 0
+    clipEnd: 0
+    transitionIn: 3
+    transitionSeconds: 3.5
+    transitionLook: 0
+  - label: Level 4 Planet Ring
+    role: 0
+    track: {fileID: 8300000, guid: 69909ad6fa6e3b0499d2491b4fe27015, type: 3}
+    beatmapFileName: track24_4.json
+    theme: {fileID: 11400000, guid: 833415af9ca24f3489c4c52ad16fe143, type: 2}
+    clipStart: 0
+    clipEnd: 0
+    transitionIn: 3
+    transitionSeconds: 3.5
+    transitionLook: 0
+  - label: Level 5 Firefly Jungle
+    role: 0
+    track: {fileID: 8300000, guid: df1971ab4c84c894b8bfdf7e870cc7b1, type: 3}
+    beatmapFileName: track24_5.json
+    theme: {fileID: 11400000, guid: 31db6cce33278134c8175c268b29568b, type: 2}
+    clipStart: 0
+    clipEnd: 0
+    transitionIn: 3
+    transitionSeconds: 3.5
+    transitionLook: 0
+  preRoll: 1
+  noteMarginBeats: 1
+  wallsInTransition: 0
+  veilFogEnd: 22
+  thunderFlash: 0.8
+  thunderVolume: 1
+  thunderTrackStartVolume: 0.55
+  thunderRiseSeconds: 0.8
+  finalFadeSeconds: 0
+  trainerMotionSet: {fileID: 0}
+  trainerTextured: 0
+  trainerPanelInThemeColors: 0
+  hideTrainer: 0
+  trainerFilmed: 0
+  trainerMocap3D: 0
+  trainerClassic: 0
+  trainerV5: 1
+  scrollSpeedScale: 1.4
+  cameraFov: 75
+  motionBlur: 0.6
+  retention: 1
+  interludeSeconds: 4
+  introCardsSeconds: 3
+  outroSeconds: 36
+  endScreenSeconds: 20
+  loopVolume: 0.22
+  loopBars: 4
+  recordFromContent: 1
+  welcomeText: WELCOME TO BEAT TUNNEL
+  progressHud: 1
+  kcalPerMinute: 9
+  coachVoice: 1
+  favoriteQuestion: 1
+  spoilerSubtitle: 
+  welcomeVoice: 
+  ratingWords:
+  - WELL DONE
+  - AWESOME
+  - FLAWLESS
+  - PERFECT
+  - THAT'S INCREDIBLE
+  - EPIC
+  - THAT'S AMAZING
+  ratingCombos: 0a000000190000002d00000046000000640000008c000000be000000i

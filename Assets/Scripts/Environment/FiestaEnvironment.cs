@@ -26,6 +26,12 @@ public enum FiestaSkin
     Vampire,    // a vampire castle: battlements, red gothic windows, candles, coffins, bats, a blood moon
     Swamp,      // a haunted swamp: black water, lilies, dead trees, will-o'-wisps, old boats
     Monster,    // a monster party: dancing skeletons, speaker stacks, lasers, candy and pumpkins
+    // Video 24, around video 1's neon tunnel (FiestaEnvironment.Neon24.cs):
+    Lagoon,         // a tropical lagoon at sunset: palms with neon rings, flamingos, glowing lilies
+    CrystalCave,    // a crystal cave: rock walls and arches, stalactites, giant glowing crystal clusters
+    CyberFactory,   // a neon factory: conveyors with crates, robot arms, cogs, presses, lasers, steam
+    PlanetRing,     // open space: ringed planets, tumbling asteroids, beacons, a nebula
+    FireflyJungle,  // a night jungle: dense trees, giant glowing flowers, vines with beads, fireflies
 }
 
 /// Video 18's scenery ("Fiesta"): five Latin worlds, one per level, in the manner of LegendsEnvironment -
@@ -98,6 +104,8 @@ public partial class FiestaEnvironment : MonoBehaviour, IEnvironmentDecorator, I
             case FiestaSkin.Havana: BuildHavana(); break;
             case FiestaSkin.Pinata: BuildPinata(); break;
             case FiestaSkin.Flamenco: BuildFlamenco(); break;
+            case FiestaSkin.Lagoon: case FiestaSkin.CrystalCave: case FiestaSkin.CyberFactory:
+            case FiestaSkin.PlanetRing: case FiestaSkin.FireflyJungle: BuildNeon24(); break;
             default: BuildFun(); break;
         }
         BuildBloomVolume();
