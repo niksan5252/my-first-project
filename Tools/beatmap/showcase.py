@@ -86,6 +86,17 @@ NEW_MOVES = [
     ("HighKnees - set", "set", (g.HIGH_KNEES, 8, False)),
     ("SquatJumps - set", "set", (g.SQUAT_JUMPS, 8, False)),
     ("CrossCrunch - set", "set", (g.CROSS_CRUNCH, 8, False)),
+    # Video 24, part 2: arms out through the walls' slots; the one-leg kerb on every lane; arm patterns.
+    ("ArmGate - arms out through the slots, held", "set", (g.ARM_GATE, 6, False)),
+    ("Balance - one leg / wide, lanes in turn (1)", "set", (g.BALANCE, 4, False)),
+    ("Balance - (2)", "set", (g.BALANCE, 4, False)),
+    ("Balance - (3)", "set", (g.BALANCE, 4, False)),
+    ("Balance - (4)", "set", (g.BALANCE, 4, False)),
+    ("ArmFlow - wave (right hand)", "set", (g.ARM_FLOW, 8, False)),
+    ("ArmFlow - zigzag (left hand)", "set", (g.ARM_FLOW, 8, False)),
+    ("ArmFlow - up-down (right hand)", "set", (g.ARM_FLOW, 8, False)),
+    ("ArmFlow - side-side (left hand)", "set", (g.ARM_FLOW, 8, False)),
+    ("ArmFlow - figure eight (right hand)", "set", (g.ARM_FLOW, 8, False)),
 ]
 
 # Items already signed off by the user, left out of the showcase so it starts on the next one to fix.
@@ -127,6 +138,7 @@ def main():
     for e in events:
         d = {"time": round(e.time, 3), "type": e.type, "lane": int(e.lane), "duration": round(e.duration, 3), "intensity": 0.8}
         if e.type == g.ARC_HOLD: d["arc"], d["radius"] = e.arc, e.radius
+        if e.type == g.ARC_HOLD and getattr(e, "shape", 0): d["shape"] = int(e.shape)
         out.append(d)
     data = {"version": 1, "track": "showcase_silent.wav", "bpm": BPM, "audioOffset": 0.0,
             "generator": "Tools/beatmap/showcase.py", "events": out,

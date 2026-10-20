@@ -13,8 +13,9 @@ public readonly struct BeatmapCue
     // the circle's radius in metres (0 = CueSpawner's default). 0 for every other type.
     public readonly float arc;
     public readonly float radius;
+    public readonly int shape;       // ArcHold only: ArmPath's pattern
 
-    public BeatmapCue(float time, CueType type, int lane, float duration, float intensity, float arc = 0f, float radius = 0f)
+    public BeatmapCue(float time, CueType type, int lane, float duration, float intensity, float arc = 0f, float radius = 0f, int shape = 0)
     {
         this.time = time;
         this.type = type;
@@ -23,6 +24,7 @@ public readonly struct BeatmapCue
         this.intensity = intensity;
         this.arc = arc;
         this.radius = radius;
+        this.shape = shape;
     }
 
     public bool IsHold => duration > 0f;

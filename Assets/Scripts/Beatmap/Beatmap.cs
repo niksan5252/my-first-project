@@ -31,6 +31,7 @@ public class BeatmapEvent
     // player sees it - and 270-540 in practice; an intro spiral turns once a bar, up to ten turns. `radius`: metres; 0 = the spawner's default.
     public float arc;
     public float radius;
+    public int shape;       // ArcHold only: the pattern (ArmPath: 0 circle, 1 eight, 2 wave, 3 zigzag, 4 up-down, 5 side-side)
 }
 
 /// One workout set: a run of bars doing one exercise, followed by its rest. Written by the

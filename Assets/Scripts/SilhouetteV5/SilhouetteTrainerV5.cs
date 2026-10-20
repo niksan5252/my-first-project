@@ -529,7 +529,7 @@ public class SilhouetteTrainerV5 : MonoBehaviour
                 // A gesture only shapes the stance: while a jump or a crouch owns the body the
                 // gesture gives way, or the tail of a wall's lean would twist the jump.
                 // The arms are free though: a punch or a circle goes on over a jump (PowerJump).
-                bool arms = g.kind == SilhouettePlannerV5.GestureKindV5.Punch || g.kind == SilhouettePlannerV5.GestureKindV5.PunchHold || g.kind == SilhouettePlannerV5.GestureKindV5.Arc;
+                bool arms = g.kind == SilhouettePlannerV5.GestureKindV5.Punch || g.kind == SilhouettePlannerV5.GestureKindV5.PunchHold || g.kind == SilhouettePlannerV5.GestureKindV5.Arc || g.kind == SilhouettePlannerV5.GestureKindV5.TPose;
                 float w = g.Weight(now) * (arms ? 1f : stance);
                 if (w <= 0f) continue;
                 int limb = g.side > 0 ? 0 : 1;           // the screen's right is the figure's left
@@ -544,10 +544,10 @@ public class SilhouetteTrainerV5 : MonoBehaviour
                         // with the cube (CueSpawner.RebuildArc: angle = 90 - sweep * progress, in
                         // screen space), drawn in front of the shoulder, scaled to the arm.
                         float p = Mathf.Clamp01((now - g.impact) / Mathf.Max(0.01f, g.holdEnd - g.impact));
-                        float a = (90f - g.arcSweep * p) * Mathf.Deg2Rad;
                         float rr = 0.34f * g.arcRadius / 0.75f;
                         Vector3 centre = shoulder + new Vector3(x * 0.36f, 0.08f, s.punchForward + 0.12f);   // out from the head
-                        Vector3 t = centre + new Vector3(X(1) * Mathf.Cos(a) * rr, Mathf.Sin(a) * rr, 0f);
+                        Vector2 o = ArmPath.Offset(g.arcShape, g.arcSweep, 90f, p);   // the same pattern the cube draws
+                        Vector3 t = centre + new Vector3(X(1) * o.x * rr, o.y * rr, 0f);
                         Vector3 elbow = shoulder + new Vector3(x * 0.32f, -0.05f, -0.12f);
                         Take(ref hand[limb], w, t, elbow);
                         break;
@@ -624,6 +624,18 @@ public class SilhouetteTrainerV5 : MonoBehaviour
                         }
                         body += new Vector3(0f, lift - (g.side == 1 ? s.wideSink * 0.5f * w : 0f), 0f);
                         tapping = Mathf.Max(tapping, w);
+                        break;
+                    }
+                    case SilhouettePlannerV5.GestureKindV5.TPose:
+                    {
+                        // Arms straight out to the sides at shoulder height (the ArmGate's slots), held.
+                        for (int k = 0; k < 2; k++)
+                        {
+                            float hx = X(k == 0 ? 1 : -1);
+                            Vector3 sh = k == 0 ? lShoulder : rShoulder;
+                            float pulse = now >= g.impact && now <= g.holdEnd ? 0.02f * Mathf.Sin(beats * Mathf.PI * 2f) : 0f;
+                            Take(ref hand[k], w, sh + new Vector3(hx * 0.62f, 0.02f + pulse, 0.02f), sh + new Vector3(hx * 0.32f, 0.02f, -0.02f));
+                        }
                         break;
                     }
                     case SilhouettePlannerV5.GestureKindV5.SquatJump:

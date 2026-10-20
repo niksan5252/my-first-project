@@ -127,7 +127,7 @@ public static class BeatmapReader
             // range test as a note's, which is the point of carrying the direction in it.
             bool wantsHold = type == CueType.KickHold || type == CueType.PunchHold || type == CueType.PunchSweep
                           || type == CueType.ArcHold || type == CueType.CurbGap || type == CueType.CurbSplit
-                          || type == CueType.Rails || type == CueType.SquatHold;
+                          || type == CueType.Rails || type == CueType.SquatHold || type == CueType.ArmGate;
             // A Dodge may be long (a wall held for bars) or the ordinary one-shot wall.
             bool mayHold = wantsHold || type == CueType.Dodge;
             if (wantsHold && !(e.duration > 0f))
@@ -158,7 +158,7 @@ public static class BeatmapReader
                 radius = e.radius;
             }
 
-            parsed.Add(new BeatmapCue(e.time, type, e.lane, mayHold ? Mathf.Max(0f, e.duration) : 0f, Mathf.Clamp01(e.intensity), arc, radius));
+            parsed.Add(new BeatmapCue(e.time, type, e.lane, mayHold ? Mathf.Max(0f, e.duration) : 0f, Mathf.Clamp01(e.intensity), arc, radius, type == CueType.ArcHold ? Mathf.Clamp(e.shape, 0, ArmPath.Count - 1) : 0));
         }
 
         // Sorted here rather than trusted from the file: the sequencer walks a cursor forward and

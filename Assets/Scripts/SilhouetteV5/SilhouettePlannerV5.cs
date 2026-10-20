@@ -43,7 +43,7 @@ public static class SilhouettePlannerV5
         }
     }
 
-    public enum GestureKindV5 { Punch, PunchHold, Kick, KickHold, Dodge, OneLeg, Wide, Hop, HopOne, Arc, SquatJump, Crunch }
+    public enum GestureKindV5 { Punch, PunchHold, Kick, KickHold, Dodge, OneLeg, Wide, Hop, HopOne, Arc, SquatJump, Crunch, TPose }
 
     public struct GestureV5
     {
@@ -53,6 +53,7 @@ public static class SilhouettePlannerV5
         public bool high;        // a punch at overhead height (PunchHigh)
         public float arcSweep;   // Arc: degrees the fist travels from the top (sign = direction, as CueSpawner)
         public float arcRadius;  // Arc: the cube's circle radius, metres in the tunnel
+        public int arcShape;     // Arc: ArmPath's pattern (0 = the circle)
         public float start;      // weight starts rising
         public float impact;     // weight is 1: the touch, the reach, the camera fully committed
         public float holdEnd;    // weight leaves 1
@@ -262,6 +263,17 @@ public static class SilhouettePlannerV5
                     freeFrom = c.time + set.stepStay;
                     break;
                 }
+                case CueType.ArmGate:
+                {
+                    // Both arms straight out to the sides through the slots, held for the walls' length.
+                    float len = Mathf.Max(c.duration, beat);
+                    gestures.Add(new GestureV5
+                    {
+                        kind = GestureKindV5.TPose, side = 1, outer = true,
+                        start = c.time - 0.6f * beat, impact = c.time, holdEnd = c.time + len, end = c.time + len + 0.5f * beat, note = i,
+                    });
+                    break;
+                }
                 case CueType.Knee:
                     // High Knees (video 24): a running hop, the knee on the sign's side up high.
                     gestures.Add(new GestureV5
@@ -300,7 +312,7 @@ public static class SilhouettePlannerV5
                     gestures.Add(new GestureV5
                     {
                         kind = GestureKindV5.Arc, side = side, outer = outer,
-                        arcSweep = Mathf.Abs(c.arc) < 1f ? 180f * side : c.arc, arcRadius = c.radius > 0.01f ? c.radius : 0.75f,
+                        arcSweep = Mathf.Abs(c.arc) < 1f ? 180f * side : c.arc, arcRadius = c.radius > 0.01f ? c.radius : 0.75f, arcShape = c.shape,
                         start = c.time - rise, impact = c.time, holdEnd = c.time + Mathf.Max(c.duration, beat), end = c.time + Mathf.Max(c.duration, beat) + fall, note = i,
                     });
                     break;

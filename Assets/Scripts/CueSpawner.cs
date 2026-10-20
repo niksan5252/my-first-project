@@ -40,7 +40,10 @@ using UnityEngine.Rendering;
 public enum CueType { Kick, Punch, Jump, PunchHold, KickHold, Dodge, Curb, Duck, PunchSweep, PunchHigh, CurbGap, CurbSplit, ArcHold, Rails, SquatHold,
     // Video 24 (new moves, the competitor has none of them): High Knees - a sign at knee height;
     // Squat Jump - a wide floor plate over both inner lanes; Cross Crunch - a sign at waist height.
-    Knee, SquatJump, Crunch }
+    Knee, SquatJump, Crunch,
+    // ArmGate: two walls along the road's edges with a slot at shoulder height - stand in the
+    // middle with both arms out through the slots and hold (a pose, like Rails).
+    ArmGate }
 
 /// Spawns pooled cue markers across the tunnel's lanes at a height matching their type
 /// (Kick = floor, Punch = chest, Jump = a low hurdle bar), colors each cue instance
@@ -516,6 +519,7 @@ public class CueSpawner : MonoBehaviour
         public float arcRadius;
         public float arcStart;      // degrees, where the fist starts
         public float arcSweep;      // degrees, signed: + clockwise as the player sees it
+        public int arcShape;        // ArmPath's pattern (0 = the circle)
         // Obstacles with a length of their own (a long Dodge, the balance kerbs): the part that is
         // stretched along the road, and how long it is when its scale is 1.
         public Transform stretch;
@@ -545,7 +549,7 @@ public class CueSpawner : MonoBehaviour
                                                    CueType.Dodge, CueType.Curb, CueType.Duck, CueType.PunchSweep,
                                                    CueType.PunchHigh, CueType.CurbGap, CueType.CurbSplit, CueType.ArcHold,
                                                    CueType.Rails, CueType.SquatHold,
-                                                   CueType.Knee, CueType.SquatJump, CueType.Crunch };
+                                                   CueType.Knee, CueType.SquatJump, CueType.Crunch, CueType.ArmGate };
 
     // The border/tail color every cue's accent parts are blended toward — a deep ink-blue, so a
     // cyan cue gets a navy border and a magenta cue a dark plum one. Contrast, not bloom, is
@@ -1292,13 +1296,13 @@ public class CueSpawner : MonoBehaviour
 
         float flight = FlightTime;
         while (sequencer.TryDequeue(now, flight, out BeatmapCue cue))
-            SpawnCue(cue.type, cue.lane, cue.duration, cue.intensity, cue.time, cue.arc, cue.radius);
+            SpawnCue(cue.type, cue.lane, cue.duration, cue.intensity, cue.time, cue.arc, cue.radius, cue.shape);
     }
 
     /// The single place a note is brought to life, shared by both modes so they cannot drift
     /// apart. `dueTime` is when this note must be AT the hit zone, on the active clock; the
     /// caller decides it — Random from now plus a flight, Beatmap from the chart.
-    private void SpawnCue(CueType type, int lane, float duration, float intensity, float dueTime, float arc = 0f, float radius = 0f)
+    private void SpawnCue(CueType type, int lane, float duration, float intensity, float dueTime, float arc = 0f, float radius = 0f, int shape = 0)
     {
         int slotIndex = FindFreeSlot(type);
         if (slotIndex < 0)
@@ -1336,7 +1340,7 @@ public class CueSpawner : MonoBehaviour
 
         // Length is resolved before the colour is applied, because ApplyCueColor is also what
         // wipes the spent tint left on this pooled object by its previous use.
-        if (type == CueType.ArcHold) SetupArc(slotIndex, lane, arc, radius);
+        if (type == CueType.ArcHold) { SetupArc(slotIndex, lane, arc, radius); slots[slotIndex].arcShape = shape; }
         SetupHoldInstance(slotIndex, type, duration, lane);
         if (type == CueType.Dodge) AimDodgeChevrons(slotIndex, side);
         if (obstacle) SetupObstacleInstance(slotIndex, type, lane, extent);
@@ -1399,7 +1403,10 @@ public class CueSpawner : MonoBehaviour
         Vector3 Point(float s, out float angle)
         {
             angle = (slot.arcStart - slot.arcSweep * s) * Mathf.Deg2Rad;
-            return new Vector3(slot.arcCenter.x + Mathf.Cos(angle) * r, slot.arcCenter.y + Mathf.Sin(angle) * r,
+            Vector2 o = ArmPath.Offset(slot.arcShape, slot.arcSweep, slot.arcStart, s);
+            if (slot.arcShape != ArmPath.Circle && o.sqrMagnitude > 1e-6f) angle = Mathf.Atan2(o.y, o.x);
+            else if (slot.arcShape != ArmPath.Circle) angle = Mathf.PI * 0.5f;
+            return new Vector3(slot.arcCenter.x + o.x * r, slot.arcCenter.y + o.y * r,
                                (s - progress) * slot.holdLength);
         }
 
@@ -1461,7 +1468,7 @@ public class CueSpawner : MonoBehaviour
         type == CueType.Dodge || type == CueType.Curb || type == CueType.Duck || IsBalance(type);
 
     private static bool IsBalance(CueType type) => type == CueType.CurbGap || type == CueType.CurbSplit
-                                                 || type == CueType.Rails || type == CueType.SquatHold;
+                                                 || type == CueType.Rails || type == CueType.SquatHold || type == CueType.ArmGate;
 
     /// Obstacles the camera moves for. Of the balance kerbs only CurbGap: the camera goes onto its
     /// free lane and stays there; over a CurbSplit the player stands wide in the middle.
@@ -2297,6 +2304,38 @@ public class CueSpawner : MonoBehaviour
                 var plate = CreateChevronPart(root.transform, "Plate", punchPlateMesh, new Vector3(0f, 0f, plateZ));
                 AttachIcon(root.transform, punchIconQuad, NewIconMat(type == CueType.Knee ? "knee" : "crunch"), new Vector3(0f, 0f, plateZ - plateThickness * 0.5f - IconLift));
                 return new CueVisual { root = root.transform, bright = new[] { plate }, frame = new[] { frame } };
+            }
+            case CueType.ArmGate:
+            {
+                // Two walls over the outer lanes, the length of the pose, each with an open slot at
+                // shoulder height edged in light: the arms go out through them and stay there.
+                var root = new GameObject("Cue_ArmGate");
+                root.transform.SetParent(transform, false);
+                var stretchT = new GameObject("Stretch").transform;
+                stretchT.SetParent(root.transform, false);
+                var bright = new List<MeshRenderer>();
+                var fills = new List<MeshRenderer>();
+                float laneW = tunnel.FloorWidth / tunnel.LaneCount;
+                float inner = laneW * 1.15f, outer = tunnel.FloorWidth * 0.5f + 0.15f;
+                const float slotLow = 1.7f, slotHigh = 2.25f, top = 3.1f;
+                foreach (float sx in new[] { -1f, 1f })
+                {
+                    float x0 = Mathf.Min(sx * inner, sx * outer), x1 = Mathf.Max(sx * inner, sx * outer);
+                    foreach (var (y0, y1) in new[] { (0f, slotLow), (slotHigh, top) })
+                    {
+                        var lo = new Vector3(x0, y0, 0f);
+                        var hi = new Vector3(x1, y1, 1f);
+                        fills.Add(CreateBoxFill(stretchT, lo, hi, obstacleFillMat));
+                        bright.AddRange(CreateBoxEdges(stretchT, lo, hi, obstacleEdgeThickness, cueBaseMat));
+                    }
+                }
+                return new CueVisual
+                {
+                    root = root.transform, bright = bright.ToArray(), frame = System.Array.Empty<MeshRenderer>(),
+                    head = System.Array.Empty<MeshRenderer>(), fill = fills.ToArray(),
+                    chevron = System.Array.Empty<MeshRenderer>(), chevronRoots = System.Array.Empty<Transform>(),
+                    stretch = stretchT, stretchBase = 1f,
+                };
             }
             case CueType.SquatJump:
             {

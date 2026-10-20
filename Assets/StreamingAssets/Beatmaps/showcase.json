@@ -347,6 +347,91 @@
    "lane": 2,
    "duration": 0.0,
    "intensity": 0.8
+  },
+  {
+   "time": 26.75,
+   "type": "ArmGate",
+   "lane": 1,
+   "duration": 3.0,
+   "intensity": 0.8
+  },
+  {
+   "time": 30.75,
+   "type": "CurbGap",
+   "lane": 2,
+   "duration": 2.0,
+   "intensity": 0.8
+  },
+  {
+   "time": 33.75,
+   "type": "CurbGap",
+   "lane": 0,
+   "duration": 2.0,
+   "intensity": 0.8
+  },
+  {
+   "time": 36.75,
+   "type": "CurbGap",
+   "lane": 3,
+   "duration": 2.0,
+   "intensity": 0.8
+  },
+  {
+   "time": 39.75,
+   "type": "CurbGap",
+   "lane": 1,
+   "duration": 2.0,
+   "intensity": 0.8
+  },
+  {
+   "time": 42.75,
+   "type": "ArcHold",
+   "lane": 3,
+   "duration": 4.0,
+   "intensity": 0.8,
+   "arc": -360.0,
+   "radius": 0.0,
+   "shape": 2
+  },
+  {
+   "time": 47.75,
+   "type": "ArcHold",
+   "lane": 0,
+   "duration": 4.0,
+   "intensity": 0.8,
+   "arc": 360.0,
+   "radius": 0.0,
+   "shape": 3
+  },
+  {
+   "time": 52.75,
+   "type": "ArcHold",
+   "lane": 3,
+   "duration": 4.0,
+   "intensity": 0.8,
+   "arc": -720.0,
+   "radius": 0.0,
+   "shape": 4
+  },
+  {
+   "time": 57.75,
+   "type": "ArcHold",
+   "lane": 0,
+   "duration": 4.0,
+   "intensity": 0.8,
+   "arc": 720.0,
+   "radius": 0.0,
+   "shape": 5
+  },
+  {
+   "time": 62.75,
+   "type": "ArcHold",
+   "lane": 3,
+   "duration": 4.0,
+   "intensity": 0.8,
+   "arc": -720.0,
+   "radius": 0.0,
+   "shape": 1
   }
  ],
  "sets": [
@@ -397,6 +482,86 @@
    "end": 25.75,
    "restEnd": 26.25,
    "notes": 8
+  },
+  {
+   "index": 6,
+   "exercise": "ArmGateSet",
+   "start": 26.75,
+   "end": 29.75,
+   "restEnd": 30.25,
+   "notes": 1
+  },
+  {
+   "index": 7,
+   "exercise": "Balance",
+   "start": 30.75,
+   "end": 32.75,
+   "restEnd": 33.25,
+   "notes": 1
+  },
+  {
+   "index": 8,
+   "exercise": "Balance",
+   "start": 33.75,
+   "end": 35.75,
+   "restEnd": 36.25,
+   "notes": 1
+  },
+  {
+   "index": 9,
+   "exercise": "Balance",
+   "start": 36.75,
+   "end": 38.75,
+   "restEnd": 39.25,
+   "notes": 1
+  },
+  {
+   "index": 10,
+   "exercise": "Balance",
+   "start": 39.75,
+   "end": 41.75,
+   "restEnd": 42.25,
+   "notes": 1
+  },
+  {
+   "index": 11,
+   "exercise": "ArmFlow",
+   "start": 42.75,
+   "end": 46.75,
+   "restEnd": 47.25,
+   "notes": 1
+  },
+  {
+   "index": 12,
+   "exercise": "ArmFlow",
+   "start": 47.75,
+   "end": 51.75,
+   "restEnd": 52.25,
+   "notes": 1
+  },
+  {
+   "index": 13,
+   "exercise": "ArmFlow",
+   "start": 52.75,
+   "end": 56.75,
+   "restEnd": 57.25,
+   "notes": 1
+  },
+  {
+   "index": 14,
+   "exercise": "ArmFlow",
+   "start": 57.75,
+   "end": 61.75,
+   "restEnd": 62.25,
+   "notes": 1
+  },
+  {
+   "index": 15,
+   "exercise": "ArmFlow",
+   "start": 62.75,
+   "end": 66.75,
+   "restEnd": 67.25,
+   "notes": 1
   }
  ]
 }

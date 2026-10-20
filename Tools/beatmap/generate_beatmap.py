@@ -113,6 +113,10 @@ CRUNCH = "Crunch"            # JSON type: a sign at waist height - that knee up,
 HIGH_KNEES = "HighKnees"     # set: running in place, a knee on every half beat, sides in turn
 SQUAT_JUMPS = "SquatJumps"   # set: a squat jump every other beat
 CROSS_CRUNCH = "CrossCrunch" # set: a cross crunch on every beat, sides in turn
+ARM_GATE_TYPE = "ArmGate"    # JSON type, a pose with a duration: walls with slots at shoulder height - arms out, held
+ARM_GATE = "ArmGateSet"      # set: one ArmGate for the whole set
+ARM_FLOW = "ArmFlow"         # set: one long ArcHold drawing a pattern (eight, wave, zigzag, up-down, side-side), hands in turn
+ARM_SHAPES = (1, 2, 3, 4, 5)
 # Video 18 - Latin dance-fitness moves (the music went guaracha / latin house):
 CUMBIA = "Cumbia"            # set: step out wide with the opposite fist high, step back in, the other side
 MERENGUE = "Merengue"        # set: marching feet on every beat, a double punch on the fourth
@@ -144,10 +148,10 @@ COMPOUND = {HOLD_JAB, LEG_HOLD_PUNCH, SQUAT_PUNCH, RAILS_HIGH, PRESS_HOLD, CROSS
             STEP_TOUCH, JAB_CROSS, JAB_KICK, STEP_REACH, ARC_PUNCH, POWER_JUMP,
             STAR_JUMP, SKATER, WINDMILL, LADDER, HOPSCOTCH, KNEE_CLINCH, CROSS_JACK,
             CUMBIA, MERENGUE, SALSA, SAMBA, MARACAS, TORERO,
-            HIGH_KNEES, SQUAT_JUMPS, CROSS_CRUNCH,
+            HIGH_KNEES, SQUAT_JUMPS, CROSS_CRUNCH, ARM_GATE, ARM_FLOW,
             STEP_PAIR, PUNCH_PAIR, SPEED_PUNCH, SPEED_STEP, SQUAT, RAILS, LUNGE, WIDE}
 # Types that may carry a duration in the JSON: the holds, a long Dodge wall, the balance kerbs.
-DURATION_TYPES = {"KickHold", "PunchHold", "PunchSweep", "Dodge", CURB_GAP, CURB_SPLIT, ARC_HOLD, "Rails", "SquatHold"}
+DURATION_TYPES = {"KickHold", "PunchHold", "PunchSweep", "Dodge", CURB_GAP, CURB_SPLIT, ARC_HOLD, "Rails", "SquatHold", "ArmGate"}
 
 # The three obstacles. Unlike the note types these are not something to strike at the hit zone -
 # they are pieces of road furniture to get around, over or under, and in the game the camera
@@ -195,6 +199,7 @@ class Event:
     set_index: int = -1
     arc: float = 0.0       # ArcHold only: signed degrees, + clockwise as the player sees it
     radius: float = 0.0    # ArcHold only: metres, 0 = the game's default
+    shape: int = 0         # ArcHold only: the pattern (0 circle, 1 eight, 2 wave, 3 zigzag, 4 up-down, 5 side-side)
 
     @property
     def is_hold(self) -> bool:
@@ -745,7 +750,7 @@ ALL_EXERCISES = (PUNCH, KICK, "PunchHold", "KickHold", SWEEP, CHORD, DODGE, CURB
                  HOLD_JAB, LEG_HOLD_PUNCH, SQUAT_PUNCH, RAILS_HIGH, PRESS_HOLD,
                  STAR_JUMP, SKATER, WINDMILL, LADDER, HOPSCOTCH, KNEE_CLINCH, CROSS_JACK,
                  CUMBIA, MERENGUE, SALSA, SAMBA, MARACAS, TORERO,
-                 HIGH_KNEES, SQUAT_JUMPS, CROSS_CRUNCH)
+                 HIGH_KNEES, SQUAT_JUMPS, CROSS_CRUNCH, ARM_GATE, ARM_FLOW)
 
 # Named set orders. A pattern is a list of (exercise, how many sets in a row), cycled until the
 # track runs out. This is the one place the shape of the workout lives: changing the routine
@@ -823,7 +828,7 @@ DEFAULT_SPACING_BEATS: Dict[str, float] = {
     # Video 17: the new moves read every beat (the knee clinch every other).
     STAR_JUMP: 1.0, SKATER: 1.0, WINDMILL: 1.0, LADDER: 1.0, HOPSCOTCH: 1.0, KNEE_CLINCH: 2.0, CROSS_JACK: 1.0,
     CUMBIA: 1.0, MERENGUE: 1.0, SALSA: 1.0, SAMBA: 1.0, MARACAS: 1.0, TORERO: 2.0,
-    HIGH_KNEES: 1.0, SQUAT_JUMPS: 2.0, CROSS_CRUNCH: 1.0,
+    HIGH_KNEES: 1.0, SQUAT_JUMPS: 2.0, CROSS_CRUNCH: 1.0, ARM_GATE: 1.0, ARM_FLOW: 1.0,
     # Obstacles are spaced far wider than any note, and the number is not a taste judgement: the
     # camera performs the movement and has to be back at centre before the next one starts. The
     # longest reaction is the dodge, whose lead-in, hold and return together run 1.59 s - so at
@@ -2351,6 +2356,7 @@ def expand_compound(events: List[Event], sets: List[WorkoutSet], beat: float, la
     shift_path = [(0, 1), (1, 2), (2, 3), (1, 2)]
     wall_side = 0
     balance_count = 0
+    arm_flow_count = 0
     arc_count = 0
     for block in sets:
         members = sorted(by_set.get(block.index, []), key=lambda e: e.time)
@@ -2560,6 +2566,19 @@ def expand_compound(events: List[Event], sets: List[WorkoutSet], beat: float, la
                 left = n % 2 == 0
                 made.append(note(ev, KICK, 0 if left else 2)); made.append(note(ev, KICK, 1 if left else 3))
                 made.append(note(ev, PUNCH_HIGH, lane_count - 1 if left else 0))
+        elif ex == ARM_GATE:
+            first = members[0]
+            made.append(note(first, ARM_GATE_TYPE, 1, max(beat, block.end - first.time)))
+        elif ex == ARM_FLOW:
+            # One long pattern drawn by one hand for the set; the shapes and the hands take turns.
+            first = members[0]
+            k = arm_flow_count + block.index
+            arm_flow_count += 1
+            ev = note(first, ARC_HOLD, 0 if k % 2 == 0 else lane_count - 1, max(beat, block.end - first.time))
+            ev.shape = ARM_SHAPES[k % len(ARM_SHAPES)]
+            ev.arc = (360.0 if ev.shape in (2, 3) else 720.0) * (1 if k % 2 == 0 else -1)
+            ev.radius = 0.0
+            made.append(ev)
         elif ex == HIGH_KNEES:
             # a knee on the beat and one on the half beat after it, sides in turn: running in place
             for n, ev in enumerate(members):
@@ -2645,7 +2664,11 @@ def expand_compound(events: List[Event], sets: List[WorkoutSet], beat: float, la
             first = members[0]
             length = max(beat, block.end - first.time)
             # One leg and the wide stance take turns; the free lane of a one-leg kerb is random.
-            if balance_count % 2 == 0: made.append(note(first, CURB_GAP, rng.randrange(lane_count), length))
+            # The free lane takes turns over all four (left leg, right leg, inner, outer): a seeded
+            # rng drawn once per chart put every one-leg stance on the far right lane (video 24 fix).
+            if balance_count % 2 == 0:
+                cycle = (0, lane_count - 1, 1, lane_count - 2)
+                made.append(note(first, CURB_GAP, cycle[(balance_count // 2 + block.index) % 4], length))
             else: made.append(note(first, CURB_SPLIT, 1, length))
             balance_count += 1
         elif ex == CROSS:
@@ -3396,6 +3419,7 @@ def to_document(events: List[Event], bpm: float, track: str, audio_offset: float
         if ev.type == ARC_HOLD:
             payload[-1]["arc"] = round(float(ev.arc), 1)
             payload[-1]["radius"] = round(float(ev.radius), 3)
+            if getattr(ev, "shape", 0): payload[-1]["shape"] = int(ev.shape)
     document = {
         "version": BEATMAP_VERSION,
         "track": track,
