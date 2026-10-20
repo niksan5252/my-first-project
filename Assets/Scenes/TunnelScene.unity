@@ -1347,8 +1347,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::RunProfileSelector
   profile: {fileID: 11400000, guid: b1604fb0cc4caf442871a594bb1f0fe6, type: 2}
-  playlist: {fileID: 11400000, guid: eddd29c78df5c9042a331fc7fbbd9f95, type: 2}
-  playlistSolo: 0
+  playlist: {fileID: 11400000, guid: ff70c95cd6d594d42930cebe5b83f1a1, type: 2}
+  playlistSolo: -1
   cueSpawner: {fileID: 350241776}
   themeApplier: {fileID: 268705387}
   hud: {fileID: 0}
