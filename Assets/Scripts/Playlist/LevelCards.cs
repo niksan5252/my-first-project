@@ -11,7 +11,9 @@ using UnityEngine.UI;
 /// levelCards turns RetentionOverlay's own break cards off). Nothing here touches the gameplay.
 public class LevelCards : MonoBehaviour
 {
-    private sealed class Card { public float start, end; public string title, world; public Color color; public List<(Texture2D icon, string name)> moves; }
+    // A move on a card: its cue button's pictogram, the silhouette's frames ("~" = mirrored), its name.
+    private sealed class MoveShown { public Texture2D cue; public Texture2D[] frames; public bool[] mirror; public string name; }
+    private sealed class Card { public float start, end; public string title, world; public Color color; public List<MoveShown> moves; }
 
     private CueSpawner spawner;
     private readonly List<Card> cards = new List<Card>();
@@ -20,28 +22,44 @@ public class LevelCards : MonoBehaviour
     private readonly List<Image> rays = new List<Image>();
     private TMP_Text title, world;
     private readonly List<RawImage> icons = new List<RawImage>();
+    private readonly List<Image> plates = new List<Image>();
+    private readonly List<RawImage> cueIcons = new List<RawImage>();
     private readonly List<Outline> rims = new List<Outline>();
     private readonly List<TMP_Text> names = new List<TMP_Text>();
     private Card shown;
 
-    public const float FirstCardSeconds = 3.2f;
+    public const float FirstCardSeconds = 6f;     // the user: "longer, about 6 s" (the break before the others is 6 s too)
+    private const float FrameSeconds = 0.45f;     // the silhouettes change pose about once a beat
 
-    // What a level's notes say about its moves, the most telling first: (does the chart have it, icon, name).
-    private static readonly (System.Func<BeatmapCue, bool> has, string icon, string name)[] Moves =
+    // What a level's notes say about its moves, the most telling first: (does the chart have it, the cue
+    // button's pictogram (CueIcons), the silhouette's frames (CardIcons, "~" mirrored), the name).
+    private static readonly (System.Func<BeatmapCue, bool> has, string cue, string frames, string name)[] Moves =
     {
-        (c => c.type == CueType.PoseWall, "pose_star", "POSE WALLS"),
-        (c => c.type == CueType.ArmGate, "armgate", "ARMS OUT"),
-        (c => c.type == CueType.Knee, "knee", "HIGH KNEES"),
-        (c => c.type == CueType.Crunch, "crunch", "ELBOW TO KNEE"),
-        (c => c.type == CueType.ArcHold && c.shape != 0, "armflow", "ARM WAVES"),
-        (c => c.type == CueType.CurbGap || c.type == CueType.CurbSplit, "pose_flamingo", "BALANCE"),
-        (c => c.type == CueType.SquatHold, "pose_squat", "SQUAT"),
-        (c => c.type == CueType.Dodge, "dodge", "DODGE"),
-        (c => c.type == CueType.Duck, "duck", "DUCK"),
-        (c => c.type == CueType.Curb, "jump", "JUMP"),
-        (c => c.type == CueType.Punch || c.type == CueType.PunchHigh || c.type == CueType.PunchHold, "pose_horse", "PUNCH"),
-        (c => c.type == CueType.Kick || c.type == CueType.KickHold, "step", "STEP"),
+        (c => c.type == CueType.PoseWall, "pose_star", "pose_star pose_flamingo pose_horse pose_reach pose_squat ~pose_lunge", "POSE WALLS"),
+        (c => c.type == CueType.ArmGate, "armgate", "armgate_down armgate", "ARMS OUT"),
+        (c => c.type == CueType.Knee, "knee", "pose_flamingo ~pose_flamingo", "HIGH KNEES"),
+        (c => c.type == CueType.Crunch, "crunch", "crunch ~crunch", "ELBOW TO KNEE"),
+        (c => c.type == CueType.ArcHold && c.shape != 0, "armflow", "wave1 wave2 wave3 wave2", "ARM WAVES"),
+        (c => c.type == CueType.CurbGap || c.type == CueType.CurbSplit, "foot", "pose_flamingo ~pose_flamingo", "BALANCE"),
+        (c => c.type == CueType.SquatHold, "chev_down", "stand pose_squat", "SQUAT"),
+        (c => c.type == CueType.Dodge, "chev_side", "dodge ~dodge", "DODGE"),
+        (c => c.type == CueType.Duck, "chev_down", "duck_stand duck", "DUCK"),
+        (c => c.type == CueType.Curb, "chev_up", "stand jump", "JUMP"),
+        (c => c.type == CueType.Punch || c.type == CueType.PunchHigh || c.type == CueType.PunchHold, "fist", "pose_horse ~pose_horse", "PUNCH"),
+        (c => c.type == CueType.Kick || c.type == CueType.KickHold, "foot", "step ~step", "STEP"),
     };
+
+    private static MoveShown Load((System.Func<BeatmapCue, bool> has, string cue, string frames, string name) m)
+    {
+        var parts = m.frames.Split(' ');
+        var shown = new MoveShown { cue = Resources.Load<Texture2D>("CueIcons/" + m.cue), frames = new Texture2D[parts.Length], mirror = new bool[parts.Length], name = m.name };
+        for (int i = 0; i < parts.Length; i++)
+        {
+            shown.mirror[i] = parts[i].StartsWith("~");
+            shown.frames[i] = Resources.Load<Texture2D>("CardIcons/" + parts[i].TrimStart('~'));
+        }
+        return shown;
+    }
 
     public void Configure(PlaylistDirector owner, CueSpawner cueSpawner)
     {
@@ -52,13 +70,13 @@ public class LevelCards : MonoBehaviour
         {
             if (s.segment.role != PlaylistSegmentRole.Level) continue;
             level++;
-            var picked = new List<(Texture2D, string)>();
+            var picked = new List<MoveShown>();
             foreach (var m in Moves)
             {
                 if (picked.Count >= 4) break;
                 bool has = false;
                 foreach (var c in tl.Cues) if (c.time >= s.audioStart && c.time < s.audioEnd && m.has(c)) { has = true; break; }
-                if (has) picked.Add((Resources.Load<Texture2D>("CardIcons/" + m.icon), m.name));
+                if (has) picked.Add(Load(m));
             }
             string label = s.segment.label ?? "";
             int sp = label.IndexOf(' ', label.StartsWith("Level ") ? 6 : 0);
@@ -106,9 +124,9 @@ public class LevelCards : MonoBehaviour
             rays.Add(r);
         }
 
-        title = Text(go.transform, "Title", 170f, new Vector2(0f, 380f));
+        title = Text(go.transform, "Title", 150f, new Vector2(0f, 430f));
         DisplayFonts.Use(title, DisplayFonts.Bungee, 0.18f);
-        world = Text(go.transform, "World", 60f, new Vector2(0f, 255f));
+        world = Text(go.transform, "World", 54f, new Vector2(0f, 330f));
         DisplayFonts.Use(world, DisplayFonts.Monoton, 0.1f);
         world.wordSpacing = 60f;
         for (int i = 0; i < 4; i++)
@@ -116,11 +134,26 @@ public class LevelCards : MonoBehaviour
             var ic = new GameObject("Move" + i, typeof(RectTransform), typeof(RawImage)).GetComponent<RawImage>();
             ic.rectTransform.SetParent(go.transform, false);
             ic.rectTransform.anchorMin = ic.rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
-            ic.rectTransform.sizeDelta = new Vector2(330f, 330f);
+            ic.rectTransform.sizeDelta = new Vector2(300f, 300f);
             ic.raycastTarget = false;
             var rim = ic.gameObject.AddComponent<Outline>();
             rim.effectDistance = new Vector2(5f, -5f);
             icons.Add(ic); rims.Add(rim);
+            // The move's cue button above it, as it flies in the tunnel: a glowing square, the pictogram on it.
+            var plate = new GameObject("Cue" + i, typeof(RectTransform), typeof(Image)).GetComponent<Image>();
+            plate.rectTransform.SetParent(go.transform, false);
+            plate.rectTransform.anchorMin = plate.rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
+            plate.rectTransform.sizeDelta = new Vector2(150f, 150f);
+            plate.raycastTarget = false;
+            var po = plate.gameObject.AddComponent<Outline>();
+            po.effectColor = new Color(1f, 1f, 1f, 0.9f); po.effectDistance = new Vector2(4f, -4f);
+            var ci = new GameObject("Pictogram", typeof(RectTransform), typeof(RawImage)).GetComponent<RawImage>();
+            ci.rectTransform.SetParent(plate.transform, false);
+            ci.rectTransform.anchorMin = new Vector2(0.1f, 0.1f); ci.rectTransform.anchorMax = new Vector2(0.9f, 0.9f);
+            ci.rectTransform.offsetMin = ci.rectTransform.offsetMax = Vector2.zero;
+            ci.color = Color.black;
+            ci.raycastTarget = false;
+            plates.Add(plate); cueIcons.Add(ci);
             var n = Text(go.transform, "Name" + i, 54f, Vector2.zero);
             DisplayFonts.Use(n, DisplayFonts.Russo, 0.25f);
             names.Add(n);
@@ -172,9 +205,16 @@ public class LevelCards : MonoBehaviour
         for (int i = 0; i < card.moves.Count; i++)
         {
             float k = Mathf.Clamp01((t - 0.3f - i * 0.15f) / 0.2f);
-            float pulse = 1f + 0.05f * Mathf.Sin(t * 8f + i);
-            icons[i].rectTransform.localScale = Vector3.one * (k * pulse);
+            var mv = card.moves[i];
+            float ft = t / FrameSeconds + i * 0.5f;
+            int f = Mathf.FloorToInt(ft) % mv.frames.Length;
+            icons[i].texture = mv.frames[f];
+            float hop = 1f + 0.08f * Mathf.Exp(-(ft - Mathf.Floor(ft)) * 6f);          // a little bounce on every change
+            icons[i].rectTransform.localScale = new Vector3(mv.mirror[f] ? -k * hop : k * hop, k * hop, 1f);
             icons[i].color = new Color(1f, 1f, 1f, fade);
+            plates[i].rectTransform.localScale = Vector3.one * (k * (1f + 0.06f * Mathf.Exp(-(ft - Mathf.Floor(ft)) * 6f)));
+            var pc = plates[i].color; pc.a = fade; plates[i].color = pc;
+            cueIcons[i].color = new Color(0f, 0f, 0f, fade);
             SetAlpha(names[i], k * fade);
         }
     }
@@ -193,14 +233,18 @@ public class LevelCards : MonoBehaviour
         {
             bool on = i < n;
             icons[i].gameObject.SetActive(on);
+            plates[i].gameObject.SetActive(on);
             names[i].gameObject.SetActive(on);
             if (!on) continue;
             float x = (i - (n - 1) * 0.5f) * gap;
-            icons[i].texture = card.moves[i].icon;
-            icons[i].rectTransform.anchoredPosition = new Vector2(x, -60f);
+            icons[i].texture = card.moves[i].frames[0];
+            icons[i].rectTransform.anchoredPosition = new Vector2(x, -110f);
+            plates[i].rectTransform.anchoredPosition = new Vector2(x, 160f);
+            plates[i].color = i % 2 == 0 ? new Color(0f, 0.9f, 1f) : new Color(1f, 0.1f, 0.72f);     // the hands' colours
+            cueIcons[i].texture = card.moves[i].cue;
             rims[i].effectColor = card.color;
             names[i].text = card.moves[i].name;
-            names[i].rectTransform.anchoredPosition = new Vector2(x, -275f);
+            names[i].rectTransform.anchoredPosition = new Vector2(x, -305f);
             names[i].rectTransform.sizeDelta = new Vector2(gap > 0f ? gap : 600f, 80f);
         }
     }

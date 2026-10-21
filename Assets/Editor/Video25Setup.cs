@@ -84,7 +84,7 @@ public static class Video25Setup
         p.trainerPanelInThemeColors = false;
         p.retention = true;
         p.recordFromContent = true;
-        p.interludeSeconds = 4f;              // the short break naming the next world (RetentionOverlay)
+        p.interludeSeconds = 6f;              // the level card (LevelCards), 6 s - the user's call              // the short break naming the next world (RetentionOverlay)
         p.introCardsSeconds = 3f;
         p.endScreenSeconds = 20f;
         p.loopVolume = 0.22f;
