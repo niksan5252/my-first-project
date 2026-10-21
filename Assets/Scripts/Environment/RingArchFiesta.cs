@@ -43,6 +43,9 @@ public partial class RingArchFiesta : MonoBehaviour, IThemeAccent
         Color dark = skin == FiestaSkin.Havana ? new Color(0.45f, 0.75f, 0.68f)
                    : skin == FiestaSkin.Flamenco ? new Color(0.55f, 0.5f, 0.45f)
                    : skin == FiestaSkin.Pinata ? new Color(0.2f, 0.11f, 0.05f)
+                   : skin == FiestaSkin.SunsetCanyon ? new Color(0.45f, 0.2f, 0.12f)
+                   : skin == FiestaSkin.ElDorado ? new Color(0.5f, 0.36f, 0.12f)
+                   : skin == FiestaSkin.SakuraNight ? new Color(0.12f, 0.04f, 0.04f)
                    : new Color(0.07f, 0.05f, 0.09f);
         darkMat.SetColor("_BaseColor", dark);
         darkMat.SetFloat("_Smoothness", 0.4f);

@@ -161,6 +161,9 @@ public class RunPlaylist : ScriptableObject
     public string welcomeVoice = "";         // the voice clip for the welcome card (Resources/Voice key)
     // Video 24: the moves shown over the Intro segment, "seconds|NAME|icon" (seconds from its start, a Resources/CueIcons name).
     public string[] introMoves = new string[0];
+    // Video 25: a card before every level - LEVEL N, the world, its moves as silhouettes (LevelCards);
+    // RetentionOverlay's own break cards stay off.
+    public bool levelCards;
     // The combo rating under the number, by threshold (each word from its combo on).
     public string[] ratingWords = { "WELL DONE", "AWESOME", "FLAWLESS", "PERFECT", "THAT'S INCREDIBLE", "EPIC", "THAT'S AMAZING" };
     public int[] ratingCombos = { 10, 25, 45, 70, 100, 140, 190 };

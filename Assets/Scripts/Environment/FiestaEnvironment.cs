@@ -32,6 +32,12 @@ public enum FiestaSkin
     CyberFactory,   // a neon factory: conveyors with crates, robot arms, cogs, presses, lasers, steam
     PlanetRing,     // open space: ringed planets, tumbling asteroids, beacons, a nebula
     FireflyJungle,  // a night jungle: dense trees, giant glowing flowers, vines with beads, fireflies
+    // Video 25 (FiestaEnvironment.Neon25.cs):
+    CoralReef,      // under the sea: coral gardens, kelp, fish schools, jellyfish, sun rays, bubbles
+    SunsetCanyon,   // red mesas and buttes, cacti in bloom, hot-air balloons, a low sun
+    SakuraNight,    // cherry trees in bloom, stone and paper lanterns, a pond, a pagoda, falling petals
+    ElDorado,       // gold pyramids, statues, torches, spinning coins and gems, a sun disc
+    SkyKingdom,     // a sea of clouds, floating islands with waterfalls, rainbows, gold stars
 }
 
 /// Video 18's scenery ("Fiesta"): five Latin worlds, one per level, in the manner of LegendsEnvironment -
@@ -106,6 +112,8 @@ public partial class FiestaEnvironment : MonoBehaviour, IEnvironmentDecorator, I
             case FiestaSkin.Flamenco: BuildFlamenco(); break;
             case FiestaSkin.Lagoon: case FiestaSkin.CrystalCave: case FiestaSkin.CyberFactory:
             case FiestaSkin.PlanetRing: case FiestaSkin.FireflyJungle: BuildNeon24(); break;
+            case FiestaSkin.CoralReef: case FiestaSkin.SunsetCanyon: case FiestaSkin.SakuraNight:
+            case FiestaSkin.ElDorado: case FiestaSkin.SkyKingdom: BuildNeon25(); break;
             default: BuildFun(); break;
         }
         BuildBloomVolume();

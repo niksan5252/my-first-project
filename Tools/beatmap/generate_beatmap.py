@@ -117,6 +117,10 @@ ARM_GATE_TYPE = "ArmGate"    # JSON type, a pose with a duration: walls with slo
 ARM_GATE = "ArmGateSet"      # set: one ArmGate for the whole set
 ARM_FLOW = "ArmFlow"         # set: one long ArcHold drawing a pattern (eight, wave, zigzag, up-down, side-side), hands in turn
 ARM_SHAPES = (1, 2, 3, 4, 5, 6)
+POSE_WALL_TYPE = "PoseWall"   # JSON type with a duration (video 25): a wall with a pose's silhouette - take the pose
+POSE_WALLS = "PoseWalls"      # set: a pose wall every 4 beats, held 2, the poses in turn
+POSE_COUNT = 7                # CueSpawner.PoseNames: star, flamingo, horse, squat, reach, sidebend, lunge
+POSE_ORDER = (0, 1, 2, 4, 3, 5, 6, 1, 0, 6, 2, 5, 4, 3)   # every pose, no pose twice running, the mirrored ones both ways
 ARM_GATE_VARIANTS = ((1, 0), (0, 1), (3, 2), (1, 1), (3, 0), (0, 2), (1, 2), (0, 0), (3, 1))
 # SQUAT_JUMPS: kept, but not dealt into decks for now (the user is not using these jumps yet).   # 6 = deep wave, down to the knees
 # Video 18 - Latin dance-fitness moves (the music went guaracha / latin house):
@@ -150,10 +154,10 @@ COMPOUND = {HOLD_JAB, LEG_HOLD_PUNCH, SQUAT_PUNCH, RAILS_HIGH, PRESS_HOLD, CROSS
             STEP_TOUCH, JAB_CROSS, JAB_KICK, STEP_REACH, ARC_PUNCH, POWER_JUMP,
             STAR_JUMP, SKATER, WINDMILL, LADDER, HOPSCOTCH, KNEE_CLINCH, CROSS_JACK,
             CUMBIA, MERENGUE, SALSA, SAMBA, MARACAS, TORERO,
-            HIGH_KNEES, SQUAT_JUMPS, CROSS_CRUNCH, ARM_GATE, ARM_FLOW,
+            HIGH_KNEES, SQUAT_JUMPS, CROSS_CRUNCH, ARM_GATE, ARM_FLOW, POSE_WALLS,
             STEP_PAIR, PUNCH_PAIR, SPEED_PUNCH, SPEED_STEP, SQUAT, RAILS, LUNGE, WIDE}
 # Types that may carry a duration in the JSON: the holds, a long Dodge wall, the balance kerbs.
-DURATION_TYPES = {"KickHold", "PunchHold", "PunchSweep", "Dodge", CURB_GAP, CURB_SPLIT, ARC_HOLD, "Rails", "SquatHold", "ArmGate"}
+DURATION_TYPES = {"KickHold", "PunchHold", "PunchSweep", "Dodge", CURB_GAP, CURB_SPLIT, ARC_HOLD, "Rails", "SquatHold", "ArmGate", "PoseWall"}
 
 # The three obstacles. Unlike the note types these are not something to strike at the hit zone -
 # they are pieces of road furniture to get around, over or under, and in the game the camera
@@ -752,7 +756,7 @@ ALL_EXERCISES = (PUNCH, KICK, "PunchHold", "KickHold", SWEEP, CHORD, DODGE, CURB
                  HOLD_JAB, LEG_HOLD_PUNCH, SQUAT_PUNCH, RAILS_HIGH, PRESS_HOLD,
                  STAR_JUMP, SKATER, WINDMILL, LADDER, HOPSCOTCH, KNEE_CLINCH, CROSS_JACK,
                  CUMBIA, MERENGUE, SALSA, SAMBA, MARACAS, TORERO,
-                 HIGH_KNEES, SQUAT_JUMPS, CROSS_CRUNCH, ARM_GATE, ARM_FLOW)
+                 HIGH_KNEES, SQUAT_JUMPS, CROSS_CRUNCH, ARM_GATE, ARM_FLOW, POSE_WALLS)
 
 # Named set orders. A pattern is a list of (exercise, how many sets in a row), cycled until the
 # track runs out. This is the one place the shape of the workout lives: changing the routine
@@ -830,7 +834,7 @@ DEFAULT_SPACING_BEATS: Dict[str, float] = {
     # Video 17: the new moves read every beat (the knee clinch every other).
     STAR_JUMP: 1.0, SKATER: 1.0, WINDMILL: 1.0, LADDER: 1.0, HOPSCOTCH: 1.0, KNEE_CLINCH: 2.0, CROSS_JACK: 1.0,
     CUMBIA: 1.0, MERENGUE: 1.0, SALSA: 1.0, SAMBA: 1.0, MARACAS: 1.0, TORERO: 2.0,
-    HIGH_KNEES: 1.0, SQUAT_JUMPS: 2.0, CROSS_CRUNCH: 1.0, ARM_GATE: 1.0, ARM_FLOW: 1.0,
+    HIGH_KNEES: 1.0, SQUAT_JUMPS: 2.0, CROSS_CRUNCH: 1.0, ARM_GATE: 1.0, ARM_FLOW: 1.0, POSE_WALLS: 1.0,
     # Obstacles are spaced far wider than any note, and the number is not a taste judgement: the
     # camera performs the movement and has to be back at centre before the next one starts. The
     # longest reaction is the dodge, whose lead-in, hold and return together run 1.59 s - so at
@@ -2181,6 +2185,23 @@ for _n, _moves in enumerate(_D24):
         "finale": [PUNCH, JAB_CROSS, WINDMILL, STAR_JUMP, CROSS][_n],
     }
 
+# Video 25: the pose walls in every level, the new moves spread over the levels, the older moves
+# dealt so that no two levels share one; level 1 short and easy.
+_D25 = [
+    [POSE_WALLS, STEP_TAP, PUNCH, HIGH_KNEES],
+    [POSE_WALLS, CROSS_CRUNCH, JAB_KICK, ARM_GATE, CUMBIA, DUCK, SHIFT],
+    [POSE_WALLS, ARM_FLOW, HIGH_KNEES, SAMBA, MARACAS, BALANCE, DODGE, JACK],
+    [POSE_WALLS, ARM_GATE, CROSS_CRUNCH, STEP_PAIR, HIGH_LOW, SKATER, CURB, PRESS_HOLD, SIDE_JUMP],
+    [POSE_WALLS, ARM_FLOW, BALANCE, HIGH_KNEES, CROSS_CRUNCH, ARM_GATE, SPEED_STEP, PUNCH_PAIR, WINDMILL,
+     STAR_JUMP, RAILS, SWEEP, DODGE, POSE_WALLS],
+]
+for _n, _moves in enumerate(_D25):
+    CHARACTER_PLANS["deck25-%d" % (_n + 1)] = {
+        "deck": [(ex, {RAILS: 4, DODGE: 1, DUCK: 1, CURB: 1}.get(ex, 2)) for ex in _moves],
+        "spacing": DECK19_SPACING, "fill": _moves[1],
+        "finale": [PUNCH, JAB_KICK, JACK, SIDE_JUMP, STAR_JUMP][_n],
+    }
+
 def plan_sets_deck(bar_lines: np.ndarray, bar_map: List[str], rest_beats: float, beat: float,
                    track_end: float, plan_name: str) -> List[WorkoutSet]:
     import zlib
@@ -2378,6 +2399,8 @@ def expand_compound(events: List[Event], sets: List[WorkoutSet], beat: float, la
     balance_count = 0
     arm_flow_count = 0
     arm_gate_count = 0
+    pose_count = 0
+    pose_base = -1
     arc_count = 0
     for block in sets:
         members = sorted(by_set.get(block.index, []), key=lambda e: e.time)
@@ -2587,6 +2610,17 @@ def expand_compound(events: List[Event], sets: List[WorkoutSet], beat: float, la
                 left = n % 2 == 0
                 made.append(note(ev, KICK, 0 if left else 2)); made.append(note(ev, KICK, 1 if left else 3))
                 made.append(note(ev, PUNCH_HIGH, lane_count - 1 if left else 0))
+        elif ex == POSE_WALLS:
+            # A pose wall every 4 beats, held 2; the poses in turn (POSE_ORDER), the walls on the
+            # two halves of the road in turn, which mirrors the one-sided poses.
+            for n in range(0, len(members), 4):
+                ev = members[n]
+                if pose_base < 0: pose_base = int(round(600.0 / beat)) % len(POSE_ORDER)   # by the track's tempo (bpm x 10): each starts somewhere else, then goes on in order
+                k = pose_count + pose_base
+                pose_count += 1
+                w = note(ev, POSE_WALL_TYPE, 1 if k % 2 == 0 else lane_count - 2, min(2 * beat, max(beat, block.end - ev.time)))
+                w.shape = POSE_ORDER[k % len(POSE_ORDER)]
+                made.append(w)
         elif ex == ARM_GATE:
             # A gate every 4 beats (3 held), the variants in turn: (lane, height) - lane 1 both
             # arms, 0 / last one arm; height 0 shoulder, 1 low (squat), 2 high.

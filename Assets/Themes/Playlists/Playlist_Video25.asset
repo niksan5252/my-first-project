@@ -1,0 +1,112 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3bb9640588ee8e744972f872bcd42a92, type: 3}
+  m_Name: Playlist_Video25
+  m_EditorClassIdentifier: Assembly-CSharp::RunPlaylist
+  title: Video25
+  segments:
+  - label: Level 1 Coral Reef
+    role: 0
+    track: {fileID: 8300000, guid: 27c549f6b059f43409cb4b6fe08768bf, type: 3}
+    beatmapFileName: track25_1.json
+    theme: {fileID: 11400000, guid: 5259b569e7926974d876927e6124c398, type: 2}
+    clipStart: 0
+    clipEnd: 0
+    transitionIn: 3
+    transitionSeconds: 3.5
+    transitionLook: 0
+  - label: Level 2 Sunset Canyon
+    role: 0
+    track: {fileID: 8300000, guid: a6c08e1b9d191d646a0dd7a474d04def, type: 3}
+    beatmapFileName: track25_2.json
+    theme: {fileID: 11400000, guid: 4dadbc77cb3272649b26b5e55e6d9731, type: 2}
+    clipStart: 0
+    clipEnd: 0
+    transitionIn: 3
+    transitionSeconds: 3.5
+    transitionLook: 0
+  - label: Level 3 Sakura Night
+    role: 0
+    track: {fileID: 8300000, guid: 47ae40ad22fb2cb4aaa75a4d405c89da, type: 3}
+    beatmapFileName: track25_3.json
+    theme: {fileID: 11400000, guid: d525e83f69f31e6439d56cb6ec593c92, type: 2}
+    clipStart: 0
+    clipEnd: 0
+    transitionIn: 3
+    transitionSeconds: 3.5
+    transitionLook: 0
+  - label: Level 4 El Dorado
+    role: 0
+    track: {fileID: 8300000, guid: 03660a4c6ee9c2b4c83a08d5e5dca99c, type: 3}
+    beatmapFileName: track25_4.json
+    theme: {fileID: 11400000, guid: 01d7f575a3f36dd4a8e56a3b234fd7c0, type: 2}
+    clipStart: 0
+    clipEnd: 0
+    transitionIn: 3
+    transitionSeconds: 3.5
+    transitionLook: 0
+  - label: Level 5 Sky Kingdom
+    role: 0
+    track: {fileID: 8300000, guid: 365577c723a1ba64884f9cb185c5b155, type: 3}
+    beatmapFileName: track25_5.json
+    theme: {fileID: 11400000, guid: 51c9043fef88ae24c892e83a7754f625, type: 2}
+    clipStart: 0
+    clipEnd: 0
+    transitionIn: 3
+    transitionSeconds: 3.5
+    transitionLook: 0
+  preRoll: 1
+  noteMarginBeats: 1
+  wallsInTransition: 0
+  veilFogEnd: 22
+  thunderFlash: 0.8
+  thunderVolume: 1
+  thunderTrackStartVolume: 0.55
+  thunderRiseSeconds: 0.8
+  finalFadeSeconds: 0
+  trainerMotionSet: {fileID: 0}
+  trainerTextured: 0
+  trainerPanelInThemeColors: 0
+  hideTrainer: 0
+  trainerFilmed: 0
+  trainerMocap3D: 0
+  trainerClassic: 0
+  trainerV5: 1
+  scrollSpeedScale: 1.4
+  cameraFov: 75
+  motionBlur: 0.6
+  retention: 1
+  interludeSeconds: 4
+  introCardsSeconds: 3
+  outroSeconds: 36
+  endScreenSeconds: 20
+  loopVolume: 0.22
+  loopBars: 4
+  recordFromContent: 1
+  welcomeText: WELCOME TO BEAT TUNNEL
+  progressHud: 1
+  kcalPerMinute: 9
+  coachVoice: 1
+  favoriteQuestion: 1
+  spoilerSubtitle: 
+  welcomeVoice: 
+  introMoves: []
+  levelCards: 1
+  ratingWords:
+  - WELL DONE
+  - AWESOME
+  - FLAWLESS
+  - PERFECT
+  - THAT'S INCREDIBLE
+  - EPIC
+  - THAT'S AMAZING
+  ratingCombos: 0a000000190000002d00000046000000640000008c000000be000000i

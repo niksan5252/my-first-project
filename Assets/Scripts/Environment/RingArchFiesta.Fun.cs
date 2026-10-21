@@ -7,6 +7,7 @@ public partial class RingArchFiesta
 {
     private Color FunPrimary() =>
         IsNeon24 ? Neon24Primary()
+        : IsNeon25 ? Neon25Primary()
         : skin == FiestaSkin.Candy ? new Color(1f, 0.3f, 0.7f)
         : skin == FiestaSkin.Diner ? new Color(1f, 0.1f, 0.25f)
         : skin == FiestaSkin.Karts ? new Color(1f, 0.15f, 0.15f)
@@ -18,6 +19,7 @@ public partial class RingArchFiesta
 
     private Color FunSecond() =>
         IsNeon24 ? Neon24Second()
+        : IsNeon25 ? Neon25Second()
         : skin == FiestaSkin.Candy ? new Color(0.3f, 1f, 0.8f)
         : skin == FiestaSkin.Diner ? new Color(0.2f, 0.95f, 1f)
         : skin == FiestaSkin.Karts ? new Color(0.2f, 1f, 0.35f)
@@ -30,6 +32,7 @@ public partial class RingArchFiesta
     private void BuildFun(Mesh cube, Mesh sphere, Mesh cyl, FiestaKit props, float c, float r, float a0, float a1)
     {
         if (IsNeon24) { BuildNeon24Ring(cube, sphere, cyl, props, c, r, a0, a1); return; }
+        if (IsNeon25) { BuildNeon25Ring(cube, sphere, cyl, props, c, r, a0, a1); return; }
         Vector3 At(float a, float rad) => new Vector3(Mathf.Cos(a) * rad, c + Mathf.Sin(a) * rad, 0f);
         switch (skin)
         {

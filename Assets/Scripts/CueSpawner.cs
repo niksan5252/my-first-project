@@ -43,7 +43,10 @@ public enum CueType { Kick, Punch, Jump, PunchHold, KickHold, Dodge, Curb, Duck,
     Knee, SquatJump, Crunch,
     // ArmGate: two walls along the road's edges with a slot at shoulder height - stand in the
     // middle with both arms out through the slots and hold (a pose, like Rails).
-    ArmGate }
+    ArmGate,
+    // Video 25 (after the competitor's yellow walls): PoseWall - a glowing wall across the road
+    // with a pose's silhouette on it (shape = the pose, the lane's half mirrors it); take the pose.
+    PoseWall }
 
 /// Spawns pooled cue markers across the tunnel's lanes at a height matching their type
 /// (Kick = floor, Punch = chest, Jump = a low hurdle bar), colors each cue instance
@@ -550,7 +553,7 @@ public class CueSpawner : MonoBehaviour
                                                    CueType.Dodge, CueType.Curb, CueType.Duck, CueType.PunchSweep,
                                                    CueType.PunchHigh, CueType.CurbGap, CueType.CurbSplit, CueType.ArcHold,
                                                    CueType.Rails, CueType.SquatHold,
-                                                   CueType.Knee, CueType.SquatJump, CueType.Crunch, CueType.ArmGate };
+                                                   CueType.Knee, CueType.SquatJump, CueType.Crunch, CueType.ArmGate, CueType.PoseWall };
 
     // The border/tail color every cue's accent parts are blended toward — a deep ink-blue, so a
     // cyan cue gets a navy border and a magenta cue a dark plum one. Contrast, not bloom, is
@@ -1345,6 +1348,7 @@ public class CueSpawner : MonoBehaviour
         SetupHoldInstance(slotIndex, type, duration, lane);
         if (type == CueType.Dodge) AimDodgeChevrons(slotIndex, side);
         if (type == CueType.ArmGate) SetupArmGate(t, lane, shape);
+        if (type == CueType.PoseWall) SetupPoseWall(t, lane, shape);
         slots[slotIndex].splitShape = type == CueType.CurbSplit ? shape : 0;
         if (obstacle) SetupObstacleInstance(slotIndex, type, lane, extent);
         slots[slotIndex].longBody = type == CueType.Dodge && extent > dodgeWallLength + 0.1f;
@@ -1468,7 +1472,7 @@ public class CueSpawner : MonoBehaviour
          || type == CueType.ArcHold || type == CueType.Knee || type == CueType.Crunch) ? punchHitZoneZ : hitZoneZ;
 
     private static bool IsObstacle(CueType type) =>
-        type == CueType.Dodge || type == CueType.Curb || type == CueType.Duck || IsBalance(type);
+        type == CueType.Dodge || type == CueType.Curb || type == CueType.Duck || IsBalance(type) || type == CueType.PoseWall;
 
     private static bool IsBalance(CueType type) => type == CueType.CurbGap || type == CueType.CurbSplit
                                                  || type == CueType.Rails || type == CueType.SquatHold || type == CueType.ArmGate;
@@ -1486,6 +1490,7 @@ public class CueSpawner : MonoBehaviour
         float byDuration = duration * Mathf.Max(0.01f, tunnel.ScrollSpeed);
         if (type == CueType.Dodge) return Mathf.Max(dodgeWallLength, byDuration);
         if (IsBalance(type)) return Mathf.Max(1f, byDuration);
+        if (type == CueType.PoseWall) return 0.3f;     // a thin panel: a long body would fill the screen with its colour as it passes
         return ObstacleZExtent(type);
     }
 
@@ -1494,6 +1499,37 @@ public class CueSpawner : MonoBehaviour
     /// because the chart format already has a lane on every event and it is already validated
     /// against the tunnel - adding a `direction` field would mean a second thing to keep in step
     /// between the generator, the DTO, the reader and the spawner for no extra expressiveness.
+    // PoseWall's silhouettes (Resources/CueIcons/pose_*), by the note's `shape`. Drawn for the screen's
+    // right; a note on the left half of the lanes shows the mirror image.
+    public static readonly string[] PoseNames = { "star", "flamingo", "horse", "squat", "reach", "sidebend", "lunge" };
+    private Material[] poseMats;
+    private Material poseFaceMat;
+    private MaterialPropertyBlock poseMpb;
+
+    private void SetupPoseWall(Transform t, int lane, int shape)
+    {
+        if (poseMats == null)
+        {
+            poseMats = new Material[PoseNames.Length];
+            for (int i = 0; i < PoseNames.Length; i++) poseMats[i] = NewIconMat("pose_" + PoseNames[i]);
+        }
+        var icon = t.Find("PoseIcon");
+        if (icon == null) return;
+        int v = Mathf.Clamp(shape, 0, PoseNames.Length - 1);
+        icon.GetComponent<MeshRenderer>().sharedMaterial = poseMats[v];
+        var face = t.Find("Face");
+        if (face != null)
+        {
+            // The face matt and a touch under full brightness, so the black silhouette reads.
+            poseMpb ??= new MaterialPropertyBlock();
+            poseMpb.SetColor("_BaseColor", Color.Lerp(obstacleBodyColor, Color.white, 0.15f) * 0.85f);
+            face.GetComponent<MeshRenderer>().SetPropertyBlock(poseMpb);
+        }
+        var sc = icon.localScale;
+        sc.x = Mathf.Abs(sc.x) * (lane < tunnel.LaneCount * 0.5f ? -1f : 1f);
+        icon.localScale = sc;
+    }
+
     // ArmGate's slot heights by the note's `shape`: 0 shoulder, 1 low (squat, arms out), 2 high (arms up and out).
     private static readonly float[] ArmGateLow = { 1.7f, 1.05f, 2.35f };
     private static readonly float[] ArmGateHigh = { 2.25f, 1.6f, 2.9f };
@@ -2381,6 +2417,37 @@ public class CueSpawner : MonoBehaviour
                 {
                     root = root.transform, bright = bright.ToArray(), frame = System.Array.Empty<MeshRenderer>(),
                     head = System.Array.Empty<MeshRenderer>(), fill = fills.ToArray(),
+                    chevron = System.Array.Empty<MeshRenderer>(), chevronRoots = System.Array.Empty<Transform>(),
+                    stretch = stretchT, stretchBase = 1f,
+                };
+            }
+            case CueType.PoseWall:
+            {
+                // A wall across the middle of the road, a thin panel: a matt face in the obstacle colour
+                // (no bloom to eat the silhouette), neon edges round it, the pose in black on it
+                // (SetupPoseWall picks the pose and the colour).
+                var root = new GameObject("Cue_PoseWall");
+                root.transform.SetParent(transform, false);
+                var stretchT = new GameObject("Stretch").transform;
+                stretchT.SetParent(root.transform, false);
+                float hw = tunnel.FloorWidth * 0.36f, h = 3.1f;
+                var lo = new Vector3(-hw, 0f, 0f);
+                var hi = new Vector3(hw, h, 0.25f);
+                var bright = new List<MeshRenderer>(CreateBoxEdges(root.transform, lo, hi, obstacleEdgeThickness * 1.6f, cueBaseMat));
+                var face = new GameObject("Face");
+                face.transform.SetParent(root.transform, false);
+                face.transform.localPosition = new Vector3(0f, h * 0.5f, 0.1f);
+                face.transform.localScale = new Vector3(hw * 2f, h, 0.2f);
+                if (poseFaceMat == null) poseFaceMat = new Material(Shader.Find("Universal Render Pipeline/Unlit"));
+                AttachMesh(face, unitCubeMesh, poseFaceMat);     // its colour is SetupPoseWall's, not the cue tint's
+                var icon = AttachIcon(root.transform, punchIconQuad, fistIconMat, new Vector3(0f, h * 0.5f, -0.06f - IconLift));
+                icon.gameObject.name = "PoseIcon";
+                float q = Mathf.Max(0.01f, punchIconQuad.bounds.size.y);
+                icon.transform.localScale = Vector3.one * (h * 0.92f / q);
+                return new CueVisual
+                {
+                    root = root.transform, bright = bright.ToArray(), frame = System.Array.Empty<MeshRenderer>(),
+                    head = System.Array.Empty<MeshRenderer>(), fill = System.Array.Empty<MeshRenderer>(),
                     chevron = System.Array.Empty<MeshRenderer>(), chevronRoots = System.Array.Empty<Transform>(),
                     stretch = stretchT, stretchBase = 1f,
                 };

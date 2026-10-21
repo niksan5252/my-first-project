@@ -88,6 +88,7 @@ public class RetentionOverlay : MonoBehaviour
                     Add(a + c, a + 2f * c, Back.Black, "⚠ THIS VIDEO HAS " + levels + " LEVELS!", "don't leave between tracks").voice = Say(list, "LEVELS_" + levels);
                     Add(a + 2f * c, a + d, Back.Black, "HAVE FUN!", null).voice = Say(list, "HAVE_FUN");
                 }
+                else if (list.levelCards) { }       // LevelCards draws the break (video 25)
                 else if (d < 9f)
                 {
                     // Video 24 (retention): a short break - the level done, then straight to the

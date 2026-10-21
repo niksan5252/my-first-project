@@ -530,7 +530,7 @@ public class SilhouetteTrainerV5 : MonoBehaviour
                 // A gesture only shapes the stance: while a jump or a crouch owns the body the
                 // gesture gives way, or the tail of a wall's lean would twist the jump.
                 // The arms are free though: a punch or a circle goes on over a jump (PowerJump).
-                bool arms = g.kind == SilhouettePlannerV5.GestureKindV5.Punch || g.kind == SilhouettePlannerV5.GestureKindV5.PunchHold || g.kind == SilhouettePlannerV5.GestureKindV5.Arc || g.kind == SilhouettePlannerV5.GestureKindV5.TPose;
+                bool arms = g.kind == SilhouettePlannerV5.GestureKindV5.Punch || g.kind == SilhouettePlannerV5.GestureKindV5.PunchHold || g.kind == SilhouettePlannerV5.GestureKindV5.Arc || g.kind == SilhouettePlannerV5.GestureKindV5.TPose || g.kind == SilhouettePlannerV5.GestureKindV5.Pose;
                 float w = g.Weight(now) * (arms ? 1f : stance);
                 if (w <= 0f) continue;
                 int limb = g.side > 0 ? 0 : 1;           // the screen's right is the figure's left
@@ -649,6 +649,62 @@ public class SilhouetteTrainerV5 : MonoBehaviour
                             if (w > footW[k]) { footW[k] = w; foot[k] = f; }
                         }
                         body += new Vector3(0f, lift - (g.side == 1 ? s.wideSink * 0.5f * w : 0f), 0f);
+                        tapping = Mathf.Max(tapping, w);
+                        break;
+                    }
+                    case SilhouettePlannerV5.GestureKindV5.Pose:
+                    {
+                        // The pose wall's silhouette (CueSpawner.PoseNames), held. `limb`/`x` are the
+                        // screen side's limb, for the asymmetric poses.
+                        int other = 1 - limb;
+                        Vector3 osh = other == 0 ? lShoulder : rShoulder;
+                        float ox = X(-g.side);
+                        void Feet(Vector3 a, Vector3 b) { if (w > footW[0]) { footW[0] = w; foot[0] = a; } if (w > footW[1]) { footW[1] = w; foot[1] = b; } }
+                        void Hands(Vector3 tl, Vector3 tr)
+                        {
+                            Take(ref hand[0], w, lShoulder + tl, lShoulder + tl * 0.5f + new Vector3(0f, 0f, -0.08f));
+                            Take(ref hand[1], w, rShoulder + tr, rShoulder + tr * 0.5f + new Vector3(0f, 0f, -0.08f));
+                        }
+                        float L = X(1), Rr = X(-1);     // the figure's left hand is on the screen's right
+                        switch (g.arcShape)
+                        {
+                            case 0:   // STAR: arms up in a V, legs wide
+                                Feet(new Vector3(-s.wideOut * w, 0f, 0f), new Vector3(s.wideOut * w, 0f, 0f));
+                                Hands(new Vector3(L * 0.42f, s.punchHoldRaise * 0.95f, 0.02f), new Vector3(Rr * 0.42f, s.punchHoldRaise * 0.95f, 0.02f));
+                                body += new Vector3(0f, -s.wideSink * 0.4f * w, 0f);
+                                break;
+                            case 1:   // FLAMINGO: arms up in a V, this side's knee up
+                                if (w > footW[limb]) { footW[limb] = w; foot[limb] = new Vector3(x * 0.05f, s.oneLegLift * 1.25f * w, s.oneLegForward * 1.2f * w); }
+                                Hands(new Vector3(L * 0.4f, s.punchHoldRaise * 0.9f, 0.02f), new Vector3(Rr * 0.4f, s.punchHoldRaise * 0.9f, 0.02f));
+                                body += new Vector3(-x * s.oneLegShift * w, 0f, 0f);
+                                break;
+                            case 2:   // HORSE PUNCH: a wide low stance, this side's fist out to the side, the other at the chest
+                                Feet(new Vector3(-s.wideOut * 0.95f * w, 0f, 0f), new Vector3(s.wideOut * 0.95f * w, 0f, 0f));
+                                Take(ref hand[limb], w, shoulder + new Vector3(x * 0.66f, 0.02f, 0.04f), shoulder + new Vector3(x * 0.33f, 0.02f, -0.02f));
+                                Take(ref hand[other], w, osh + new Vector3(-ox * 0.12f, -0.22f, 0.25f), osh + new Vector3(ox * 0.25f, -0.3f, 0.05f));
+                                body += new Vector3(0f, -s.wideSinkSquat * 0.85f * w, 0f);
+                                break;
+                            case 3:   // SQUAT REACH: a deep squat, both arms straight forward
+                                Feet(new Vector3(-s.wideOut * 0.6f * w, 0f, 0f), new Vector3(s.wideOut * 0.6f * w, 0f, 0f));
+                                Hands(new Vector3(L * 0.12f, -0.02f, s.punchForward * 1.1f), new Vector3(Rr * 0.12f, -0.02f, s.punchForward * 1.1f));
+                                body += new Vector3(0f, -s.wideSinkSquat * w, 0f);
+                                break;
+                            case 4:   // REACH UP: tall, both arms straight up
+                                Hands(new Vector3(L * 0.1f, s.punchHoldRaise * 1.2f, 0f), new Vector3(Rr * 0.1f, s.punchHoldRaise * 1.2f, 0f));
+                                body += new Vector3(0f, 0.04f * w, 0f);
+                                break;
+                            case 5:   // SIDE BEND: feet apart, arms over the head, leaning to this side
+                                Feet(new Vector3(-s.wideOut * 0.55f * w, 0f, 0f), new Vector3(s.wideOut * 0.55f * w, 0f, 0f));
+                                Hands(new Vector3(L * 0.1f + x * 0.12f, s.punchHoldRaise * 1.05f, 0f), new Vector3(Rr * 0.1f + x * 0.12f, s.punchHoldRaise * 1.05f, 0f));
+                                lean += s.dodgeLeanDegrees * 1.8f * g.side * w;
+                                break;
+                            default:  // SIDE LUNGE: this side's leg out and bent, the other straight, arms out flat
+                                if (w > footW[limb]) { footW[limb] = w; foot[limb] = new Vector3(x * s.wideOut * 1.35f * w, 0f, 0f); }
+                                if (w > footW[other]) { footW[other] = w; foot[other] = new Vector3(-x * s.wideOut * 0.25f * w, 0f, 0f); }
+                                Hands(new Vector3(L * 0.62f, 0.02f, 0.02f), new Vector3(Rr * 0.62f, 0.02f, 0.02f));
+                                body += new Vector3(x * s.wideOut * 0.35f * w, -s.wideSink * w, 0f);
+                                break;
+                        }
                         tapping = Mathf.Max(tapping, w);
                         break;
                     }

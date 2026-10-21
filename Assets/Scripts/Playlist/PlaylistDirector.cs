@@ -117,6 +117,7 @@ public class PlaylistDirector : MonoBehaviour
             overlay.Configure(this, spawner);
             if (list.progressHud) gameObject.AddComponent<PlaylistProgressHud>().Configure(this, spawner);
             if (list.introMoves != null && list.introMoves.Length > 0) gameObject.AddComponent<NewMovesIntro>().Configure(this, spawner);
+            if (list.levelCards) gameObject.AddComponent<LevelCards>().Configure(this, spawner);
             if (hud != null) hud.UseRatingLadder(list.ratingWords, list.ratingCombos);
         }
 

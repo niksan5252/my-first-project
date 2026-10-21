@@ -43,7 +43,7 @@ public static class SilhouettePlannerV5
         }
     }
 
-    public enum GestureKindV5 { Punch, PunchHold, Kick, KickHold, Dodge, OneLeg, Wide, Hop, HopOne, Arc, SquatJump, Crunch, TPose }
+    public enum GestureKindV5 { Punch, PunchHold, Kick, KickHold, Dodge, OneLeg, Wide, Hop, HopOne, Arc, SquatJump, Crunch, TPose, Pose }
 
     public struct GestureV5
     {
@@ -263,6 +263,18 @@ public static class SilhouettePlannerV5
                     busyUntil = c.time;
                     returnFade = set.stepBlend;      // a slow settle back into the stance, not a snap
                     freeFrom = c.time + set.stepStay;
+                    break;
+                }
+                case CueType.PoseWall:
+                {
+                    // Into the wall's pose a beat before it, held while it passes (arcShape = the pose,
+                    // side = the half of the road, which mirrors it).
+                    float len = Mathf.Max(c.duration, beat);
+                    gestures.Add(new GestureV5
+                    {
+                        kind = GestureKindV5.Pose, side = side, outer = true, arcShape = c.shape,
+                        start = c.time - 1.6f * beat, impact = c.time, holdEnd = c.time + len, end = c.time + len + 0.5f * beat, note = i,
+                    });
                     break;
                 }
                 case CueType.ArmGate:
