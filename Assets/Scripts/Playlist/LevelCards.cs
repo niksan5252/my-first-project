@@ -24,6 +24,9 @@ public class LevelCards : MonoBehaviour
     private readonly List<RawImage> icons = new List<RawImage>();
     private readonly List<Image> plates = new List<Image>();
     private readonly List<RawImage> cueIcons = new List<RawImage>();
+    private readonly List<Material> glowMats = new List<Material>();
+    private readonly List<Image> glasses = new List<Image>();
+    private readonly List<Image> frames = new List<Image>();
     private readonly List<Outline> rims = new List<Outline>();
     private readonly List<TMP_Text> names = new List<TMP_Text>();
     private Card shown;
@@ -35,18 +38,18 @@ public class LevelCards : MonoBehaviour
     // button's pictogram (CueIcons), the silhouette's frames (CardIcons, "~" mirrored), the name).
     private static readonly (System.Func<BeatmapCue, bool> has, string cue, string frames, string name)[] Moves =
     {
-        (c => c.type == CueType.PoseWall, "pose_star", "pose_star pose_flamingo pose_horse pose_reach pose_squat ~pose_lunge", "POSE WALLS"),
-        (c => c.type == CueType.ArmGate, "armgate", "armgate_down armgate", "ARMS OUT"),
-        (c => c.type == CueType.Knee, "knee", "pose_flamingo ~pose_flamingo", "HIGH KNEES"),
-        (c => c.type == CueType.Crunch, "crunch", "crunch ~crunch", "ELBOW TO KNEE"),
-        (c => c.type == CueType.ArcHold && c.shape != 0, "armflow", "wave1 wave2 wave3 wave2", "ARM WAVES"),
-        (c => c.type == CueType.CurbGap || c.type == CueType.CurbSplit, "foot", "pose_flamingo ~pose_flamingo", "BALANCE"),
-        (c => c.type == CueType.SquatHold, "chev_down", "stand pose_squat", "SQUAT"),
-        (c => c.type == CueType.Dodge, "chev_side", "dodge ~dodge", "DODGE"),
-        (c => c.type == CueType.Duck, "chev_down", "duck_stand duck", "DUCK"),
-        (c => c.type == CueType.Curb, "chev_up", "stand jump", "JUMP"),
-        (c => c.type == CueType.Punch || c.type == CueType.PunchHigh || c.type == CueType.PunchHold, "fist", "pose_horse ~pose_horse", "PUNCH"),
-        (c => c.type == CueType.Kick || c.type == CueType.KickHold, "foot", "step ~step", "STEP"),
+        (c => c.type == CueType.PoseWall, "pose_star", "our_pose_star our_pose_flamingo our_pose_horse our_pose_reach our_pose_squat ~our_pose_lunge", "POSE WALLS"),
+        (c => c.type == CueType.ArmGate, "armgate", "our_stand our_armgate", "ARMS OUT"),
+        (c => c.type == CueType.Knee, "knee", "our_knee ~our_knee", "HIGH KNEES"),
+        (c => c.type == CueType.Crunch, "crunch", "our_crunch ~our_crunch", "ELBOW TO KNEE"),
+        (c => c.type == CueType.ArcHold && c.shape != 0, "armflow", "our_wave1 our_wave2 our_wave3 our_wave4", "ARM WAVES"),
+        (c => c.type == CueType.CurbGap || c.type == CueType.CurbSplit, "foot", "our_pose_flamingo ~our_pose_flamingo", "BALANCE"),
+        (c => c.type == CueType.SquatHold, "chev_down", "our_stand our_pose_squat", "SQUAT"),
+        (c => c.type == CueType.Dodge, "chev_side", "our_dodge ~our_dodge", "DODGE"),
+        (c => c.type == CueType.Duck, "chev_down", "our_stand our_pose_squat", "DUCK"),
+        (c => c.type == CueType.Curb, "chev_up", "our_stand our_jump", "JUMP"),
+        (c => c.type == CueType.Punch || c.type == CueType.PunchHigh || c.type == CueType.PunchHold, "fist", "our_punch ~our_punch", "PUNCH"),
+        (c => c.type == CueType.Kick || c.type == CueType.KickHold, "foot", "our_step ~our_step", "STEP"),
     };
 
     private static MoveShown Load((System.Func<BeatmapCue, bool> has, string cue, string frames, string name) m)
@@ -124,26 +127,48 @@ public class LevelCards : MonoBehaviour
             rays.Add(r);
         }
 
-        title = Text(go.transform, "Title", 150f, new Vector2(0f, 430f));
+        title = Text(go.transform, "Title", 140f, new Vector2(0f, 455f));
         DisplayFonts.Use(title, DisplayFonts.Bungee, 0.18f);
-        world = Text(go.transform, "World", 54f, new Vector2(0f, 330f));
+        world = Text(go.transform, "World", 50f, new Vector2(0f, 368f));
         DisplayFonts.Use(world, DisplayFonts.Monoton, 0.1f);
         world.wordSpacing = 60f;
         for (int i = 0; i < 4; i++)
         {
+            // A dark glass panel behind each figure, like the trainer's own, so the contour reads over the rays.
+            // (A thin frame in the world's colour under it - Outline would tint the whole panel.)
+            var frame = new GameObject("Frame" + i, typeof(RectTransform), typeof(Image)).GetComponent<Image>();
+            frame.rectTransform.SetParent(go.transform, false);
+            frame.rectTransform.anchorMin = frame.rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
+            frame.rectTransform.sizeDelta = new Vector2(306f, 476f);
+            frame.raycastTarget = false;
+            frames.Add(frame);
+            var glass = new GameObject("Glass" + i, typeof(RectTransform), typeof(Image)).GetComponent<Image>();
+            glass.rectTransform.SetParent(go.transform, false);
+            glass.rectTransform.anchorMin = glass.rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
+            glass.rectTransform.sizeDelta = new Vector2(300f, 470f);
+            glass.color = new Color(0.01f, 0.012f, 0.03f, 1f);
+            glass.raycastTarget = false;
+            glasses.Add(glass);
             var ic = new GameObject("Move" + i, typeof(RectTransform), typeof(RawImage)).GetComponent<RawImage>();
             ic.rectTransform.SetParent(go.transform, false);
             ic.rectTransform.anchorMin = ic.rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
-            ic.rectTransform.sizeDelta = new Vector2(300f, 300f);
+            ic.rectTransform.sizeDelta = new Vector2(275f, 440f);      // the captures are 500 x 800
             ic.raycastTarget = false;
+            // Our trainer, not a drawing (the user's call): the frames are captures of the V5 figure,
+            // drawn with the trainer panel's own contour shader, in the world's colour.
+            var glow = new Material(Shader.Find("Tunnel/SilhouetteGlowV5"));
+            glow.SetFloat("_ContourPx", 5f);
+            glow.SetFloat("_ClosePx", 4f);
+            ic.material = glow;
+            glowMats.Add(glow);
             var rim = ic.gameObject.AddComponent<Outline>();
-            rim.effectDistance = new Vector2(5f, -5f);
+            rim.effectColor = Color.clear;
             icons.Add(ic); rims.Add(rim);
             // The move's cue button above it, as it flies in the tunnel: a glowing square, the pictogram on it.
             var plate = new GameObject("Cue" + i, typeof(RectTransform), typeof(Image)).GetComponent<Image>();
             plate.rectTransform.SetParent(go.transform, false);
             plate.rectTransform.anchorMin = plate.rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
-            plate.rectTransform.sizeDelta = new Vector2(150f, 150f);
+            plate.rectTransform.sizeDelta = new Vector2(130f, 130f);
             plate.raycastTarget = false;
             var po = plate.gameObject.AddComponent<Outline>();
             po.effectColor = new Color(1f, 1f, 1f, 0.9f); po.effectDistance = new Vector2(4f, -4f);
@@ -214,6 +239,8 @@ public class LevelCards : MonoBehaviour
             icons[i].color = new Color(1f, 1f, 1f, fade);
             plates[i].rectTransform.localScale = Vector3.one * (k * (1f + 0.06f * Mathf.Exp(-(ft - Mathf.Floor(ft)) * 6f)));
             var pc = plates[i].color; pc.a = fade; plates[i].color = pc;
+            var gc = glasses[i].color; gc.a = fade * k; glasses[i].color = gc;
+            var fc = frames[i].color; fc.a = 0.9f * fade * k; frames[i].color = fc;
             cueIcons[i].color = new Color(0f, 0f, 0f, fade);
             SetAlpha(names[i], k * fade);
         }
@@ -234,17 +261,22 @@ public class LevelCards : MonoBehaviour
             bool on = i < n;
             icons[i].gameObject.SetActive(on);
             plates[i].gameObject.SetActive(on);
+            glasses[i].gameObject.SetActive(on);
+            frames[i].gameObject.SetActive(on);
             names[i].gameObject.SetActive(on);
             if (!on) continue;
             float x = (i - (n - 1) * 0.5f) * gap;
             icons[i].texture = card.moves[i].frames[0];
-            icons[i].rectTransform.anchoredPosition = new Vector2(x, -110f);
-            plates[i].rectTransform.anchoredPosition = new Vector2(x, 160f);
+            icons[i].rectTransform.anchoredPosition = new Vector2(x, -85f);
+            glasses[i].rectTransform.anchoredPosition = new Vector2(x, -85f);
+            frames[i].rectTransform.anchoredPosition = new Vector2(x, -85f);
+            frames[i].color = card.color;
+            plates[i].rectTransform.anchoredPosition = new Vector2(x, 235f);
             plates[i].color = i % 2 == 0 ? new Color(0f, 0.9f, 1f) : new Color(1f, 0.1f, 0.72f);     // the hands' colours
             cueIcons[i].texture = card.moves[i].cue;
-            rims[i].effectColor = card.color;
+            glowMats[i].SetColor("_GlowColor", card.color);
             names[i].text = card.moves[i].name;
-            names[i].rectTransform.anchoredPosition = new Vector2(x, -305f);
+            names[i].rectTransform.anchoredPosition = new Vector2(x, -365f);
             names[i].rectTransform.sizeDelta = new Vector2(gap > 0f ? gap : 600f, 80f);
         }
     }
@@ -252,5 +284,6 @@ public class LevelCards : MonoBehaviour
     private void OnDestroy()
     {
         if (canvas != null) Destroy(canvas.gameObject);
+        foreach (var m in glowMats) if (m != null) Destroy(m);
     }
 }
