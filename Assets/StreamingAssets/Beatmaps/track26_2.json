@@ -1,0 +1,707 @@
+{
+  "version": 1,
+  "track": "track26_2.wav",
+  "bpm": 130.042,
+  "audioOffset": 0.0,
+  "generator": "Tools/beatmap/generate_beatmap.py (librosa)",
+  "events": [
+    {
+      "time": 2.534,
+      "type": "CurbGap",
+      "lane": 0,
+      "duration": 6.695,
+      "intensity": 0.45
+    },
+    {
+      "time": 9.916,
+      "type": "Kick",
+      "lane": 0,
+      "duration": 0.0,
+      "intensity": 0.45
+    },
+    {
+      "time": 9.916,
+      "type": "PunchHigh",
+      "lane": 3,
+      "duration": 0.0,
+      "intensity": 0.45
+    },
+    {
+      "time": 10.378,
+      "type": "Kick",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 0.45
+    },
+    {
+      "time": 10.839,
+      "type": "Kick",
+      "lane": 3,
+      "duration": 0.0,
+      "intensity": 0.45
+    },
+    {
+      "time": 10.839,
+      "type": "PunchHigh",
+      "lane": 0,
+      "duration": 0.0,
+      "intensity": 0.45
+    },
+    {
+      "time": 11.3,
+      "type": "Kick",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 0.45
+    },
+    {
+      "time": 11.762,
+      "type": "Kick",
+      "lane": 0,
+      "duration": 0.0,
+      "intensity": 0.45
+    },
+    {
+      "time": 11.762,
+      "type": "PunchHigh",
+      "lane": 3,
+      "duration": 0.0,
+      "intensity": 0.45
+    },
+    {
+      "time": 12.223,
+      "type": "Kick",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 0.45
+    },
+    {
+      "time": 12.685,
+      "type": "Kick",
+      "lane": 3,
+      "duration": 0.0,
+      "intensity": 0.45
+    },
+    {
+      "time": 12.685,
+      "type": "PunchHigh",
+      "lane": 0,
+      "duration": 0.0,
+      "intensity": 0.45
+    },
+    {
+      "time": 13.146,
+      "type": "Kick",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 0.45
+    },
+    {
+      "time": 13.607,
+      "type": "Kick",
+      "lane": 0,
+      "duration": 0.0,
+      "intensity": 0.45
+    },
+    {
+      "time": 13.607,
+      "type": "PunchHigh",
+      "lane": 3,
+      "duration": 0.0,
+      "intensity": 0.45
+    },
+    {
+      "time": 14.069,
+      "type": "Kick",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 0.45
+    },
+    {
+      "time": 14.53,
+      "type": "Kick",
+      "lane": 3,
+      "duration": 0.0,
+      "intensity": 0.45
+    },
+    {
+      "time": 14.53,
+      "type": "PunchHigh",
+      "lane": 0,
+      "duration": 0.0,
+      "intensity": 0.45
+    },
+    {
+      "time": 14.992,
+      "type": "Kick",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 0.45
+    },
+    {
+      "time": 15.453,
+      "type": "Kick",
+      "lane": 0,
+      "duration": 0.0,
+      "intensity": 0.45
+    },
+    {
+      "time": 15.453,
+      "type": "PunchHigh",
+      "lane": 3,
+      "duration": 0.0,
+      "intensity": 0.45
+    },
+    {
+      "time": 15.914,
+      "type": "Kick",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 0.45
+    },
+    {
+      "time": 16.376,
+      "type": "Kick",
+      "lane": 3,
+      "duration": 0.0,
+      "intensity": 0.45
+    },
+    {
+      "time": 16.376,
+      "type": "PunchHigh",
+      "lane": 0,
+      "duration": 0.0,
+      "intensity": 0.45
+    },
+    {
+      "time": 17.298,
+      "type": "KickHold",
+      "lane": 1,
+      "duration": 0.843,
+      "intensity": 0.45
+    },
+    {
+      "time": 18.221,
+      "type": "KickHold",
+      "lane": 2,
+      "duration": 0.843,
+      "intensity": 0.45
+    },
+    {
+      "time": 19.144,
+      "type": "KickHold",
+      "lane": 1,
+      "duration": 0.843,
+      "intensity": 0.45
+    },
+    {
+      "time": 20.067,
+      "type": "KickHold",
+      "lane": 2,
+      "duration": 0.843,
+      "intensity": 0.45
+    },
+    {
+      "time": 20.99,
+      "type": "KickHold",
+      "lane": 1,
+      "duration": 0.843,
+      "intensity": 0.45
+    },
+    {
+      "time": 21.912,
+      "type": "KickHold",
+      "lane": 2,
+      "duration": 0.843,
+      "intensity": 0.45
+    },
+    {
+      "time": 22.835,
+      "type": "KickHold",
+      "lane": 1,
+      "duration": 0.843,
+      "intensity": 0.45
+    },
+    {
+      "time": 23.758,
+      "type": "KickHold",
+      "lane": 2,
+      "duration": 0.156,
+      "intensity": 0.45
+    },
+    {
+      "time": 24.681,
+      "type": "Punch",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 0.45
+    },
+    {
+      "time": 25.603,
+      "type": "Punch",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 0.45
+    },
+    {
+      "time": 26.526,
+      "type": "Punch",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 0.45
+    },
+    {
+      "time": 27.449,
+      "type": "Punch",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 0.45
+    },
+    {
+      "time": 28.372,
+      "type": "Punch",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 0.45
+    },
+    {
+      "time": 29.295,
+      "type": "Punch",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 0.45
+    },
+    {
+      "time": 30.217,
+      "type": "Punch",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 0.45
+    },
+    {
+      "time": 31.14,
+      "type": "Punch",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 0.45
+    },
+    {
+      "time": 32.063,
+      "type": "ArmGate",
+      "lane": 3,
+      "duration": 1.384,
+      "intensity": 0.873
+    },
+    {
+      "time": 33.908,
+      "type": "ArmGate",
+      "lane": 0,
+      "duration": 1.384,
+      "intensity": 0.903,
+      "shape": 2
+    },
+    {
+      "time": 35.754,
+      "type": "ArmGate",
+      "lane": 1,
+      "duration": 1.384,
+      "intensity": 1.0,
+      "shape": 2
+    },
+    {
+      "time": 37.6,
+      "type": "ArmGate",
+      "lane": 0,
+      "duration": 1.159,
+      "intensity": 1.0
+    },
+    {
+      "time": 39.445,
+      "type": "CurbSplit",
+      "lane": 2,
+      "duration": 6.695,
+      "intensity": 0.45,
+      "shape": 2
+    },
+    {
+      "time": 46.827,
+      "type": "Crunch",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 0.918
+    },
+    {
+      "time": 47.289,
+      "type": "Crunch",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 0.901
+    },
+    {
+      "time": 47.75,
+      "type": "Crunch",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 0.838
+    },
+    {
+      "time": 48.211,
+      "type": "Crunch",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 0.847
+    },
+    {
+      "time": 48.673,
+      "type": "Crunch",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 0.98
+    },
+    {
+      "time": 49.134,
+      "type": "Crunch",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 0.971
+    },
+    {
+      "time": 49.596,
+      "type": "Crunch",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 0.869
+    },
+    {
+      "time": 50.057,
+      "type": "Crunch",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 0.919
+    },
+    {
+      "time": 50.518,
+      "type": "Crunch",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 0.949
+    },
+    {
+      "time": 50.98,
+      "type": "Crunch",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 0.932
+    },
+    {
+      "time": 51.441,
+      "type": "Crunch",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 0.861
+    },
+    {
+      "time": 51.903,
+      "type": "Crunch",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 0.879
+    },
+    {
+      "time": 52.364,
+      "type": "Crunch",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 0.983
+    },
+    {
+      "time": 52.825,
+      "type": "Crunch",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 0.973
+    },
+    {
+      "time": 53.287,
+      "type": "Crunch",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 0.936
+    },
+    {
+      "time": 54.21,
+      "type": "Dodge",
+      "lane": 0,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 56.055,
+      "type": "Punch",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 0.997
+    },
+    {
+      "time": 56.978,
+      "type": "Punch",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 0.931
+    },
+    {
+      "time": 57.901,
+      "type": "Punch",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 58.823,
+      "type": "Punch",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 0.882
+    },
+    {
+      "time": 59.746,
+      "type": "Punch",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 60.669,
+      "type": "Punch",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 0.943
+    },
+    {
+      "time": 61.592,
+      "type": "Punch",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 0.45
+    },
+    {
+      "time": 62.515,
+      "type": "Punch",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 0.45
+    },
+    {
+      "time": 63.437,
+      "type": "Dodge",
+      "lane": 3,
+      "duration": 0.0,
+      "intensity": 0.45
+    },
+    {
+      "time": 65.283,
+      "type": "ArmGate",
+      "lane": 0,
+      "duration": 1.159,
+      "intensity": 0.45,
+      "shape": 2
+    },
+    {
+      "time": 67.128,
+      "type": "Kick",
+      "lane": 3,
+      "duration": 0.0,
+      "intensity": 0.45
+    },
+    {
+      "time": 67.128,
+      "type": "PunchHigh",
+      "lane": 0,
+      "duration": 0.0,
+      "intensity": 0.45
+    },
+    {
+      "time": 67.59,
+      "type": "Kick",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 0.45
+    },
+    {
+      "time": 68.051,
+      "type": "Kick",
+      "lane": 0,
+      "duration": 0.0,
+      "intensity": 0.45
+    },
+    {
+      "time": 68.051,
+      "type": "PunchHigh",
+      "lane": 3,
+      "duration": 0.0,
+      "intensity": 0.45
+    },
+    {
+      "time": 68.974,
+      "type": "Punch",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 69.897,
+      "type": "Punch",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 70.819,
+      "type": "Punch",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 71.742,
+      "type": "Punch",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 72.665,
+      "type": "Punch",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 73.588,
+      "type": "Punch",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 74.511,
+      "type": "Punch",
+      "lane": 1,
+      "duration": 0.0,
+      "intensity": 1.0
+    },
+    {
+      "time": 75.433,
+      "type": "Punch",
+      "lane": 2,
+      "duration": 0.0,
+      "intensity": 1.0
+    }
+  ],
+  "sets": [
+    {
+      "index": 0,
+      "exercise": "Balance",
+      "start": 2.078,
+      "end": 9.229,
+      "restEnd": 9.46,
+      "notes": 1
+    },
+    {
+      "index": 1,
+      "exercise": "Cumbia",
+      "start": 9.46,
+      "end": 16.611,
+      "restEnd": 16.842,
+      "notes": 23
+    },
+    {
+      "index": 2,
+      "exercise": "KickHold",
+      "start": 16.842,
+      "end": 23.994,
+      "restEnd": 24.224,
+      "notes": 8
+    },
+    {
+      "index": 3,
+      "exercise": "JabCross",
+      "start": 24.224,
+      "end": 31.376,
+      "restEnd": 31.607,
+      "notes": 8
+    },
+    {
+      "index": 4,
+      "exercise": "ArmGateSet",
+      "start": 31.607,
+      "end": 38.758,
+      "restEnd": 38.989,
+      "notes": 4
+    },
+    {
+      "index": 5,
+      "exercise": "Balance",
+      "start": 38.989,
+      "end": 46.14,
+      "restEnd": 46.371,
+      "notes": 1
+    },
+    {
+      "index": 6,
+      "exercise": "CrossCrunch",
+      "start": 46.371,
+      "end": 53.523,
+      "restEnd": 53.753,
+      "notes": 15
+    },
+    {
+      "index": 7,
+      "exercise": "Dodge",
+      "start": 53.753,
+      "end": 55.368,
+      "restEnd": 55.599,
+      "notes": 1
+    },
+    {
+      "index": 8,
+      "exercise": "JabCross",
+      "start": 55.599,
+      "end": 62.75,
+      "restEnd": 62.981,
+      "notes": 8
+    },
+    {
+      "index": 9,
+      "exercise": "Dodge",
+      "start": 62.981,
+      "end": 64.596,
+      "restEnd": 64.827,
+      "notes": 1
+    },
+    {
+      "index": 10,
+      "exercise": "ArmGateSet",
+      "start": 64.827,
+      "end": 66.441,
+      "restEnd": 66.672,
+      "notes": 1
+    },
+    {
+      "index": 11,
+      "exercise": "Cumbia",
+      "start": 66.672,
+      "end": 68.287,
+      "restEnd": 68.518,
+      "notes": 5
+    },
+    {
+      "index": 12,
+      "exercise": "JabCross",
+      "start": 68.518,
+      "end": 75.669,
+      "restEnd": 75.9,
+      "notes": 8
+    }
+  ]
+}

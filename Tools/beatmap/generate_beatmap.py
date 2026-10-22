@@ -2202,6 +2202,24 @@ for _n, _moves in enumerate(_D25):
         "finale": [PUNCH, JAB_KICK, JACK, SIDE_JUMP, STAR_JUMP][_n],
     }
 
+# Video 26 (phonk; "back to how it was at the start" - long sets, a clean warm-up then a dance):
+# few moves per level, each held for a long set so it settles before the next; level 1 a warm-up of
+# 8-bar sets, the others 4-bar sets; the new moves (pose walls, arm gates, cross crunch, arm
+# patterns, balance kerbs) and the long holds spread over the levels; no high knees.
+_D26 = [
+    (4, [STEP_TAP, PUNCH, ARM_FLOW, STEP_TOUCH, ARM_GATE, POSE_WALLS]),
+    (4, [CROSS_CRUNCH, JAB_CROSS, ARM_GATE, CUMBIA, BALANCE, "KickHold", DODGE]),
+    (4, [POSE_WALLS, SALSA, PUNCH_KICK, ARM_FLOW, LUNGE, MARACAS, DUCK]),
+    (4, [CROSS_CRUNCH, WINDMILL, STEP_PAIR, ARM_GATE, PRESS_HOLD, SKATER, CURB]),
+    (4, [POSE_WALLS, ARM_FLOW, STAR_JUMP, MERENGUE, CROSS_JACK, BALANCE, ARM_GATE, SWEEP, DODGE]),
+]
+for _n, (_bars, _moves) in enumerate(_D26):
+    CHARACTER_PLANS["deck26-%d" % (_n + 1)] = {
+        "deck": [(ex, {DODGE: 1, DUCK: 1, CURB: 1}.get(ex, _bars)) for ex in _moves],
+        "spacing": DECK19_SPACING, "fill": _moves[0],
+        "finale": [PUNCH, JAB_CROSS, SALSA, WINDMILL, STAR_JUMP][_n],
+    }
+
 def plan_sets_deck(bar_lines: np.ndarray, bar_map: List[str], rest_beats: float, beat: float,
                    track_end: float, plan_name: str) -> List[WorkoutSet]:
     import zlib
