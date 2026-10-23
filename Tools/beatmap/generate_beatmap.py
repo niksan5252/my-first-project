@@ -2238,6 +2238,26 @@ for _n, _moves in enumerate(_D27):
         "finale": [PUNCH_PAIR, JAB_CROSS, SALSA, STAR_JUMP, STAR_JUMP][_n],
     }
 
+# Video 28 (retention: 90% of views on TV from autoplay, ~2 min watched): video 27's clean style
+# (it held viewers best), dealt over up to seven shorter levels cut by prepare_levels.py (no quiet
+# intros or long breakdowns). Level 1 is an easy warm-up with the punch pairs from its first bar;
+# a big move (star jump / jab cross) closes every level.
+_D28 = [
+    [STEP_TAP, PUNCH_PAIR, STEP_TOUCH, PUNCH, ARM_FLOW, DODGE],
+    [JAB_CROSS, STEP_PAIR, PUNCH_PAIR, ARM_GATE, "PunchHold", DUCK, POSE_WALLS],
+    [CUMBIA, PUNCH_PAIR, STEP_TOUCH, ARM_FLOW, "KickHold", BALANCE, DODGE, SWEEP],
+    [SALSA, HIGH_LOW, PUNCH_PAIR, JACK, POSE_WALLS, LUNGE, CURB, ARM_GATE],
+    [MERENGUE, PUNCH, PUNCH_PAIR, STAR_JUMP, ARM_FLOW, PRESS_HOLD, DUCK, BALANCE, SQUAT],
+    [CUMBIA, JAB_CROSS, PUNCH_PAIR, CROSS_CRUNCH, STAR_JUMP, ARM_GATE, "KickHold", RAILS_HIGH, DODGE],
+    [SALSA, JAB_CROSS, PUNCH_PAIR, STAR_JUMP, POSE_WALLS, ARM_FLOW, ARM_GATE, "PunchHold", DUCK, DODGE, SWEEP],
+]
+for _n, _moves in enumerate(_D28):
+    CHARACTER_PLANS["deck28-%d" % (_n + 1)] = {
+        "deck": [(ex, {DODGE: 1, DUCK: 1, CURB: 1}.get(ex, 4)) for ex in _moves],
+        "spacing": DECK19_SPACING, "fill": _moves[0], "split": True,
+        "finale": [PUNCH_PAIR, JAB_CROSS, STAR_JUMP, SALSA, STAR_JUMP, JAB_CROSS, STAR_JUMP][_n],
+    }
+
 def plan_sets_deck(bar_lines: np.ndarray, bar_map: List[str], rest_beats: float, beat: float,
                    track_end: float, plan_name: str) -> List[WorkoutSet]:
     import zlib
