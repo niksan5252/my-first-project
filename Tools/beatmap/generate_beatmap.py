@@ -2220,6 +2220,24 @@ for _n, (_bars, _moves) in enumerate(_D26):
         "finale": [PUNCH, JAB_CROSS, SALSA, WINDMILL, STAR_JUMP][_n],
     }
 
+# Video 27 (after video 26 held viewers 20-30 s longer): simple and clean. No cross combos (a leg
+# and the opposite hand out together), no high knees; punch pairs (both fists) welcome; "split"
+# puts the walls, holds and arm patterns on the quiet bars and the plain cues on the loud ones.
+SLOW_SETS = DECK_HOLDS | OBSTACLE_SETS | {POSE_WALLS, ARM_GATE, ARM_FLOW}
+_D27 = [
+    [STEP_TAP, PUNCH, PUNCH_PAIR, STEP_TOUCH, ARM_FLOW, "PunchHold", DODGE, POSE_WALLS],
+    [JAB_CROSS, CUMBIA, PUNCH_PAIR, STEP_PAIR, ARM_GATE, "KickHold", DUCK, BALANCE, SWEEP],
+    [SALSA, HIGH_LOW, PUNCH_PAIR, CROSS_CRUNCH, JACK, POSE_WALLS, LUNGE, ARM_FLOW, CURB, RAILS_HIGH],
+    [MERENGUE, PUNCH, PUNCH_PAIR, STEP_TOUCH, STAR_JUMP, ARM_GATE, PRESS_HOLD, DODGE, BALANCE, SQUAT],
+    [CUMBIA, JAB_CROSS, PUNCH_PAIR, SALSA, CROSS_CRUNCH, STAR_JUMP, POSE_WALLS, ARM_FLOW, ARM_GATE, "KickHold", DUCK, DODGE, SWEEP],
+]
+for _n, _moves in enumerate(_D27):
+    CHARACTER_PLANS["deck27-%d" % (_n + 1)] = {
+        "deck": [(ex, {DODGE: 1, DUCK: 1, CURB: 1}.get(ex, 4)) for ex in _moves],
+        "spacing": DECK19_SPACING, "fill": _moves[0], "split": True,
+        "finale": [PUNCH_PAIR, JAB_CROSS, SALSA, STAR_JUMP, STAR_JUMP][_n],
+    }
+
 def plan_sets_deck(bar_lines: np.ndarray, bar_map: List[str], rest_beats: float, beat: float,
                    track_end: float, plan_name: str) -> List[WorkoutSet]:
     import zlib
@@ -2246,7 +2264,7 @@ def plan_sets_deck(bar_lines: np.ndarray, bar_map: List[str], rest_beats: float,
         ex = deck[i][0]
         if history and ex == history[-1]: return False
         if history and ex in OBSTACLE_SETS and history[-1] in OBSTACLE_SETS: return False
-        if history and ex in DECK_HOLDS and history[-1] in DECK_HOLDS and ex not in OBSTACLE_SETS: return False
+        if history and ex in DECK_HOLDS and history[-1] in DECK_HOLDS and ex not in OBSTACLE_SETS and not plan.get("split"): return False
         return True
 
     def draw(max_bars: int, prefer_hold: bool, at: float = -1.0) -> Optional[int]:
@@ -2259,7 +2277,12 @@ def plan_sets_deck(bar_lines: np.ndarray, bar_map: List[str], rest_beats: float,
             prefer_hold = False
         fresh = [j for j in candidates if deck[queue[j]][0] not in history[-3:]]
         candidates = fresh or candidates     # a move does not come back within three sets if avoidable
-        if prefer_hold:
+        if plan.get("split"):
+            # Video 27 (the user): the quiet build-ups get the walls, the holds and the arm patterns,
+            # the loud part the ordinary cues - never the other way round if the deck allows.
+            pool = [j for j in candidates if (deck[queue[j]][0] in SLOW_SETS) == prefer_hold]
+            candidates = pool or candidates
+        elif prefer_hold:
             holds = [j for j in candidates if deck[queue[j]][0] in DECK_HOLDS]
             candidates = holds or candidates
         if not candidates: return None
