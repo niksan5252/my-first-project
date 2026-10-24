@@ -5,6 +5,8 @@ writes Docs/competitors/<video>/ (about 1-2 MB a video):
   sheet_full.jpg   - a frame every 10 s, 8 to a row, left to right, top to bottom
   sheet_intro.jpg  - the first 60 s, a frame every 2 s, 6 to a row
   summary.json     - duration, BPM, loudness and bass per second, scene cuts (big picture changes)
+  sheet_cues_a.jpg / sheet_cues_b.jpg - 40 s of gameplay at 3 frames a second (level 1 from 0:40, and a
+                     later level at 60% of the video): every cue, the combo counter and the trainer readable
 then commit and push Docs/competitors."""
 import json, os, re, subprocess, sys, tempfile
 import numpy as np
@@ -71,6 +73,9 @@ def main():
         dur = duration(v)
         sheet(v, os.path.join(out, "sheet_full.jpg"), 0, dur, 10, 8)
         sheet(v, os.path.join(out, "sheet_intro.jpg"), 0, min(60, dur), 2, 6, 400)
+        # dense gameplay strips: the cue logic (what comes when, how often, which side)
+        sheet(v, os.path.join(out, "sheet_cues_a.jpg"), 40, 40, 1 / 3, 10, 384)
+        sheet(v, os.path.join(out, "sheet_cues_b.jpg"), round(dur * 0.6), 40, 1 / 3, 10, 384)
         cuts = scene_cuts(v)
         loud, bass, bpm = audio(v)
         json.dump({"file": f, "duration": round(dur, 1), "bpm": bpm, "scene_cuts": cuts,
