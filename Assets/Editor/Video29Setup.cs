@@ -1,72 +1,52 @@
 using System.Collections.Generic;
-using System.IO;
 using UnityEditor;
 using UnityEngine;
-using UnityEngine.Rendering;
-using UnityEngine.Rendering.Universal;
 
-/// Video 29: BEAT TUNNEL MEGA MIX - a long classroom video (90% of views are on TV; the competitor's 20-minute
-/// DANCE MODE #25 runs seven levels). The ten levels of videos 26 and 27 with their own tracks and charts,
-/// alternated so an easy level opens it and the gold one closes it - each track in a different world than
-/// in its own video, so the picture is new and only the music repeats. Idempotent.
+/// Video 29: BEST OF BEAT TUNNEL - a compilation of the ten best levels so far, each with its own track,
+/// chart and world (taken from its own video's playlist). Picked by the cue rules the analytics gave
+/// (1.3-1.5 notes a second, 8-13 move types, the long levels of videos 13/14/10 that kept viewers best),
+/// cut to about 2:15 each (a bar line), ~21 min of music.
+/// The opening is the competitor's: a spoiler of the loudest moments of five levels, the secret one last,
+/// then BEST OF BEAT TUNNEL -> THIS VIDEO HAS 10 LEVELS -> LEVEL 10 IS A SECRET! The hook: the last level
+/// is the SECRET LEVEL, every level card counts down to it. Idempotent.
 public static class Video29Setup
 {
-    private const string Themes = "Assets/Themes/";
-    private const string Prefabs = "Assets/Prefabs/";
-    private const string Settings = "Assets/Settings/";
-    public const string PlaylistPath = Themes + "Playlists/Playlist_Video29.asset";
-    private const string ImportTemplate = "Assets/Audio/Tracks/irokz_goodbye_my_love.wav";
+    public const string PlaylistPath = "Assets/Themes/Playlists/Playlist_Video29.asset";
 
-    private class Skin
+    // (source video, track, world name, clip end (0 = the whole track)), in the order they play: an easy,
+    // bright level first, the strongest in the middle and at the end, the gold one as the secret level.
+    private static readonly (int video, string track, string world, float end)[] Levels =
     {
-        public FiestaSkin id;
-        public string name, source, track;
-        public Color primary, secondary, floor, fog, filter;
-        public float exposure, saturation;
-    }
-
-    private static readonly Color LeftHand = new Color(0f, 0.9f, 1f);
-    private static readonly Color RightHand = new Color(1f, 0.1f, 0.72f);
-
-    private static Skin S(FiestaSkin id, string name, string source, string track, Color a, Color b, Color fog, float exposure = 0.35f) => new Skin
-    {
-        id = id, name = name, source = source, track = track, primary = a, secondary = b,
-        floor = new Color(0.03f, 0.03f, 0.045f), fog = fog, filter = new Color(1f, 0.98f, 0.98f), exposure = exposure, saturation = 18f,
+        (11, "track11_3", "Rio Carnival", 0f),
+        (10, "track10_1", "Orbit Station", 134.7f),
+        (13, "track13_3", "Desert", 133.77f),
+        (22, "track22_3", "Neon Ocean", 0f),
+        (14, "track14_4", "Funfair", 133.69f),
+        (12, "track12_3", "Neo Tokyo", 134.6f),
+        (9, "track9_2", "Cyber Grid", 134.28f),
+        (24, "track24_5", "Firefly Jungle", 134.63f),
+        (13, "track13_4", "Matrix", 133.28f),
+        (27, "track27_5", "El Dorado", 0f),
     };
 
-    // Track -> a world other than the one it had in its own video (26 / 27).
-    private static Skin[] Skins() => new[]
+    // The spoiler: 3 s of the densest, loudest bars (index into Levels, from, to); the secret world last.
+    private static readonly (int level, float from, float to)[] Spoilers =
     {
-        S(FiestaSkin.CyberFactory, "Cyber Factory", "Rainbow", "track27_1", new Color(1f, 0.15f, 0.25f), new Color(0.2f, 0.9f, 1f), new Color(0.07f, 0.02f, 0.03f)),
-        S(FiestaSkin.Lagoon, "Tropical Lagoon", "BluePink", "track26_1", new Color(1f, 0.3f, 0.6f), new Color(0.1f, 1f, 0.85f), new Color(0.12f, 0.05f, 0.12f), 0.4f),
-        S(FiestaSkin.PlanetRing, "Planet Ring", "BluePink", "track27_2", new Color(0.65f, 0.3f, 1f), new Color(1f, 0.75f, 0.25f), new Color(0.03f, 0.02f, 0.07f)),
-        S(FiestaSkin.CoralReef, "Coral Reef", "BluePink", "track26_2", new Color(1f, 0.35f, 0.55f), new Color(0.1f, 1f, 0.9f), new Color(0.02f, 0.1f, 0.16f), 0.45f),
-        S(FiestaSkin.SakuraNight, "Sakura Night", "BluePink", "track27_3", new Color(1f, 0.45f, 0.75f), new Color(1f, 0.15f, 0.2f), new Color(0.06f, 0.03f, 0.08f)),
-        S(FiestaSkin.SunsetCanyon, "Sunset Canyon", "Rainbow", "track26_3", new Color(1f, 0.5f, 0.15f), new Color(0.1f, 0.9f, 0.85f), new Color(0.2f, 0.08f, 0.07f), 0.4f),
-        S(FiestaSkin.CrystalCave, "Crystal Cave", "BluePink", "track27_4", new Color(0.2f, 0.95f, 1f), new Color(1f, 0.2f, 0.85f), new Color(0.04f, 0.03f, 0.09f)),
-        S(FiestaSkin.FireflyJungle, "Firefly Jungle", "CyberGreen", "track26_4", new Color(0.5f, 1f, 0.2f), new Color(1f, 0.3f, 0.7f), new Color(0.02f, 0.06f, 0.04f)),
-        S(FiestaSkin.SkyKingdom, "Sky Kingdom", "BluePink", "track26_5", new Color(0.3f, 0.75f, 1f), new Color(1f, 0.45f, 0.8f), new Color(0.25f, 0.4f, 0.65f), 0.3f),
-        S(FiestaSkin.ElDorado, "El Dorado", "Rainbow", "track27_5", new Color(1f, 0.75f, 0.15f), new Color(0.2f, 1f, 0.6f), new Color(0.12f, 0.07f, 0.03f)),
+        (4, 98.9f, 101.9f), (8, 97.25f, 100.25f), (5, 62.5f, 65.5f), (7, 74.2f, 77.2f), (9, 30.4f, 34.4f),
     };
 
-    [MenuItem("Tunnel/Playlist/Build Video 29 (Mega Mix)", priority = 100)]
+    [MenuItem("Tunnel/Playlist/Build Video 29 (Best Of)", priority = 100)]
     public static void Build()
     {
-        var skins = Skins();
-        foreach (var sk in skins)
-            if (!File.Exists("Assets/Audio/Tracks/" + sk.track + ".wav") || !File.Exists("Assets/StreamingAssets/Beatmaps/" + sk.track + ".json"))
-            { Debug.LogError("[Video29] missing " + sk.track + " (.wav or chart)"); return; }
-        var themes = new TunnelTheme[skins.Length];
-        var tracks = new AudioClip[skins.Length];
-        for (int i = 0; i < skins.Length; i++)
+        var found = new PlaylistSegment[Levels.Length];
+        for (int i = 0; i < Levels.Length; i++)
         {
-            string path = "Assets/Audio/Tracks/" + skins[i].track + ".wav";
-            AssetDatabase.ImportAsset(path);
-            CopyTrackImport(path);
-            themes[i] = BuildTheme(skins[i]);
-            tracks[i] = AssetDatabase.LoadAssetAtPath<AudioClip>(path);
+            var (video, track, _, _) = Levels[i];
+            var src = AssetDatabase.LoadAssetAtPath<RunPlaylist>("Assets/Themes/Playlists/Playlist_Video" + video + ".asset");
+            if (src != null) found[i] = src.segments.Find(s => s != null && s.role == PlaylistSegmentRole.Level && s.beatmapFileName == track + ".json");
+            if (found[i] == null || found[i].track == null || found[i].theme == null)
+            { Debug.LogError("[Video29] no level " + track + " (track and theme) in Playlist_Video" + video); return; }
         }
-        AssetDatabase.SaveAssets();
 
         var p = AssetDatabase.LoadAssetAtPath<RunPlaylist>(PlaylistPath);
         if (p == null) { p = ScriptableObject.CreateInstance<RunPlaylist>(); AssetDatabase.CreateAsset(p, PlaylistPath); }
@@ -91,30 +71,44 @@ public static class Video29Setup
         p.trainerPanelInThemeColors = false;
         p.retention = true;
         p.recordFromContent = true;
-        p.interludeSeconds = 6f;              // the level card (LevelCards), 6 s - the user's call              // the short break naming the next world (RetentionOverlay)
-        p.introCardsSeconds = 3f;
+        p.interludeSeconds = 6f;              // the level card (LevelCards), 6 s - the user's call
+        p.introCardsSeconds = 9f;             // the three opening cards after the spoiler
         p.endScreenSeconds = 20f;
         p.loopVolume = 0.22f;
         p.loopBars = 4;
-        p.welcomeText = "WELCOME TO BEAT TUNNEL";
         p.progressHud = true;
         p.kcalPerMinute = 9f;
         p.coachVoice = true;
         p.favoriteQuestion = true;
-        p.spoilerSubtitle = "";
-        p.welcomeVoice = "";
         p.outroSeconds = 36f;
-
-        // No spoiler, no intro: LEVEL 1's card opens the video, a card before every level after it.
-        p.segments = new List<PlaylistSegment>();
-        p.introMoves = new string[0];
         p.levelCards = true;
-        for (int i = 0; i < skins.Length; i++)
+        p.introMoves = new string[0];
+
+        // The hook.
+        p.spoilerSubtitle = "WAIT FOR THE SECRET LEVEL 10!";
+        p.welcomeText = "BEST OF BEAT TUNNEL";
+        p.welcomeSubtitle = "THE 10 BEST LEVELS IN ONE VIDEO!";
+        p.welcomeVoice = "BEST_OF";
+        p.welcomeHook = "LEVEL 10 IS A SECRET!";
+        p.welcomeHookSubtitle = "can you make it to the end?";
+        p.welcomeHookVoice = "SECRET_HOOK";
+        p.secretFinal = true;
+
+        p.segments = new List<PlaylistSegment>();
+        foreach (var (level, from, to) in Spoilers)
             p.segments.Add(new PlaylistSegment
             {
-                label = "Level " + (i + 1) + " " + skins[i].name, role = PlaylistSegmentRole.Level,
-                track = tracks[i], beatmapFileName = skins[i].track + ".json", theme = themes[i],
-                clipStart = 0f, clipEnd = 0f, transitionIn = PlaylistTransition.Interlude, transitionSeconds = 3.5f,
+                label = "Spoiler " + Levels[level].world, role = PlaylistSegmentRole.Spoiler,
+                track = found[level].track, beatmapFileName = found[level].beatmapFileName, theme = found[level].theme,
+                clipStart = from, clipEnd = to, transitionIn = PlaylistTransition.Cut, transitionSeconds = 2f,
+                transitionLook = PlaylistTransitionLook.Veil,
+            });
+        for (int i = 0; i < Levels.Length; i++)
+            p.segments.Add(new PlaylistSegment
+            {
+                label = "Level " + (i + 1) + " " + Levels[i].world, role = PlaylistSegmentRole.Level,
+                track = found[i].track, beatmapFileName = found[i].beatmapFileName, theme = found[i].theme,
+                clipStart = 0f, clipEnd = Levels[i].end, transitionIn = PlaylistTransition.Interlude, transitionSeconds = 3.5f,
                 transitionLook = PlaylistTransitionLook.Veil,
             });
         if (v10 != null) CopyUnsetFlags(v10, p);
@@ -125,76 +119,10 @@ public static class Video29Setup
         Debug.Log("[Video29] built " + PlaylistPath + " (" + p.segments.Count + " segments)");
     }
 
-    // Video 9's neon base, the world's own scenery (FiestaEnvironment), and video 1's octagon rings
-    // (no arch prefab) in the world's two colours.
-    private static TunnelTheme BuildTheme(Skin s)
-    {
-        string key = s.name.Replace(" ", "");
-        var theme = CopyAsset<TunnelTheme>(Themes + "Theme_Video9_" + s.source + ".asset", Themes + "Theme_Neon29_" + key + ".asset");
-        theme.primaryColor = s.primary; theme.secondaryColor = s.secondary;
-        theme.accentEmissionIntensity = 1.35f;
-        theme.cueColorsByHand = true; theme.leftHandColor = LeftHand; theme.rightHandColor = RightHand;
-        theme.floorColor = s.floor; theme.floorMetallic = 0.15f; theme.floorSmoothness = 0.7f;
-        theme.floorGridLineColor = s.primary; theme.floorGridGlintIntensity = 0.45f;
-        theme.laneLineColor = s.secondary; theme.laneLineEmissionIntensity = 0.7f;
-        theme.fogColor = s.fog; theme.fogStartRatio = 0.45f; theme.fogEndRatio = 1f;
-        theme.ambientOverride = new Color(s.fog.r * 1.4f + 0.05f, s.fog.g * 1.4f + 0.05f, s.fog.b * 1.4f + 0.06f, 1f);
-        theme.lightIntensity = 0.5f;
-        theme.lightColor = new Color(0.9f, 0.88f, 1f);
-        theme.cameraBackgroundColor = s.fog;
-        theme.skyboxMaterial = null;           // the sky pieces are FiestaEnvironment's own, beyond the fog
-        theme.hudComboTextColor = s.primary; theme.hudBannerBorderColor = s.secondary;
-        theme.ringArchPrefab = Prefab("Ring_Neon29_" + key, s.id, typeof(RingArchFiesta));   // the world's own arch (RingArchFiesta.Neon25.cs)
-        theme.environmentPrefab = Prefab("Environment_Neon29_" + key, s.id, typeof(FiestaEnvironment));
-        theme.gatePrefab = null;
-        theme.postProcessingProfile = PostProfile(s, key);
-        EditorUtility.SetDirty(theme);
-        return theme;
-    }
-
-    private static GameObject Prefab(string name, FiestaSkin skin, System.Type script)
-    {
-        string path = Prefabs + name + ".prefab";
-        var go = new GameObject(name);
-        var comp = go.AddComponent(script);
-        var so = new SerializedObject(comp);
-        so.FindProperty("skin").enumValueIndex = (int)skin;
-        var bloom = so.FindProperty("dropBloom");
-        if (bloom != null) bloom.floatValue = 0.5f;
-        // The Kenney models: the project's set plus the factory and the full nature kit.
-        var list = so.FindProperty("kit");
-        var guids = AssetDatabase.FindAssets("t:Model", new[] { "Assets/ThirdParty/Kenney", "Assets/SharedAssets/Kits3D/kenney_factory-kit_3.0", "Assets/SharedAssets/Kits3D/kenney_nature-kit" });
-        list.arraySize = guids.Length;
-        for (int i = 0; i < guids.Length; i++)
-            list.GetArrayElementAtIndex(i).objectReferenceValue = AssetDatabase.LoadAssetAtPath<GameObject>(AssetDatabase.GUIDToAssetPath(guids[i]));
-        so.ApplyModifiedPropertiesWithoutUndo();
-        var prefab = PrefabUtility.SaveAsPrefabAsset(go, path);
-        Object.DestroyImmediate(go);
-        return prefab;
-    }
-
-    private static VolumeProfile PostProfile(Skin s, string key)
-    {
-        var source = AssetDatabase.LoadAssetAtPath<VolumeProfile>(Settings + "TunnelScene_PostProcessing_Video9_" + s.source + ".asset");
-        var copy = CopyAsset<VolumeProfile>(AssetDatabase.GetAssetPath(source), Settings + "TunnelScene_PostProcessing_Neon29_" + key + ".asset");
-        if (!copy.TryGet(out ColorAdjustments ca)) ca = copy.Add<ColorAdjustments>(true);
-        ca.colorFilter.overrideState = true; ca.colorFilter.value = s.filter;
-        ca.postExposure.overrideState = true; ca.postExposure.value = s.exposure;
-        ca.saturation.overrideState = true; ca.saturation.value = s.saturation;
-        EditorUtility.SetDirty(copy);
-        return copy;
-    }
-
-    private static T CopyAsset<T>(string from, string to) where T : Object
-    {
-        if (!File.Exists(to)) AssetDatabase.CopyAsset(from, to);
-        return AssetDatabase.LoadAssetAtPath<T>(to);
-    }
-
     private static readonly HashSet<string> SetHere = new HashSet<string>
     {
         "preRoll", "trainerFilmed", "trainerClassic", "trainerV5", "trainerMocap3D", "hideTrainer", "trainerTextured", "trainerPanelInThemeColors",
-        "retention", "recordFromContent", "progressHud", "coachVoice", "favoriteQuestion", "levelCards",
+        "retention", "recordFromContent", "progressHud", "coachVoice", "favoriteQuestion", "levelCards", "secretFinal",
     };
 
     private static void CopyUnsetFlags(RunPlaylist from, RunPlaylist to)
@@ -211,17 +139,6 @@ public static class Video29Setup
             if (d != null) d.boolValue = it.boolValue;
         }
         dst.ApplyModifiedPropertiesWithoutUndo();
-    }
-
-    private static void CopyTrackImport(string track)
-    {
-        var src = (AudioImporter)AssetImporter.GetAtPath(ImportTemplate);
-        var dst = (AudioImporter)AssetImporter.GetAtPath(track);
-        if (src == null || dst == null) return;
-        dst.defaultSampleSettings = src.defaultSampleSettings;
-        dst.forceToMono = src.forceToMono;
-        dst.loadInBackground = src.loadInBackground;
-        dst.SaveAndReimport();
     }
 
     [MenuItem("Tunnel/Playlist/Use: Video 29", priority = 100)] private static void UseVideo29() => HalloweenPlaylistSetup.Use(PlaylistPath);

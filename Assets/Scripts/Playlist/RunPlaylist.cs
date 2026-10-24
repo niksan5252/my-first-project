@@ -159,6 +159,13 @@ public class RunPlaylist : ScriptableObject
     public bool favoriteQuestion;            // the outro asks which world was the favourite (comment the number)
     public string spoilerSubtitle = "";      // under the SPOILER word, e.g. WAIT FOR THE FINAL LEVEL!
     public string welcomeVoice = "";         // the voice clip for the welcome card (Resources/Voice key)
+    public string welcomeSubtitle = "";      // the small line under the welcome card, e.g. THE 10 BEST LEVELS IN ONE VIDEO!
+    public string welcomeHook = "";          // the third opening card instead of HAVE FUN! (video 29: LEVEL 10 IS A SECRET!)
+    public string welcomeHookSubtitle = "";
+    public string welcomeHookVoice = "";
+    // Video 29: the last level is the SECRET LEVEL - its own card title and voice, and every level card
+    // before it counts down to it (the hook that keeps the viewer to the end).
+    public bool secretFinal;
     // Video 24: the moves shown over the Intro segment, "seconds|NAME|icon" (seconds from its start, a Resources/CueIcons name).
     public string[] introMoves = new string[0];
     // Video 25: a card before every level - LEVEL N, the world, its moves as silhouettes (LevelCards);

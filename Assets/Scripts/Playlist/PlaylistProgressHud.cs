@@ -129,11 +129,11 @@ public class PlaylistProgressHud : MonoBehaviour
         if (current != lastLevel && playing != null && now - playing.audioStart < 1.5f)
         {
             lastLevel = current;
-            if (director.Playlist.coachVoice) VoiceOver.SayNow(current == levels ? "LEVEL_FINAL" : "LEVEL_" + current);
+            if (director.Playlist.coachVoice) VoiceOver.SayNow(current == levels ? (director.Playlist.secretFinal ? "SECRET_LEVEL" : "LEVEL_FINAL") : "LEVEL_" + current);
         }
         if (!show) { ResetFov(); return; }
 
-        levelText.text = "LEVEL " + current + "/" + levels;
+        levelText.text = director.Playlist.secretFinal && current == levels ? "SECRET LEVEL" : "LEVEL " + current + "/" + levels;
         float p = Mathf.Clamp01(done / total);
         barFill.rectTransform.sizeDelta = new Vector2(Mathf.Max(18f, 620f * p), 18f);
         int kcal = Mathf.FloorToInt(done / 60f * director.Playlist.kcalPerMinute);

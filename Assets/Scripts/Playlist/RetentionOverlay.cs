@@ -84,9 +84,10 @@ public class RetentionOverlay : MonoBehaviour
                 if (tl.spans[k - 1].segment.role == PlaylistSegmentRole.Spoiler)
                 {
                     float c = d / 3f;
-                    Add(a, a + c, Back.Black, list.welcomeText, null).voice = list.coachVoice ? list.welcomeVoice : null;
+                    Add(a, a + c, Back.Black, list.welcomeText, Or(list.welcomeSubtitle)).voice = list.coachVoice ? list.welcomeVoice : null;
                     Add(a + c, a + 2f * c, Back.Black, "⚠ THIS VIDEO HAS " + levels + " LEVELS!", "don't leave between tracks").voice = Say(list, "LEVELS_" + levels);
-                    Add(a + 2f * c, a + d, Back.Black, "HAVE FUN!", null).voice = Say(list, "HAVE_FUN");
+                    if (string.IsNullOrEmpty(list.welcomeHook)) Add(a + 2f * c, a + d, Back.Black, "HAVE FUN!", null).voice = Say(list, "HAVE_FUN");
+                    else Add(a + 2f * c, a + d, Back.Black, list.welcomeHook, Or(list.welcomeHookSubtitle), Gold).voice = list.coachVoice ? list.welcomeHookVoice : null;
                 }
                 else if (list.levelCards) { }       // LevelCards draws the break (video 25)
                 else if (d < 9f)
@@ -168,6 +169,8 @@ public class RetentionOverlay : MonoBehaviour
     }
 
     private static string Say(RunPlaylist list, string key) => list.coachVoice ? key : null;
+
+    private static string Or(string s) => string.IsNullOrEmpty(s) ? null : s;
 
     private Card Add(float start, float end, Back back, string big, string small, Color? color = null)
     {

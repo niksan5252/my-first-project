@@ -13,14 +13,14 @@ public class LevelCards : MonoBehaviour
 {
     // A move on a card: its cue button's pictogram, the silhouette's frames ("~" = mirrored), its name.
     private sealed class MoveShown { public Texture2D cue; public Texture2D[] frames; public bool[] mirror; public string name; }
-    private sealed class Card { public float start, end; public string title, world; public Color color; public List<MoveShown> moves; }
+    private sealed class Card { public float start, end; public string title, world, hook; public Color color; public List<MoveShown> moves; }
 
     private CueSpawner spawner;
     private readonly List<Card> cards = new List<Card>();
     private Canvas canvas;
     private Image black;
     private readonly List<Image> rays = new List<Image>();
-    private TMP_Text title, world;
+    private TMP_Text title, world, hook;
     private readonly List<RawImage> icons = new List<RawImage>();
     private readonly List<Image> plates = new List<Image>();
     private readonly List<RawImage> cueIcons = new List<RawImage>();
@@ -68,11 +68,16 @@ public class LevelCards : MonoBehaviour
     {
         spawner = cueSpawner;
         var tl = owner.Timeline;
-        int level = 0;
+        bool secret = owner.Playlist != null && owner.Playlist.secretFinal;
+        int level = 0, levels = 0;
+        foreach (var s in tl.spans) if (s.segment.role == PlaylistSegmentRole.Level) levels++;
         foreach (var s in tl.spans)
         {
             if (s.segment.role != PlaylistSegmentRole.Level) continue;
             level++;
+            // After the spoiler the break holds the welcome cards (RetentionOverlay): this card goes over
+            // the level's first seconds then, as level 1's does without a spoiler.
+            bool ownBreak = s.IsInterlude && tl.spans[s.index - 1].segment.role != PlaylistSegmentRole.Spoiler;
             var picked = new List<MoveShown>();
             foreach (var m in Moves)
             {
@@ -86,9 +91,12 @@ public class LevelCards : MonoBehaviour
             var theme = s.segment.theme;
             cards.Add(new Card
             {
-                start = s.IsInterlude ? s.inStart : s.audioStart,
-                end = s.IsInterlude ? s.audioStart : s.audioStart + FirstCardSeconds,
-                title = "LEVEL " + level, world = (sp >= 0 ? label.Substring(sp + 1) : label).ToUpperInvariant(),
+                start = ownBreak ? s.inStart : s.audioStart,
+                end = ownBreak ? s.audioStart : s.audioStart + FirstCardSeconds,
+                title = secret && level == levels ? "SECRET LEVEL" : "LEVEL " + level, world = (sp >= 0 ? label.Substring(sp + 1) : label).ToUpperInvariant(),
+                // The countdown to the secret level (video 29), gold under the moves.
+                hook = !secret || levels < 2 ? "" : level == levels ? "YOU UNLOCKED IT!" : level == levels - 1 ? "NEXT: THE SECRET LEVEL!"
+                     : "SECRET LEVEL IN " + (levels - level) + " LEVELS",
                 color = theme != null ? theme.primaryColor : new Color(0f, 0.9f, 1f), moves = picked,
             });
         }
@@ -132,6 +140,9 @@ public class LevelCards : MonoBehaviour
         world = Text(go.transform, "World", 50f, new Vector2(0f, 368f));
         DisplayFonts.Use(world, DisplayFonts.Monoton, 0.1f);
         world.wordSpacing = 60f;
+        hook = Text(go.transform, "Hook", 46f, new Vector2(0f, -470f));
+        DisplayFonts.Use(hook, DisplayFonts.Russo, 0.25f);
+        hook.color = new Color(1f, 0.82f, 0.15f);
         for (int i = 0; i < 4; i++)
         {
             // A dark glass panel behind each figure, like the trainer's own, so the contour reads over the rays.
@@ -227,6 +238,7 @@ public class LevelCards : MonoBehaviour
         // The title slams in, the moves pop in one after another, a beat-ish pulse on them.
         title.rectTransform.localScale = Vector3.one * (1f + 0.6f * Mathf.Exp(-t * 9f));
         SetAlpha(title, fade); SetAlpha(world, Mathf.Clamp01((t - 0.15f) / 0.2f) * fade);
+        SetAlpha(hook, Mathf.Clamp01((t - 0.9f) / 0.2f) * fade * (0.75f + 0.25f * Mathf.Cos(t * 9f)));    // in after the moves, a slow blink
         for (int i = 0; i < card.moves.Count; i++)
         {
             float k = Mathf.Clamp01((t - 0.3f - i * 0.15f) / 0.2f);
@@ -253,6 +265,7 @@ public class LevelCards : MonoBehaviour
         shown = card;
         title.text = card.title;
         world.text = card.world;
+        hook.text = card.hook;
         world.color = Color.Lerp(card.color, Color.white, 0.3f);
         int n = card.moves.Count;
         float gap = n <= 1 ? 0f : Mathf.Min(440f, 1700f / n);
