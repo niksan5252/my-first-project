@@ -85,7 +85,7 @@ public class RetentionOverlay : MonoBehaviour
                 {
                     float c = d / 3f;
                     Add(a, a + c, Back.Black, list.welcomeText, Or(list.welcomeSubtitle)).voice = list.coachVoice ? list.welcomeVoice : null;
-                    Add(a + c, a + 2f * c, Back.Black, "⚠ THIS VIDEO HAS " + levels + " LEVELS!", "don't leave between tracks").voice = Say(list, "LEVELS_" + levels);
+                    Add(a + c, a + 2f * c, Back.Black, "THIS VIDEO HAS " + levels + " LEVELS!", "don't leave between tracks").voice = Say(list, "LEVELS_" + levels);
                     if (string.IsNullOrEmpty(list.welcomeHook)) Add(a + 2f * c, a + d, Back.Black, "HAVE FUN!", null).voice = Say(list, "HAVE_FUN");
                     else Add(a + 2f * c, a + d, Back.Black, list.welcomeHook, Or(list.welcomeHookSubtitle), Gold).voice = list.coachVoice ? list.welcomeHookVoice : null;
                 }
