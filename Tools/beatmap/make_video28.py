@@ -6,7 +6,10 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 TRACKS = os.path.normpath(os.path.join(HERE, "..", "..", "Assets", "Audio", "Tracks"))
 src = sys.argv[1]
 for old in glob.glob(os.path.join(TRACKS, "track28_*.wav")): os.remove(old)    # a re-run starts clean
-subprocess.run([sys.executable, os.path.join(HERE, "prepare_levels.py"), src, "track28", "--split", "2"], check=True)
+# After the analytics were matched to the right videos (YouTube #N = repo video N-1): quiet breakdowns did not
+# predict the drop at 0:30, and longer levels went with a LONGER average view. So: whole tracks (no split),
+# only the silent intro and very long breakdowns (16+ bars) are cut.
+subprocess.run([sys.executable, os.path.join(HERE, "prepare_levels.py"), src, "track28", "--split", "0", "--max-quiet-bars", "16"], check=True)
 levels = sorted(glob.glob(os.path.join(TRACKS, "track28_*.wav")), key=lambda p: int(p.rsplit("_", 1)[1].split(".")[0]))
 for n, wav in enumerate(levels, 1):
     r = subprocess.run([sys.executable, os.path.join(HERE, "generate_beatmap.py"), wav, "--detector", "grid", "--pattern", "deck28-%d" % n,
