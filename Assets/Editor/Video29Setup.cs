@@ -5,7 +5,8 @@ using UnityEngine;
 /// Video 29: BEST OF BEAT TUNNEL - a compilation of the ten best levels so far, each with its own track,
 /// chart and world (taken from its own video's playlist). Picked by the cue rules the analytics gave
 /// (1.3-1.5 notes a second, 8-13 move types, the long levels of videos 13/14/10 that kept viewers best),
-/// cut to about 2:15 each (a bar line), ~21 min of music.
+/// cut to about 2:15 each (a bar line), ~21 min of music. Every level is re-charted by those rules
+/// (Tools/beatmap: deck29-N, 4-bar sets of one move, 8-12 moves a level): StreamingAssets/Beatmaps/best29_N.json.
 /// The opening is the competitor's: a spoiler of the loudest moments of five levels, the secret one last,
 /// then BEST OF BEAT TUNNEL -> THIS VIDEO HAS 10 LEVELS -> LEVEL 10 IS A SECRET! The hook: the last level
 /// is the SECRET LEVEL, every level card counts down to it. Idempotent.
@@ -32,7 +33,7 @@ public static class Video29Setup
     // The spoiler: 3 s of the densest, loudest bars (index into Levels, from, to); the secret world last.
     private static readonly (int level, float from, float to)[] Spoilers =
     {
-        (4, 98.9f, 101.9f), (8, 97.25f, 100.25f), (5, 62.5f, 65.5f), (7, 74.2f, 77.2f), (9, 30.4f, 34.4f),
+        (4, 89.88f, 92.88f), (8, 43.31f, 46.31f), (5, 80.17f, 83.17f), (7, 67.84f, 70.84f), (9, 48.6f, 52.1f),
     };
 
     [MenuItem("Tunnel/Playlist/Build Video 29 (Best Of)", priority = 100)]
@@ -46,6 +47,8 @@ public static class Video29Setup
             if (src != null) found[i] = src.segments.Find(s => s != null && s.role == PlaylistSegmentRole.Level && s.beatmapFileName == track + ".json");
             if (found[i] == null || found[i].track == null || found[i].theme == null)
             { Debug.LogError("[Video29] no level " + track + " (track and theme) in Playlist_Video" + video); return; }
+            if (!System.IO.File.Exists("Assets/StreamingAssets/Beatmaps/best29_" + (i + 1) + ".json"))
+            { Debug.LogError("[Video29] no chart best29_" + (i + 1) + ".json"); return; }
         }
 
         var p = AssetDatabase.LoadAssetAtPath<RunPlaylist>(PlaylistPath);
@@ -99,7 +102,7 @@ public static class Video29Setup
             p.segments.Add(new PlaylistSegment
             {
                 label = "Spoiler " + Levels[level].world, role = PlaylistSegmentRole.Spoiler,
-                track = found[level].track, beatmapFileName = found[level].beatmapFileName, theme = found[level].theme,
+                track = found[level].track, beatmapFileName = "best29_" + (level + 1) + ".json", theme = found[level].theme,
                 clipStart = from, clipEnd = to, transitionIn = PlaylistTransition.Cut, transitionSeconds = 2f,
                 transitionLook = PlaylistTransitionLook.Veil,
             });
@@ -107,7 +110,7 @@ public static class Video29Setup
             p.segments.Add(new PlaylistSegment
             {
                 label = "Level " + (i + 1) + " " + Levels[i].world, role = PlaylistSegmentRole.Level,
-                track = found[i].track, beatmapFileName = found[i].beatmapFileName, theme = found[i].theme,
+                track = found[i].track, beatmapFileName = "best29_" + (i + 1) + ".json", theme = found[i].theme,
                 clipStart = 0f, clipEnd = Levels[i].end, transitionIn = PlaylistTransition.Interlude, transitionSeconds = 3.5f,
                 transitionLook = PlaylistTransitionLook.Veil,
             });

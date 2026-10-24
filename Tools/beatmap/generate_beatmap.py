@@ -2258,6 +2258,28 @@ for _n, _moves in enumerate(_D28):
         "finale": [PUNCH_PAIR, JAB_CROSS, STAR_JUMP, SALSA, STAR_JUMP, JAB_CROSS, STAR_JUMP][_n],
     }
 
+# Video 29 (Best Of: ten of the best tracks re-charted by the rules the analytics gave): video 27/28's
+# clean style, 4-bar sets of one move in an even rhythm, 8-12 move types a level, ~1.3-1.5 notes a
+# second; level 1 an easy warm-up, more moves level by level, level 10 (the secret one) everything.
+_D29 = [
+    [STEP_TAP, PUNCH_PAIR, STEP_TOUCH, PUNCH, ARM_FLOW, "PunchHold", DODGE, DUCK],
+    [JAB_CROSS, STEP_PAIR, PUNCH_PAIR, ARM_GATE, CUMBIA, "KickHold", DUCK, POSE_WALLS],
+    [SALSA, PUNCH, PUNCH_PAIR, STEP_TOUCH, HIGH_LOW, JACK, STEP_PAIR, DODGE, CURB],
+    [CUMBIA, HIGH_LOW, PUNCH_PAIR, CROSS_CRUNCH, ARM_GATE, PRESS_HOLD, POSE_WALLS, DUCK, SWEEP],
+    [MERENGUE, JAB_CROSS, PUNCH_PAIR, STAR_JUMP, ARM_FLOW, STEP_PAIR, HIGH_LOW, BALANCE, DODGE],
+    [SALSA, STEP_PAIR, PUNCH_PAIR, CROSS_CRUNCH, ARM_GATE, JACK, POSE_WALLS, "PunchHold", RAILS_HIGH, DODGE],
+    [CUMBIA, PUNCH, PUNCH_PAIR, STAR_JUMP, ARM_FLOW, SQUAT, BALANCE, DUCK, CURB, SWEEP],
+    [MERENGUE, HIGH_LOW, PUNCH_PAIR, CROSS_CRUNCH, ARM_GATE, LUNGE, POSE_WALLS, PRESS_HOLD, DODGE, DUCK],
+    [SALSA, JAB_CROSS, PUNCH_PAIR, STAR_JUMP, ARM_FLOW, JACK, "KickHold", BALANCE, RAILS_HIGH, DODGE, SWEEP],
+    [CUMBIA, JAB_CROSS, PUNCH_PAIR, SALSA, CROSS_CRUNCH, STAR_JUMP, POSE_WALLS, ARM_FLOW, ARM_GATE, "PunchHold", DUCK, DODGE],
+]
+for _n, _moves in enumerate(_D29):
+    CHARACTER_PLANS["deck29-%d" % (_n + 1)] = {
+        "deck": [(ex, {DODGE: 1, DUCK: 1, CURB: 1}.get(ex, 4)) for ex in _moves],
+        "spacing": DECK19_SPACING, "fill": _moves[0], "split": True,
+        "finale": [PUNCH_PAIR, JAB_CROSS, SALSA, STAR_JUMP, STAR_JUMP, JAB_CROSS, STAR_JUMP, SALSA, STAR_JUMP, STAR_JUMP][_n],
+    }
+
 def plan_sets_deck(bar_lines: np.ndarray, bar_map: List[str], rest_beats: float, beat: float,
                    track_end: float, plan_name: str) -> List[WorkoutSet]:
     import zlib
